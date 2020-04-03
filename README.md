@@ -40,3 +40,16 @@ If you haven't started the server you can also do it from this folder by running
 - Heroku PaaS
 - Our own hardware
 - We could use gh-pages probably if we handle the CORS, but I think that is more trouble than it's worth. We could just put our server behind CF anyway, since most the entire frontend should be cacheable. But we are not expecting that amount of users anytime soon.
+
+## Quick Git Guide
+
+I need to create a new branch (always branch off of master)
+```
+git checkout master && git pull --rebase origin master && git checkout -b <my-branch-name>
+```
+
+Either merge through a pull request or be brave and go to master and do
+```
+git merge <my-branch-name>
+```
+Branch and master conflicts are usually resolved best by rebasing as it gives a cleaner history
