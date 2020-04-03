@@ -32,6 +32,14 @@ class App extends React.Component {
     return (
     <div className="App">
       <header className="App-header">
+      <GoogleAPI clientId="dewedwewedf"
+        onUpdateSigninStatus={this.responseGoogle}
+        onInitFailure={this.responseGoogle}>
+        <GoogleLogin/>
+        </GoogleAPI>
+      </header>
+      <body className="App-body">
+
         <img src={logo} className="App-logo" alt="logo" />
         <p>The time is {time}.</p>
         <RefreshButton >{"Refresh the page"}</RefreshButton>
@@ -43,12 +51,7 @@ class App extends React.Component {
         >
           Learn React
         </a>
-        <GoogleAPI clientId="dewedwewedf"
-        onUpdateSigninStatus={this.responseGoogle}
-        onInitFailure={this.responseGoogle}>
-          <GoogleLogin/>
-        </GoogleAPI>
-      </header>
+        </body>
     </div>
   )
   }
