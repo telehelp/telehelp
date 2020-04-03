@@ -2,6 +2,7 @@ import React from 'react';
 import logo from './logo.svg';
 import './scss/App.scss';
 import RefreshButton from './components/RefreshButton';
+import {GoogleAPI, GoogleLogin, GoogleLogout} from 'react-google-oauth';
 
 class App extends React.Component {
   constructor(props) {
@@ -21,6 +22,10 @@ class App extends React.Component {
     .catch(console.log('error setting time'))
   }
 
+  responseGoogle(response) {
+    console.log(response)
+  }
+
   render() {
     const {time} = this.state;
 
@@ -38,6 +43,11 @@ class App extends React.Component {
         >
           Learn React
         </a>
+        <GoogleAPI clientId="dewedwewedf"
+        onUpdateSigninStatus={this.responseGoogle}
+        onInitFailure={this.responseGoogle}>
+          <GoogleLogin/>
+        </GoogleAPI>
       </header>
     </div>
   )
