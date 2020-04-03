@@ -43,13 +43,33 @@ If you haven't started the server you can also do it from this folder by running
 
 ## Quick Git Guide
 
-I need to create a new branch (always branch off of master)
+Ideally every issue should be given a pull request, this also allows for other people to check your changes as a quick code review. An extra set of eyes on code is always good.
+
+### CLI
+Creating a new branch to work off of (make sure taht you always branch from the master branch)
 ```
-git checkout master && git pull --rebase origin master && git checkout -b <my-branch-name>
+git checkout -b <my-branch-name>
+```
+Then add all the commits required to the branch for solving the issue.
+When the feature is done, you can push it to remote with
+```
+git push origin <my-branch-name>
+```
+and then make a pull request.
+If it has conflicts with the master branch, run
+```
+git pull --rebase origin master
+```
+and force-push your branch to remote once it's synced. This keeps the history relatively clean as there won't be any unnecessary merge conflicts that way. **Never force push master**, as it breaks everybodys history.
+
+### Commit messages
+
+A commit message is usually structured in the form
+```
+short description of what this commit does (generally max ~50 chars)
+
+longer description of why it does what it does
 ```
 
-Either merge through a pull request or be brave and go to master and do
-```
-git merge <my-branch-name>
-```
-Branch and master conflicts are usually resolved best by rebasing as it gives a cleaner history
+Commit messages are written in imperative mood i.e `If applied, this commit will <my-short-description>`
+
