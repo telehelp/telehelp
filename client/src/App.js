@@ -1,24 +1,35 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import logo from './logo.svg';
-import './App.css';
+import './scss/App.scss';
 import RefreshButton from './components/RefreshButton';
 
-function App() {
+class App extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      time: 0
+    }
+  }
 
-  const [currentTime, setCurrentTime] = useState(0);
+  componentDidMount() {
+    fetch('/time')
+    .then(res => res.json())
+    .then(data => this.setState({
+        time: data.time
+      }
+    ))
+    .catch(console.log('error setting time'))
+  }
 
-  useEffect(() => {
-    fetch('/time').then(res => res.json()).then(data => {
-      setCurrentTime(data.time);
-    });
-  }, []);
+  render() {
+    const {time} = this.state;
 
-  return (
+    return (
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
-        <p>The time is {currentTime}.</p>
-        <RefreshButton />
+        <p>The time is {time}.</p>
+        <RefreshButton >{"Refresh the page"}</RefreshButton>
         <a
           className="App-link"
           href="https://reactjs.org"
@@ -29,7 +40,8 @@ function App() {
         </a>
       </header>
     </div>
-  );
+  )
+  }
 }
 
 export default App;
