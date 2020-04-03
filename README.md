@@ -23,8 +23,9 @@ To run the api simply navigate to the `server` folder and do `flask run`, the se
 ### Client
 To be determined, but I think that [create-react-app](https://github.com/facebook/create-react-app) is worth considering. Although, [Vue](https://cli.vuejs.org/guide/creating-a-project.html) is also an option.
 
-Currently I have just setup a simple react frontend that shows the current time.
-It can be started by navbigating to the `client` directory and running `yarn start`.
+At the moment I have just setup a simple react frontend that shows the current time.
+It can be started by navigating to the `client` directory and running `yarn start`.
+
 If you haven't started the server you can also do it from this folder by running `yarn start-api`.
 
 
@@ -46,7 +47,7 @@ If you haven't started the server you can also do it from this folder by running
 Ideally every issue should be given a pull request, this also allows for other people to check your changes as a quick code review. An extra set of eyes on code is always good.
 
 ### CLI
-Creating a new branch to work off of (make sure taht you always branch from the master branch)
+Creating a new branch to work off of (make sure that you always branch from the master branch)
 ```
 git checkout -b <my-branch-name>
 ```
@@ -60,7 +61,7 @@ If it has conflicts with the master branch, run
 ```
 git pull --rebase origin master
 ```
-and force-push your branch to remote once it's synced. This keeps the history relatively clean as there won't be any unnecessary merge conflicts that way. **Never force push master**, as it breaks everybodys history.
+and force-push your branch to remote once it's synced. This keeps the history relatively clean as there won't be any unnecessary merge conflicts that way. **Never force push master**, this  breaks everybody's history.
 
 ### Commit messages
 
@@ -69,6 +70,7 @@ A commit message is usually structured in the form
 short description of what this commit does (generally max ~50 chars)
 
 longer description of why it does what it does
+if the the issue is complicated
 ```
 
 Commit messages are written in imperative mood i.e `If applied, this commit will <my-short-description>`
