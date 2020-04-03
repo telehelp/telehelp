@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import logo from './logo.svg';
 import './App.css';
+import RefreshButton from './components/RefreshButton';
 
 function App() {
 
-  function refreshPage() {
-    window.location.reload(false);
-  }
-  
   const [currentTime, setCurrentTime] = useState(0);
 
   useEffect(() => {
@@ -21,9 +18,15 @@ function App() {
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <p>The time is {currentTime}.</p>
-        <div>
-        <button onClick={refreshPage}>What's the current time now then?</button>
-        </div>
+        <RefreshButton />
+        <a
+          className="App-link"
+          href="https://reactjs.org"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Learn React
+        </a>
       </header>
     </div>
   );
