@@ -23,6 +23,11 @@ To run the api simply navigate to the `server` folder and do `flask run`, the se
 ### Client
 To be determined, but I think that [create-react-app](https://github.com/facebook/create-react-app) is worth considering. Although, [Vue](https://cli.vuejs.org/guide/creating-a-project.html) is also an option.
 
+Currently I have just setup a simple react frontend that shows the current time.
+It can be started by navbigating to the `client` directory and running `yarn start`.
+If you haven't started the server you can also do it from this folder by running `yarn start-api`.
+
+
 ## Usage and ideas
 - Login authentication can be done with JSON webtokens and the [Flask-JWT](https://pythonhosted.org/Flask-JWT/) package to allow access to protected endpoints.
 - The protected endpoints handle access to account management and the [46elks api](https://46elks.se/docs/overview).
