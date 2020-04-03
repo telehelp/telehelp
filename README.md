@@ -30,5 +30,7 @@ To be determined, but I think that [create-react-app](https://github.com/faceboo
 ### Hosting
 - Digital ocean [droplet](https://www.digitalocean.com/products/droplets/)
 - GCloud/Aws
+- Linode
+- Heroku PaaS
 - Our own hardware
 - We could use gh-pages probably if we handle the CORS, but I think that is more trouble than it's worth. We could just put our server behind CF anyway, since most the entire frontend should be cacheable. But we are not expecting that amount of users anytime soon.
