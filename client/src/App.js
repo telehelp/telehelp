@@ -35,20 +35,14 @@ class App extends React.Component {
           </div>
         </div>
         <div className="row">
-          <div className="col-12">
-            <TeleHelpIntroduction/>
-          </div>
-        </div>
-        <div className="row">
           <div className="col-8">
             <div className="introduction">
-              <h2> Registrera dig som hjälpare redan idag!</h2>
-              <p>The current time is {time}.</p>
+              <h2>Hjälp dina grannar att klara vardagen!</h2>
+              <p>
+                Som riskgrupp kan du ringa numret nedan för att enkelt få hjälp med dina vardagsbestyr av en volontär i närheten.
+              </p>
               <div className="row">
-                <div className="col-6">
-                  <img className="photo" src="/young-person.png" alt="Young person bringing bag to a door"></img>
-                </div>
-                <div className="col-6">
+                <div className="col-12 text-center">
                   <img className="photo" src="/old-people.png" alt="Two happy old people on a bench"></img>
                 </div>
               </div>
@@ -58,6 +52,12 @@ class App extends React.Component {
             </div>
           </div>
           <div className="col-4">
+            <div className="number-pres">
+            <h1><svg class="bi bi-phone" width="1em" height="1em" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+  <path fill-rule="evenodd" d="M11 1H5a1 1 0 00-1 1v12a1 1 0 001 1h6a1 1 0 001-1V2a1 1 0 00-1-1zM5 0a2 2 0 00-2 2v12a2 2 0 002 2h6a2 2 0 002-2V2a2 2 0 00-2-2H5z" clip-rule="evenodd"/>
+  <path fill-rule="evenodd" d="M8 14a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
+</svg><a href="+46766861551">07666861551</a></h1>
+            </div>
             <div className="signup" id="register">
               <RegistrationForm/>
             </div>
