@@ -3,6 +3,7 @@ import './App.scss';
 import RegistrationForm from './components/RegistrationForm';
 import FAQ from './components/FAQ';
 import TeleHelpBar from './components/TeleHelpBar';
+import TermsAndConditions from './components/TermsAndConditions';
 
 class App extends React.Component {
   constructor(props) {
@@ -44,15 +45,18 @@ class App extends React.Component {
             </div>
           </div>
           <div className="col-xs-4">
-            <a name="register">
-            <div className="signup">
+            <div className="signup" id="register">
               <RegistrationForm/>
             </div>
-            </a>
           </div>
         <div className="row">
           <div className="col-12">
             <FAQ/>
+          </div>
+        </div>
+        <div className="row">
+          <div className="col-12">
+            <TermsAndConditions/>
           </div>
         </div>
         </div>

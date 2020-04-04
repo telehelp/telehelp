@@ -53,7 +53,7 @@ function RegistrationForm() {
             id="terms"
             invalid={'terms' in errors}
             innerRef={register({required: true })}/>
-        <Label for="terms">Jag accepterar användarvillkoren</Label>
+        <Label for="terms">Jag accepterar <a href="#terms">användarvillkoren</a></Label>
         <FormFeedback invalid>Du måste acceptera användarvillkoren</FormFeedback>
       </FormGroup>
       <Input type="submit" value="Registrera!"/>
