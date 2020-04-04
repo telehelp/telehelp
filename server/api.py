@@ -86,6 +86,11 @@ def postcodeInput():
 					"next": BASE_URL+"/connectToHelper"}}
 	return json.dumps(payload)
 
+
+@app.rout('returningUser', methods = ['POST'])
+def returningUser():
+    pass
+
 @app.route('/handleNumberInput', methods = ['POST'])
 def handleNumberInput():
 	print(request.form.get("result"))
@@ -139,9 +144,11 @@ def register():
             print("valid data")
             city = getDistrict(int(request.json['zipCode']), district_dict)
             if city == "n/a":
-                return {'type': 'failure'}
+                return {'type': 'failure', 'message': 'Invalid Zip'}
             if request.json['phoneNumber'][0] == '0':
                 request.json['phoneNumber'] = '+46' + request.json['phoneNumber'][1:]
+            if userExists(DATABASE, request.json['phoneNumber'], 'helper'):
+                return return {'type': 'failure', 'message': 'User already exists'}
             saveHelperToDatabase(DATABASE, request.json['helperName'], request.json['phoneNumber'], request.json['zipCode'], city)
             return {'type': 'success'}
         except Exception as err:
