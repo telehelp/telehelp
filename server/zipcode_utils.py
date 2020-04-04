@@ -1,8 +1,8 @@
 import geopy.distance
 
-def readZipCodeData():
-	file_name = 'SE.txt'
-	zip_dictionary = {}
+def readZipCodeData(file_name):
+	location_dictionary = {}
+	district_dictionary = {}
 
 	with open(file_name, 'r', encoding='utf-8') as file:
 		for line in file:
@@ -12,16 +12,29 @@ def readZipCodeData():
 				long = input[8]
 				lat = input[9]
 				longlat = (long, lat) # as tuple
-				zip_dictionary[int(zip)] = longlat
-	return zip_dictionary
+				location_dictionary[int(zip)] = longlat
+				district_dictionary[int(zip)] = input[4]
+
+	return location_dictionary, district_dictionary
+
+location_dict, district_dict = readZipCodeData('SE.txt')
 
 #Input: coords1 and coords2 as tuples (lat,long)
-#Output: distance between zip code locations in km
+#Output: distance between zip code locations in km. Returns -1 if not found
 def getDistanceApart(zip1, zip2):
-	zip_dict = readZipCodeData()
-	coords1 = zip_dict[zip1]
-	coords2 = zip_dict[zip2]
-	return geopy.distance.vincenty(coords1, coords2).km
+	try:
+		coords1 = location_dict[zip1]
+		coords2 = location_dict[zip2]
+	except KeyError: # One of the provided zip codes is not included in SE.txt
+		return -1
 
-if __name__ == "__main__":
-	print(getDistanceApart(17070, 74693))
+	return geopy.distance.distance(coords1, coords2).km
+
+# Input: zip code to look up
+# Output: zip code's district, swedish 'län'
+def getDistrict(zip):
+	try:
+		district = district_dict[zip]
+	except KeyError:
+		return "n/a"
+	return district
