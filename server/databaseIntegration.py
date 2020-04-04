@@ -32,7 +32,7 @@ def writeToDatabase(db, query, params):
 		conn.close()
 		return 'Success'
 	except Exception as err:
-		print(err.)
+		print(err)
 		return 'Failure'    
 
 def saveHelperToDatabase(db, name, phone, zipcode, city):
