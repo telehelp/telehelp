@@ -2,10 +2,9 @@
 
 $font-stack:    'Open Sans', sans-serif;
 $primary-color: #333;
-
+$old-background: #b6f0e3;
 .App {
-  background-color: #282c34;
-  color: white;
+  color: $primary-color;
 
   .signup {
     padding: 3em;
@@ -19,6 +18,13 @@ $primary-color: #333;
 
   .telebar {
     padding-bottom: 3em;
+  }
+
+  .photo {
+    border-radius: 2em;
+    height: 300px;
+    //padding-bottom: 1em;
+    padding: 2em;
   }
 }
 

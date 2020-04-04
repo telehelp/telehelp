@@ -1,8 +1,9 @@
 import React from 'react';
+import { UncontrolledCollapse, Button } from 'reactstrap';
 
 class FAQ extends React.Component{
     render () {
-        const zip = (arr1, arr2) => arr1.map((k, i) => [k, arr2[i]]);
+        //const zip = (arr1, arr2) => arr1.map((k, i) => [k, arr2[i]]);
 
         const questions = ["Hur fungerar det?",
                         "Varför gör ni det?",
@@ -18,17 +19,22 @@ class FAQ extends React.Component{
                         "Vi har gjort vårt bästa för att hitta en lösning som kräver så lite information om både pensionärer och volontärer som möjligt: endast ett telefonnummer och postkod. Ett tilltalsnamn används också för att göra tjänsten mer personlig. Den som använder tjänsten får aldrig reda på den andra personens telefonnummer (KANSKE EJ STÄMMER), och kan när som helst avbryta möjligheten till kommunikation till och från den andra parten.",
                         "Om du känner dig helt säker på att du inte vill vara en vardagshjälte, så kan du på samma ställe som registreringen välja att ta bort ditt telefonnummer ur vår databas. Om du redan har kontakt med en pensionär rekommenderar vi att du förklarar varför du inte längre kan hjälpa till innan du gör detta.",
                         "Telehelp bidrar endast med att knyta samman pensionärer och volontärer. Det är upp till er att gemensamt hitta en lösning som fungerar för båda parter. Vi rekommenderar att ni minimerar närhet vid det fysiska mötet, och i första hand sköter betalning över exempelvis Swish. Då många äldre inte använder internettjänster kan det vara bra att vara förberedd på att få betalt i kontanter. Vi rekommenderar även att du sparar eventuella kvitton. Gör upp om detta innan du spenderar några pengar å den andres vägnar!"]
-        
-        const zipped = zip(questions, answers)
 
         return (
             <div className="faq" id="faq">
                 <h2>Vanliga frågor</h2>
-                <ul>
-                    {zipped.map((element, i)=> {
-                        return <li key={i}>{element[0]}<p>{element[1]}</p></li>
+                    {questions.map((element, i) => {
+                        return <Button key={i} color="primary" id={"faq-toggle-"+i} style={{ marginBottom: '1rem', marginRight: '1rem' }}>
+                            {element}
+                        </Button>
                     })}
-                </ul>
+                   {answers.map((element, i) => {
+                        return<UncontrolledCollapse toggler={"faq-toggle-"+i}>
+                        <p>
+                            {element}
+                        </p>
+                      </UncontrolledCollapse>
+                    })}
             </div>
         )
     }
