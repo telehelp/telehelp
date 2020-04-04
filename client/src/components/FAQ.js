@@ -22,6 +22,7 @@ class FAQ extends React.Component{
         const zipped = zip(questions, answers)
 
         return (
+            <a name="faq">
             <div className="faq">
                 <h2>Vanliga frågor</h2>
                 <ul>
@@ -30,6 +31,7 @@ class FAQ extends React.Component{
                     })}
                 </ul>
             </div>
+            </a>
         )
     }
 }
