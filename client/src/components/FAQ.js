@@ -24,12 +24,12 @@ class FAQ extends React.Component{
             <div className="faq" id="faq">
                 <h2>Vanliga frågor</h2>
                     {questions.map((element, i) => {
-                        return <Button key={i} color="primary" id={"faq-toggle-"+i} style={{ marginBottom: '1rem', marginRight: '1rem' }}>
+                        return <Button key={i} color="info" id={"faq-toggle-"+i} style={{ marginBottom: '1rem', marginRight: '1rem' }}>
                             {element}
                         </Button>
                     })}
                    {answers.map((element, i) => {
-                        return<UncontrolledCollapse toggler={"faq-toggle-"+i}>
+                        return<UncontrolledCollapse key={i} toggler={"faq-toggle-"+i}>
                         <p>
                             {element}
                         </p>
