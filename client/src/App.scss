@@ -4,29 +4,48 @@ $font-stack:    'Open Sans', sans-serif;
 $primary-color: #333;
 
 .App {
-  text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-.App-header {
+  // text-align: center;
+  // background-color: #282c34;
+  // color: white;
+  // display: flex;
+  padding-top: 10em;
   background-color: #282c34;
   min-height: 100vh;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+  flex-direction: row;
+  //align-items: center;
+  //justify-content: center;
+  // font-size: calc(10px + 2vmin);
   color: white;
+
+  .signup {
+    padding: 3em;
+    border-radius: 1em;
+    box-shadow: 0em 0em 2em grey;
+  }
+
+  .faq {
+    padding-top: 5em;
+  }
 }
 
-.block {
-  input {
-    text-align: right;
-  }
-  display: flex;
-}
+
+
+// .App-header {
+//   background-color: #282c34;
+//   min-height: 100vh;
+//   display: flex;
+//   flex-direction: column;
+//   align-items: center;
+//   justify-content: center;
+//   font-size: calc(10px + 2vmin);
+//   color: white;
+// }
+
+// .block {
+//   input {
+//     text-align: right;
+//   }
+//   display: flex;
+// }
 

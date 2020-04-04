@@ -1,14 +1,13 @@
 import React from 'react';
 import './App.scss';
-import RefreshButton from './components/RefreshButton';
 import RegistrationForm from './components/RegistrationForm';
+import FAQ from './components/FAQ';
 
 class App extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
       time: 0,
-      isRegistering: false
     }
   }
 
@@ -23,17 +22,33 @@ class App extends React.Component {
   }
 
   render() {
-    const {time, isRegistering} = this.state;
+    const {time} = this.state;
 
     return (
     <div className="App">
-      <header className="App-header">
-        <h1> Sign up for TeleHelp today!</h1>
-
-        <p>The current time is {time}.</p>
-        
-        <RegistrationForm/>
-      </header>
+      <div className="container">
+        <div className="row">
+          <div className="col-8">
+            <div className="introduction">
+              <h1> Registrera dig som hjälpare redan idag!</h1>
+              <p>The current time is {time}.</p>
+              <p>
+              Genom att skriva upp dig som volontär kan personer som ingår i riskgrupper eller som redan är smittade av corona i ditt närområde ringa till dig för att få hjälp med sysslor som plötsligt blivit svåra på grund av coronakrisen, exempelvis att handla mat eller hämta mediciner.
+              </p>
+            </div>
+          </div>
+          <div className="col-4">
+            <div className="signup">
+              <RegistrationForm/>
+            </div>
+          </div>
+        <div className="row">
+          <div className="col-12">
+            <FAQ/>
+          </div>
+        </div>
+        </div>
+      </div>
     </div>
   )
   }
