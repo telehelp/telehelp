@@ -34,6 +34,17 @@ def writeToDatabase(db, query, params):
 	except:
 		return 'Failure'    
 
+def saveHelperToDatabase(db, name, phone, zipcode):
+	print("Writing phone and postcode to database")
+	print('\nname: ', name, '\nzipcode:', zipcode, '\nphone: ', phone)
+
+	query = ''' INSERT INTO user_helpers (phone, name, zipcode) 
+									values(?, ?, ?) '''		
+	params = (phone, name, zipcode)
+	flag = writeToDatabase(db, query, params)
+	print(flag)
+	return flag
+
 def savePostcodeToDatabase(db, phone, zipcode, userType):
 	print("Writing phone and postcode to database")
 	print('zipcode:', zipcode, '\nphone: ', phone)
