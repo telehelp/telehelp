@@ -1,9 +1,21 @@
 import time
-from flask import Flask
+from flask import Flask, request
 import requests
 import os
 from databaseIntegration import *
 import pandas as pd
+from middlewares import login_required #Should maybe be properly relative
+import json
+
+API_USERNAME = os.environ.get('API_USERNAME')
+API_PASSWORD = os.environ.get('API_PASSWORD')
+
+databaseName = 'telehelp.db'
+helpers = getHelpers(databaseName)
+helper = list(helpers['phone'])[0]
+customers = getCustomers(databaseName)
+customer = list(customers['phone'])[0]
+
 
 app = Flask(__name__, static_folder='../client/build', static_url_path='/')
 
@@ -14,18 +26,6 @@ def index():
 @app.route('/time')
 def current_time():
     return {'time': time.time()}
-
-API_USERNAME = os.environ.get('API_USERNAME')
-API_PASSWORD = os.environ.get('API_PASSWORD')
-
-databaseName = 'telehelp.db'
-helpers = getHelpers(databaseName)
-print(helpers['phone'])
-helper = list(helpers['phone'])[0]
-customers = getCustomers(databaseName)
-customer = list(customers['phone'])[0]
-print(customer)
-
 
 @app.route('/call')
 def call():
@@ -64,3 +64,17 @@ def call():
 #             }
 #     )
 #     print(response)
+
+@app.route('/test', methods=["GET"])
+@login_required
+def test():
+    return {'entry': 'test'}
+
+@app.route('/register', methods=["POST"])
+def register():
+    if request.json:
+        creds = json.dumps(request.json)
+        print(creds)
+        return {'type': 'success'}
+    return {'type': 'failure'}
+
