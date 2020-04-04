@@ -11,5 +11,11 @@ class TestZipcodeUtils(unittest.TestCase):
     def test_zipInDB(self):
         self.assertEqual(math.floor(getDistanceApart(17070, 74693)), 35.0)
 
+    def test_districtInDB(self):
+        self.assertEqual(getDistrict(17070), 'Stockholm')
+
+    def test_districtNotInDB(self):
+        self.assertEqual(getDistrict(170700), 'n/a')
+
 if __name__ == '__main__':
     unittest.main()
