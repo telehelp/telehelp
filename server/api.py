@@ -13,7 +13,7 @@ app = Flask(__name__, static_folder='../client/build', static_url_path='/')
 
 API_USERNAME = os.environ.get('API_USERNAME')
 API_PASSWORD = os.environ.get('API_PASSWORD')
-BASE_URL = "https://9a56e1aa.ngrok.io"
+BASE_URL = "https://telehelp.se"
 DATABASE = 'telehelp.db'
 ZIPDATA = 'SE.txt'
 
