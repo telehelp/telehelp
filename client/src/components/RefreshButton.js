@@ -1,18 +1,16 @@
 import React from 'react';
-import './RefreshButton.css';
 
-function RefreshButton() {
-    function refreshPage() {
+class RefreshButton extends React.Component{
+    refreshPage() {
         window.location.reload(false);
       }
 
-    return (
-        <div>
-         <button onClick={refreshPage}>What's the current time now then?</button>
-        </div>
-    )
+    render () {
+        return (
+            <button onClick={this.refreshPage}>{this.props.children}</button>
+        )
+    }
 }
-
 export default RefreshButton;
 
 

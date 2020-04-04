@@ -1,35 +1,42 @@
-import React, { useState, useEffect } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import './App.scss';
 import RefreshButton from './components/RefreshButton';
+import RegistrationForm from './components/RegistrationForm';
 
-function App() {
+class App extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      time: 0,
+      isRegistering: false
+    }
+  }
 
-  const [currentTime, setCurrentTime] = useState(0);
+  componentDidMount() {
+    fetch('/time')
+    .then(res => res.json())
+    .then(data => this.setState({
+        time: data.time
+      }
+    ))
+    .catch(console.log('error setting time'))
+  }
 
-  useEffect(() => {
-    fetch('/time').then(res => res.json()).then(data => {
-      setCurrentTime(data.time);
-    });
-  }, []);
+  render() {
+    const {time, isRegistering} = this.state;
 
-  return (
+    return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>The time is {currentTime}.</p>
-        <RefreshButton />
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+        <h1> Sign up for TeleHelp today!</h1>
+
+        <p>The current time is {time}.</p>
+        
+        <RegistrationForm/>
       </header>
     </div>
-  );
+  )
+  }
 }
 
 export default App;
