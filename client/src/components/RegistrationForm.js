@@ -1,12 +1,16 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { Form, FormFeedback, FormGroup, Label, Input } from 'reactstrap';
+import { Form, FormFeedback, FormGroup, Label, Input, Button } from 'reactstrap';
 
 function RegistrationForm() {
   const { register, handleSubmit, errors } = useForm(); // initialise the hook
   const onSubmit = data => {
     console.log(data);
-    if (data )
+    if (!data)
+    {
+        console.log("Failed submitting, reason: no data")
+        return;
+    }
     fetch('/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -53,10 +57,10 @@ function RegistrationForm() {
             id="terms"
             invalid={'terms' in errors}
             innerRef={register({required: true })}/>
-        <Label for="terms">Jag accepterar användarvillkoren</Label>
+        <Label for="terms">Jag accepterar <a href="/terms-and-conditions.pdf">användarvillkoren</a></Label>
         <FormFeedback invalid>Du måste acceptera användarvillkoren</FormFeedback>
       </FormGroup>
-      <Input type="submit" value="Registrera!"/>
+      <Button color="primary">Registrera</Button>
     </Form>
   );
 }
