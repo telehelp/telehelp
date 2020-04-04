@@ -17,11 +17,9 @@ def readZipCodeData(file_name):
 
 	return location_dictionary, district_dictionary
 
-location_dict, district_dict = readZipCodeData('SE.txt')
-
 #Input: coords1 and coords2 as tuples (lat,long)
 #Output: distance between zip code locations in km. Returns -1 if not found
-def getDistanceApart(zip1, zip2):
+def getDistanceApart(zip1, zip2, location_dict):
 	try:
 		coords1 = location_dict[zip1]
 		coords2 = location_dict[zip2]
@@ -32,7 +30,7 @@ def getDistanceApart(zip1, zip2):
 
 # Input: zip code to look up
 # Output: zip code's district, swedish 'län'
-def getDistrict(zip):
+def getDistrict(zip, district_dict):
 	try:
 		district = district_dict[zip]
 	except KeyError:
