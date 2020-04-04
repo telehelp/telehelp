@@ -58,9 +58,8 @@ def call():
 @app.route('/connectToHelper', methods = ['POST'])
 def connectToHelper():
 	auth = (API_USERNAME, API_PASSWORD)
-	payload = {"play": "https://files.telehelp.se/du_kopplas.mp3", "skippable":"true", 
-					"next": {"play": "https://files.telehelp.se/en_volontar.mp3",
-					"next":{"connect":"+46761423456"}}}
+	#fetchHelper(DATABASE)
+	payload = {"connect":"+46761423456"}
 
 	# fields = {
 	#     'from': '+46766861551',
@@ -80,10 +79,12 @@ def connectToHelper():
 def postcodeInput():
 	zipcode = request.form.get("result")
 	phone = request.form.get("from")
-	flag = savePostcodeToDatabase(DATABASE, phone, zipcode, 'customer')
+	district = getDistrict(int(zipcode), district_dict)
+	# TODO: Add sound if zipcode is invalid (n/a)
+	flag = saveCustomerToDatabase(DATABASE, phone, zipcode, district)
 	payload = {"play": "https://files.telehelp.se/du_kopplas.mp3", "skippable":"true", 
 					"next": {"play": "https://files.telehelp.se/en_volontar.mp3", 
-					"next": BASE_URL+"/connectToHelper"}}
+					"next":BASE_URL+"/connectToHelper"}}
 	return json.dumps(payload)
 
 @app.route('/handleNumberInput', methods = ['POST'])
@@ -98,7 +99,7 @@ def handleNumberInput():
 		return json.dumps(payload)
 
 	elif number == 2:
-		payload = {"play": "https://46elks.com/static/sound/info.mp3"}
+		payload = {"play": "https://files.telehelp.se/info.mp3"}
 		return json.dumps(payload)
 
 
