@@ -6,18 +6,25 @@ from databaseIntegration import *
 import pandas as pd
 import json
 from middlewares import login_required #Should maybe be properly relative
+from schema import Schema, And, Use, Optional, Regex
+from zipcode_utils import *
 
 app = Flask(__name__, static_folder='../client/build', static_url_path='/')
 
 API_USERNAME = os.environ.get('API_USERNAME')
 API_PASSWORD = os.environ.get('API_PASSWORD')
-BASE_URL = "https://9a56e1aa.ngrok.io"
+BASE_URL = "https://telehelp.se"
 DATABASE = 'telehelp.db'
+ZIPDATA = 'SE.txt'
 
 #helpers = getHelpers(DATABASE)
 #helper = list(helpers['phone'])[0]
 #customers = getCustomers(DATABASE)
 #customer = list(customers['phone'])[0]
+
+reg_schema = Schema({'helperName': str, 'zipCode':  Regex("^[0-9]{5}$"), 'phoneNumber': Regex("^(\d|\+){1}\d{9,12}$"), 'terms': bool })  
+location_dict, district_dict = readZipCodeData(ZIPDATA)
+
 
 @app.route('/')
 def index():
@@ -51,9 +58,8 @@ def call():
 @app.route('/connectToHelper', methods = ['POST'])
 def connectToHelper():
 	auth = (API_USERNAME, API_PASSWORD)
-	payload = {"play": "https://files.telehelp.se/du_kopplas.mp3", "skippable":"true", 
-					"next": {"play": "https://files.telehelp.se/en_volontar.mp3",
-					"next":{"connect":"+46761423456"}}}
+	#fetchHelper(DATABASE)
+	payload = {"connect":"+46761423456"}
 
 	# fields = {
 	#     'from': '+46766861551',
@@ -73,10 +79,12 @@ def connectToHelper():
 def postcodeInput():
 	zipcode = request.form.get("result")
 	phone = request.form.get("from")
-	flag = savePostcodeToDatabase(DATABASE, phone, zipcode, 'customer')
+	district = getDistrict(int(zipcode), district_dict)
+	# TODO: Add sound if zipcode is invalid (n/a)
+	flag = saveCustomerToDatabase(DATABASE, phone, zipcode, district)
 	payload = {"play": "https://files.telehelp.se/du_kopplas.mp3", "skippable":"true", 
 					"next": {"play": "https://files.telehelp.se/en_volontar.mp3", 
-					"next": BASE_URL+"/connectToHelper"}}
+					"next":BASE_URL+"/connectToHelper"}}
 	return json.dumps(payload)
 
 @app.route('/handleNumberInput', methods = ['POST'])
@@ -91,7 +99,7 @@ def handleNumberInput():
 		return json.dumps(payload)
 
 	elif number == 2:
-		payload = {"play": "https://46elks.com/static/sound/info.mp3"}
+		payload = {"play": "https://files.telehelp.se/info.mp3"}
 		return json.dumps(payload)
 
 
@@ -126,8 +134,20 @@ def test():
 @app.route('/register', methods=["POST"])
 def register():
     if request.json:
-        creds = json.dumps(request.json)
-        print(creds)
-        return {'type': 'success'}
+        print(request.json)
+        try:
+            reg_schema.validate(request.json)
+            print("valid data")
+            city = getDistrict(int(request.json['zipCode']), district_dict)
+            if city == "n/a":
+                return {'type': 'failure'}
+            if request.json['phoneNumber'][0] == '0':
+                request.json['phoneNumber'] = '+46' + request.json['phoneNumber'][1:]
+            saveHelperToDatabase(DATABASE, request.json['helperName'], request.json['phoneNumber'], request.json['zipCode'], city)
+            return {'type': 'success'}
+        except Exception as err:
+            print(err)
+            print('Invalid Data')
+            return {'type': 'failure'}
     return {'type': 'failure'}
 
