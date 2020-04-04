@@ -4,18 +4,7 @@ $font-stack:    'Open Sans', sans-serif;
 $primary-color: #333;
 
 .App {
-  // text-align: center;
-  // background-color: #282c34;
-  // color: white;
-  // display: flex;
-  padding-top: 10em;
   background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: row;
-  //align-items: center;
-  //justify-content: center;
-  // font-size: calc(10px + 2vmin);
   color: white;
 
   .signup {
@@ -27,25 +16,9 @@ $primary-color: #333;
   .faq {
     padding-top: 5em;
   }
+
+  .telebar {
+    padding-bottom: 3em;
+  }
 }
-
-
-
-// .App-header {
-//   background-color: #282c34;
-//   min-height: 100vh;
-//   display: flex;
-//   flex-direction: column;
-//   align-items: center;
-//   justify-content: center;
-//   font-size: calc(10px + 2vmin);
-//   color: white;
-// }
-
-// .block {
-//   input {
-//     text-align: right;
-//   }
-//   display: flex;
-// }
 
