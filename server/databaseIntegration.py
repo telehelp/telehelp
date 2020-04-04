@@ -31,16 +31,17 @@ def writeToDatabase(db, query, params):
 		conn.commit()
 		conn.close()
 		return 'Success'
-	except:
+	except Exception as err:
+		print(err.)
 		return 'Failure'    
 
-def saveHelperToDatabase(db, name, phone, zipcode):
+def saveHelperToDatabase(db, name, phone, zipcode, city):
 	print("Writing phone and postcode to database")
-	print('\nname: ', name, '\nzipcode:', zipcode, '\nphone: ', phone)
+	print('\nname: ', name, '\nzipcode:', zipcode, '\nphone: ', phone, '\ncity:', city)
 
-	query = ''' INSERT INTO user_helpers (phone, name, zipcode) 
-									values(?, ?, ?) '''		
-	params = (phone, name, zipcode)
+	query = ''' INSERT INTO user_helpers (phone, name, zipcode, city) 
+									values(?, ?, ?, ?) '''		
+	params = (phone, name, zipcode, city)
 	flag = writeToDatabase(db, query, params)
 	print(flag)
 	return flag
