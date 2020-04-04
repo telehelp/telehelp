@@ -6,6 +6,7 @@ from databaseIntegration import *
 import pandas as pd
 import json
 from middlewares import login_required #Should maybe be properly relative
+from schema import Schema, And, Use, Optional, Regex
 
 app = Flask(__name__)
 
@@ -20,6 +21,8 @@ customer = list(customers['phone'])[0]
 
 
 app = Flask(__name__, static_folder='../client/build', static_url_path='/')
+
+reg_schema = Schema({'helperName': str, 'zipCode':  Regex("^[0-9]{5}$"), 'phoneNumber': Regex("^(\d|\+){1}\d{9,12}$"), 'terms': bool })  
 
 @app.route('/')
 def index():
@@ -76,7 +79,13 @@ def test():
 def register():
     if request.json:
         creds = json.dumps(request.json)
-        print(creds)
-        return {'type': 'success'}
+        print(request.json)
+        try:
+            reg_schema.validate(request.json)
+            print("valid data")
+            return {'type': 'success'}
+        except schema.SchemaUnexpectedTypeError as err:
+            #print(err.message)
+            return {'type': 'failure'}
     return {'type': 'failure'}
 
