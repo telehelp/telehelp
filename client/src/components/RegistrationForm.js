@@ -27,14 +27,14 @@ function RegistrationForm() {
         <FormFeedback invalid></FormFeedback>
     </FormGroup>
      <FormGroup>
-     <Label for="zipCode">Postkod</Label>
+     <Label for="zipCode">Postnummer</Label>
         <Input 
             name="zipCode"
             id="zipCode"
             placeholder="12345"
             invalid={'zipCode' in errors}
             innerRef={register({pattern: /\d+/, required: true })}/>
-        <FormFeedback invalid>Den postkod som du skrev in är ogilitig</FormFeedback>
+        <FormFeedback invalid>Den postnummer som du skrev in är ogilitigt</FormFeedback>
       </FormGroup>
       <FormGroup>
      <Label for="phoneNumber">Telefonnummer</Label>
@@ -44,7 +44,7 @@ function RegistrationForm() {
             placeholder="0701234567"
             invalid={'phoneNumber' in errors}
             innerRef={register({pattern: /\d+/, required: true })}/>
-        <FormFeedback invalid>Det telefonnummer som du skrev in är ogilitig</FormFeedback>
+        <FormFeedback invalid>Det telefonnummer som du skrev in är ogilitigt</FormFeedback>
       </FormGroup>
       <FormGroup>
       <Input 

@@ -2,6 +2,7 @@ import React from 'react';
 import './App.scss';
 import RegistrationForm from './components/RegistrationForm';
 import FAQ from './components/FAQ';
+import TeleHelpBar from './components/TeleHelpBar';
 
 class App extends React.Component {
   constructor(props) {
@@ -27,8 +28,13 @@ class App extends React.Component {
     return (
     <div className="App">
       <div className="container">
+      <div className="row">
+          <div className="col-12">
+            <TeleHelpBar/>
+          </div>
+        </div>
         <div className="row">
-          <div className="col-8">
+          <div className="col-xs-8 col-8">
             <div className="introduction">
               <h1> Registrera dig som hjälpare redan idag!</h1>
               <p>The current time is {time}.</p>
@@ -37,10 +43,12 @@ class App extends React.Component {
               </p>
             </div>
           </div>
-          <div className="col-4">
+          <div className="col-xs-4">
+            <a name="register">
             <div className="signup">
               <RegistrationForm/>
             </div>
+            </a>
           </div>
         <div className="row">
           <div className="col-12">
