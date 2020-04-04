@@ -35,28 +35,28 @@ def writeToDatabase(db, query, params):
 		print(err)
 		return 'Failure'    
 
-def saveHelperToDatabase(db, name, phone, zipcode, city):
+def saveHelperToDatabase(db, name, phone, zipcode, district):
 	print("Writing phone and postcode to database")
-	print('\nname: ', name, '\nzipcode:', zipcode, '\nphone: ', phone, '\ncity:', city)
+	print('\nname: ', name, '\nzipcode:', zipcode, '\nphone: ', phone, '\ndistrict:', district)
 
-	query = ''' INSERT INTO user_helpers (phone, name, zipcode, city) 
+	query = ''' INSERT INTO user_helpers (phone, name, zipcode, district) 
 									values(?, ?, ?, ?) '''		
-	params = (phone, name, zipcode, city)
+	params = (phone, name, zipcode, district)
 	flag = writeToDatabase(db, query, params)
 	print(flag)
 	return flag
 
-def savePostcodeToDatabase(db, phone, zipcode, userType):
+def saveCustomerToDatabase(db, phone, zipcode, district):
 	print("Writing phone and postcode to database")
 	print('zipcode:', zipcode, '\nphone: ', phone)
-	if userType == 'customer':
-		query = ''' INSERT INTO user_customers (phone, zipcode) 
-										values(?, ?) '''
-	elif userType == 'helper':
-		query = ''' INSERT INTO user_helpers (phone, zipcode) 
-										values(?, ?) '''		
-	params = (phone, zipcode)
+	query = ''' INSERT INTO user_customers (phone, zipcode, district) 
+										values(?, ?, ?) '''		
+	params = (phone, zipcode, district)
 	flag = writeToDatabase(db, query, params)
+	# if flag == 'Failure':
+	# 	query = "update user_customers set district=? where phone=?"
+	# 	params = (district, phone)
+	# 	flag = writeToDatabase(db, query, params)
 	print(flag)
 	return flag
 	
@@ -68,6 +68,9 @@ def getHelpers(db='telehelp.db'):
 def getCustomers(db='telehelp.db'):
 	query = "SELECT * FROM user_customers"   
 	return fetchData(query, db)
+
+def fetchHelper():
+	pass
 
 
 if __name__ == '__main__':
