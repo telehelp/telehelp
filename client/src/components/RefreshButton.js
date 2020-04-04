@@ -1,5 +1,4 @@
 import React from 'react';
-import '../scss/RefreshButton.scss';
 
 class RefreshButton extends React.Component{
     refreshPage() {
@@ -12,7 +11,6 @@ class RefreshButton extends React.Component{
         )
     }
 }
-
 export default RefreshButton;
 
 
