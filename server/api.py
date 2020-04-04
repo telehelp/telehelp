@@ -1,6 +1,7 @@
 import time
-from flask import Flask
+from flask import Flask, request
 from middlewares import login_required #Should maybe be properly relative
+import json
 
 app = Flask(__name__)
 
@@ -13,3 +14,10 @@ def current_time():
 def test():
     return {'entry': 'test'}
 
+@app.route('/register', methods=["POST"])
+def register():
+    if request.json:
+        creds = json.dumps(request.json)
+        print(creds)
+        return {'type': 'success'}
+    return {'type': 'failure'}

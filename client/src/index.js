@@ -3,7 +3,7 @@ import '../node_modules/bootstrap/dist/css/bootstrap.css';
 // components takes precedence over default styles.
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './scss/index.scss';
+import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 
