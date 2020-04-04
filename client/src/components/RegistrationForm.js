@@ -19,7 +19,8 @@ function RegistrationForm() {
   };
 
   return (
-    <Form onSubmit={handleSubmit(onSubmit)}>
+    <Form onSubmit={handleSubmit(onSubmit)} >
+    <h4>Registrera dig som volontär!</h4>
     <FormGroup>
         <Label for="helperName">Tilltalsnamn</Label>
         <Input 
@@ -60,7 +61,7 @@ function RegistrationForm() {
         <Label for="terms">Jag accepterar <a href="/terms-and-conditions.pdf">användarvillkoren</a></Label>
         <FormFeedback invalid>Du måste acceptera användarvillkoren</FormFeedback>
       </FormGroup>
-      <Button color="primary">Registrera</Button>
+      <Button color="info">Registrera</Button>
     </Form>
   );
 }
