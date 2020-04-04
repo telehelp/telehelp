@@ -77,7 +77,7 @@ def receiveCall():
 	#payload = '{"play": "https://46elks.com/static/sound/testcall.mp3"}'
 	#data = {'data': 'info.mp3'}
 	#response = requests.post(BASE_URL+"/media",data=data)
-	payload = {"ivr": "telehelp.se/media/info.mp3", "digits": 1, "next": BASE_URL+"/handleNumberInput"}
+	payload = {"ivr": "https://files.telehelp.se/info.mp3", "digits": 1, "next": BASE_URL+"/handleNumberInput"}
 	return json.dumps(payload)
 
 # @app.route('/media/*')
