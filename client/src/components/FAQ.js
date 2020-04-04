@@ -22,8 +22,7 @@ class FAQ extends React.Component{
         const zipped = zip(questions, answers)
 
         return (
-            <a name="faq">
-            <div className="faq">
+            <div className="faq" id="faq">
                 <h2>Vanliga frågor</h2>
                 <ul>
                     {zipped.map((element, i)=> {
@@ -31,7 +30,6 @@ class FAQ extends React.Component{
                     })}
                 </ul>
             </div>
-            </a>
         )
     }
 }

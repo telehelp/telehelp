@@ -21,6 +21,9 @@ const TeleHelpBar = (props) => {
             <NavItem>
               <NavLink href="#faq">Vanliga frågor</NavLink>
             </NavItem>
+            <NavItem>
+              <NavLink href="#terms">Användarvillkor</NavLink>
+            </NavItem>
           </Nav>
         </Collapse>
       </Navbar>
