@@ -2,6 +2,7 @@ import React from 'react';
 import { UncontrolledCollapse, Button } from 'reactstrap';
 
 class FAQ extends React.Component{
+
     render () {
         //const zip = (arr1, arr2) => arr1.map((k, i) => [k, arr2[i]]);
 
