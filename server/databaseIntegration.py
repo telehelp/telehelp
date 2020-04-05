@@ -75,7 +75,7 @@ def saveCustomerToDatabase(db, phone, zipcode, district):
 def userExists(db, phone, userType):
 	
 	if userType == 'customer':
-		query = '''SELECT * FROM user_customer WHERE phone = ?'''
+		query = '''SELECT * FROM user_customers WHERE phone = ?'''
 	elif userType == 'helper':
 		query = '''SELECT * FROM user_helpers WHERE phone = ?'''
 	else:

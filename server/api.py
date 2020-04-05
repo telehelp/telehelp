@@ -13,7 +13,7 @@ app = Flask(__name__, static_folder='../client/build', static_url_path='/')
 
 API_USERNAME = os.environ.get('API_USERNAME')
 API_PASSWORD = os.environ.get('API_PASSWORD')
-BASE_URL = "https://telehelp.se"
+BASE_URL = "https://e20d15bc.ngrok.io"
 DATABASE = 'telehelp.db'
 ZIPDATA = 'SE.txt'
 
@@ -65,21 +65,22 @@ def postcodeInput():
 	else:
 		payload = {"play": "https://files.telehelp.se/du_kopplas.mp3", "skippable":"true", 
 						"next": {"play": "https://files.telehelp.se/en_volontar.mp3", 
-						"next":{"connect":closestHelpers[1]}}}
+						"next":{"connect":closestHelpers[0]}}}
 		return json.dumps(payload)
 
 
-@app.route('/returningUser', methods = ['POST'])
-def returningUser():
-	payload = {"play":"https://files.telehelp.se/behover_hjalp.mp3", 
-			   "next":{"play":"https://files.telehelp.se/tryck.mp3"},
-			   "next":{"play":"https://files.telehelp.se/1.mp3"},
-			   "next":{"play":"https://files.telehelp.se/andra_postnr.mp3"},
-			   "next":{"play": "https://files.telehelp.se/tryck.mp3"},
-			   "next":{"play": "https://files.telehelp.se/2"},
-			   "next":{"play": "https://files.telehelp.se/avreg.mp3"},
-			   "next":{"play": "https://files.telehelp.se/tryck.mp3"},
-			   "next":{"ivr": "https://files.telehelp.se/3.mp3", "digits": 1, "next":BASE_URL+"/handleReturningUser"} }
+# @app.route('/returningUser', methods = ['POST'])
+# def returningUser():
+# 	payload = {"play":"https://files.telehelp.se/behover_hjalp.mp3", 
+# 			   "next":{"play":"https://files.telehelp.se/tryck.mp3",
+# 			   "next":{"play":"https://files.telehelp.se/1.mp3",
+# 			   "next":{"play":"https://files.telehelp.se/andra_postnr.mp3",
+# 			   "next":{"play": "https://files.telehelp.se/tryck.mp3",
+# 			   "next":{"play": "https://files.telehelp.se/2",
+# 			   "next":{"play": "https://files.telehelp.se/avreg.mp3",
+# 			   "next":{"play": "https://files.telehelp.se/tryck.mp3",
+# 			   "next":{"ivr": "https://files.telehelp.se/3.mp3", "digits": 1, "next":BASE_URL+"/handleReturningUser"} }}}}}}}}
+# 	return json.dumps(payload)
 
 @app.route('/handleReturningUser', methods = ['POST'])
 def handleReturningUser():
@@ -96,7 +97,15 @@ def secret():
 def handleNumberInput():
 	from_sender = request.form.get("from")
 	if userExists(DATABASE, from_sender, 'customer'):
-		payload = {"next": BASE_URL+'/returningUsers'}
+		payload = {"play":"https://files.telehelp.se/behover_hjalp.mp3", 
+			   "next":{"play":"https://files.telehelp.se/tryck.mp3",
+			   "next":{"play":"https://files.telehelp.se/1.mp3",
+			   "next":{"play":"https://files.telehelp.se/andra_postnr.mp3",
+			   "next":{"play": "https://files.telehelp.se/tryck.mp3",
+			   "next":{"play": "https://files.telehelp.se/2",
+			   "next":{"play": "https://files.telehelp.se/avreg.mp3",
+			   "next":{"play": "https://files.telehelp.se/tryck.mp3",
+			   "next":{"ivr": "https://files.telehelp.se/3.mp3", "digits": 1, "next":BASE_URL+"/handleReturningUser"} }}}}}}}}
 		return json.dumps(payload)
 	
 	print(request.form.get("result"))
@@ -113,7 +122,8 @@ def handleNumberInput():
 		return json.dumps(payload)
 	
 	elif number == 3:
-		payload = {"next": "https://telehelp.se/secret"}
+		payload = {"next": BASE_URL+"/secret"}
+		return json.dumps(payload)
 
 
 @app.route('/receiveCall',methods = ['POST'])
