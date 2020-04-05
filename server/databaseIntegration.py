@@ -12,17 +12,16 @@ def create_connection(db_file, key):
 	conn = None
 	try:
 		conn = sqlite3.connect(db_file)
-		cursor.execute("PRAGMA key="+key)
+		cursor = conn.cursor()
+		cursor.execute("PRAGMA key = \"x\'"+DATABASE_KEY+"\'\"")
 	except Error as e:
 		print(e)
  
-	return conn
+	return conn, cursor
 
 
 def fetchData(db, key, query, params=None):
-	conn = create_connection(db)
-	cursor = conn.cursor()
-	cursor.execute("PRAGMA key="+key)
+	conn, cursor = create_connection(db, key)
 	execute = cursor.execute(query, params)
 	data = cursor.fetchall()
 	cols = [column[0] for column in execute.description]
@@ -32,9 +31,7 @@ def fetchData(db, key, query, params=None):
 
 def writeToDatabase(db, key, query, params):
 	try:
-		conn = create_connection(db)
-		cursor = conn.cursor()
-		cursor.execute("PRAGMA key="+key)
+		conn, cursor = create_connection(db, key)
 		cursor.execute(query, params)
 		conn.commit()
 		conn.close()
@@ -45,9 +42,7 @@ def writeToDatabase(db, key, query, params):
 
 def readDatabase(db, key, query, params):
 	try:
-		conn = create_connection(db)
-		cursor = conn.cursor()
-		cursor.execute("PRAGMA key="+key)
+		conn, cursor = create_connection(db, key)
 		cursor.execute(query, params)
 		res = cursor.fetchall()
 		conn.close()
@@ -85,7 +80,7 @@ def userExists(db, key, phone, userType):
 		query = '''SELECT * FROM user_helpers WHERE phone = ?'''
 	else:
 		print('Inavlid userType')
-		return
+		return None
 	
 	params = [phone]
 	ans = readDatabase(db, key, query, params)
@@ -128,14 +123,14 @@ def fetchHelper(db, key, district, zipcode, location_dict):
 
 if __name__ == '__main__':
 	DATABASE_KEY = os.environ.get('DATABASE_KEY')
+	conn, cursor = create_connection('telehelp.db', DATABASE_KEY)
 	# print(savePostcodeToDatabase('telehelp.db', DATABASSE_KEY, '125', '17070', 'customer'))
 	# print(getCustomers('telehelp.db', DATABASE_KEY)
-	print(userExists('telehelp.db', '+46761423456', 'helper'))
-	print(userExists('telehelp.db', '+45674623456', 'helper'))
+	print(userExists('telehelp.db', DATABASE_KEY,'+46761423456', 'helper'))
+	print(userExists('telehelp.db', DATABASE_KEY,'+45674623456', 'helper'))
 
 
 	ZIPDATA = 'SE.txt'
 	location_dict, district_dict = readZipCodeData(ZIPDATA)
-	fetchHelper('telehelp.db', DATABASE_KEY, 'Stockholm', 17070, location_dict)
-	#print(savePostcodeToDatabase('telehelp.db', '125', '17070', 'customer'))
-	#print(getCustomers(db='telehelp.db'))
+	# fetchHelper('telehelp.db', DATABASE_KEY, 'Stockholm', 17070, location_dict)
+	# print(getCustomers('telehelp.db', DATABASE_KEY))
