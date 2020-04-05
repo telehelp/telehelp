@@ -30,7 +30,7 @@ $old-background: #b6f0e3;
 
   .photo {
     border-radius: 2em;
-    height: 350px;
+    height: 40%;
     //padding-bottom: 1em;
     padding: 2em;
   }
@@ -53,7 +53,7 @@ $old-background: #b6f0e3;
   #mapid, .leaflet-container
   {
     height: 400px;
-    width: 100%;
+    //width: 100%;
   }
   .mapHolder {
     padding-top: 3em;
