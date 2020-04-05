@@ -13,7 +13,7 @@ def create_connection(db_file, key):
 	try:
 		conn = sqlite3.connect(db_file)
 		cursor = conn.cursor()
-		cursor.execute("PRAGMA key = \"x\'"+DATABASE_KEY+"\'\"")
+		cursor.execute("PRAGMA key = \"x\'"+key+"\'\"")
 	except Error as e:
 		print(e)
  
@@ -30,26 +30,27 @@ def fetchData(db, key, query, params=None):
 	return data
 
 def writeToDatabase(db, key, query, params):
-	try:
-		conn, cursor = create_connection(db, key)
-		cursor.execute(query, params)
-		conn.commit()
-		conn.close()
-		return 'Success'
-	except Exception as err:
-		print(err)
-		return 'Failure'  
+	#try:
+	print('Connecting')
+	conn, cursor = create_connection(db, key)
+	cursor.execute(query, params)
+	conn.commit()
+	conn.close()
+	return 'Success'
+	# except Exception as err:
+	# 	print(err)
+	# 	return 'Failure'  
 
 def readDatabase(db, key, query, params):
-	try:
-		conn, cursor = create_connection(db, key)
-		cursor.execute(query, params)
-		res = cursor.fetchall()
-		conn.close()
-		return res
-	except Exception as err:
-		print(Exception, err)
-		return 'Failure'  
+	#try:
+	conn, cursor = create_connection(db, key)
+	cursor.execute(query, params)
+	res = cursor.fetchall()
+	conn.close()
+	return res
+	# except Exception as err:
+	# 	print(Exception, err)
+	# 	return 'Failure'  
 
 def saveHelperToDatabase(db, key, name, phone, zipcode, district):
 	print("Writing phone and postcode to database")
@@ -65,10 +66,16 @@ def saveHelperToDatabase(db, key, name, phone, zipcode, district):
 def saveCustomerToDatabase(db, key, phone, zipcode, district):
 	print("Writing phone and postcode to database")
 	print('zipcode:', zipcode, '\nphone: ', phone)
-	query = ''' INSERT INTO user_customers (phone, zipcode, district) 
-										values(?, ?, ?) '''		
-	params = (phone, zipcode, district)
+
+	if userExists(db, key, phone, 'customer'):
+		query = ''' UPDATE user_customers set district=? where phone=?) '''
+		params = (district, phone)
+	else:
+		query = ''' INSERT INTO user_customers (phone, zipcode, district) 
+											values(?, ?, ?) '''		
+		params = (phone, zipcode, district)
 	flag = writeToDatabase(db, key, query, params)
+
 	print(flag)
 	return flag
 
@@ -79,19 +86,30 @@ def userExists(db, key, phone, userType):
 	elif userType == 'helper':
 		query = '''SELECT * FROM user_helpers WHERE phone = ?'''
 	else:
-		print('Inavlid userType')
+		print('Invalid userType')
 		return None
-	
+
 	params = [phone]
 	ans = readDatabase(db, key, query, params)
+	print(ans)
 	if ans == []:
 		return False
 	else:
 		return True
 	return 
 	
-	
-	
+def deleteFromDatabase(db, key, phone, userType):
+	if userType == 'customer':
+		query = '''DELETE FROM user_customers WHERE phone = ?'''
+	elif userType == 'helper':
+		query = '''DELETE FROM user_helpers WHERE phone = ?'''
+	else:
+		print('Invalid userType')
+		return
+	params = [phone]
+	flag = writeToDatabase(db, key, query, params)
+	return flag
+
 def getHelpers(db, key):
 	query = "SELECT * FROM user_helpers" 
 	return fetchData(db, key, query)
