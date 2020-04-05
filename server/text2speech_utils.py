@@ -4,6 +4,7 @@ Note: ssml must be well-formed according to:
     https://www.w3.org/TR/speech-synthesis/
 """
 from google.cloud import texttospeech
+import os
 
 text_input = dict() # contains key as filename and string for tts
 
