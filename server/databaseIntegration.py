@@ -65,9 +65,14 @@ def saveHelperToDatabase(db, name, phone, zipcode, district):
 def saveCustomerToDatabase(db, phone, zipcode, district):
 	print("Writing phone and postcode to database")
 	print('zipcode:', zipcode, '\nphone: ', phone)
-	query = ''' INSERT INTO user_customers (phone, zipcode, district) 
-										values(?, ?, ?) '''		
-	params = (phone, zipcode, district)
+
+	if userExists(db, phone, 'customer'):
+		query = ''' UPDATE user_customers set district=? where phone=?) '''
+		params = (district, phone)
+	else:
+		query = ''' INSERT INTO user_customers (phone, zipcode, district) 
+											values(?, ?, ?) '''		
+		params = (phone, zipcode, district)
 	flag = writeToDatabase(db, query, params)
 	print(flag)
 	return flag
@@ -79,7 +84,7 @@ def userExists(db, phone, userType):
 	elif userType == 'helper':
 		query = '''SELECT * FROM user_helpers WHERE phone = ?'''
 	else:
-		print('Inavlid userType')
+		print('Invalid userType')
 		return
 	
 	params = [phone]
@@ -90,8 +95,18 @@ def userExists(db, phone, userType):
 		return True
 	return 
 	
-	
-	
+def deleteFromDatabase(db, phone, userType):
+	if userType == 'customer':
+		query = '''DELETE FROM user_customers WHERE phone = ?'''
+	elif userType == 'helper':
+		query = '''DELETE FROM user_helpers WHERE phone = ?'''
+	else:
+		print('Invalid userType')
+		return
+	params = [phone]
+	flag = writeToDatabase(db, query, params)
+	return flag
+
 def getHelpers(db='telehelp.db'):
 	query = "SELECT * FROM user_helpers" 
 	return fetchData(db, query)
