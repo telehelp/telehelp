@@ -86,13 +86,6 @@ def postcodeInput():
 def handleReturningUser():
 	pass
 
-@app.route('/secret', methods = ['POST'])
-def secret():
-	payload = {"play": "https://files.telehelp.se/6.mp3",
-				"next": {"play":"https://files.telehelp.se/igen.mp3"},
-				"next": {"play":"https://files.telehelp.se/om_inte.mp3"}}
-	return json.dumps(payload)
-
 @app.route('/handleNumberInput', methods = ['POST'])
 def handleNumberInput():
 	from_sender = request.form.get("from")
@@ -122,7 +115,9 @@ def handleNumberInput():
 		return json.dumps(payload)
 	
 	elif number == 3:
-		payload = {"next": BASE_URL+"/secret"}
+		payload = payload = {"play": "https://files.telehelp.se/6.mp3",
+				"next": {"play":"https://files.telehelp.se/igen.mp3",
+				"next": {"play":"https://files.telehelp.se/om_inte.mp3"}}}
 		return json.dumps(payload)
 
 
