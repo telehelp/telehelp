@@ -8,6 +8,7 @@ import json
 from middlewares import login_required #Should maybe be properly relative
 from schema import Schema, And, Use, Optional, Regex
 from zipcode_utils import *
+from text2speech_utils import generateCustomSoundByte
 
 app = Flask(__name__, static_folder='../client/build', static_url_path='/')
 
@@ -20,6 +21,7 @@ else:
 	BASE_URL = "https://telehelp.se"
 DATABASE = 'telehelp.db'
 ZIPDATA = 'SE.txt'
+mediaFolder = '../../media'
 
 reg_schema = Schema({'helperName': str, 'zipCode':  Regex("^[0-9]{5}$"), 'phoneNumber': Regex("^(\d|\+){1}\d{9,12}$"), 'terms': bool })  
 location_dict, district_dict = readZipCodeData(ZIPDATA)
@@ -54,9 +56,51 @@ def call():
 	print(response.text)
 	return
 
+@app.route('/call')
+def sms():
+	#from_sender = request.forms.get("from")
+	auth = (API_USERNAME, API_PASSWORD)
+
+	payload = '{"ivr": "https://46elks.com/static/sound/testcall.mp3"}'
+
+	fields = {
+		'from': '+46766861551',
+		'to': helper,
+		'voice_start': payload}
+
+	response = requests.post(
+		"https://api.46elks.com/a1/calls",
+		data=fields,
+		auth=auth
+		)
+
+	print(response.text)
+	return
+
+@app.route('/checkZipcode', methods = ['POST'])
+def checkZipcode():
+	global zipcode
+	zipcode = request.form.get("result")
+	phone = request.form.get("from")
+	district = getDistrict(int(zipcode), district_dict)
+	generateCustomSoundByte(district, district+'.mp3', mediaFolder)
+	payload = {"play": "https://files.telehelp.se/du_befinner.mp3",
+				"next": {"play": "https://files.telehelp.se/"+district+".mp3",
+				"next": {"play": "https://files.telehelp.se/stammer_det.mp3",
+				"next": {"play": "https://files.telehelp.se/tryck.mp3",
+				"next": {"play": "https://files.telehelp.se/1.mp3",
+				"next": {"play": "https://files.telehelp.se/andra_postnr.mp3",
+				"next": {"play": "https://files.telehelp.se/tryck.mp3",
+				"next": {"ivr": "https://files.telehelp.se/2.mp3",
+				"1": BASE_URL+'/postcodeInput', 
+				"2": {"play": "https://files.telehelp.se/post_nr.mp3", "skippable":"true", 
+					"next": {"ivr": "https://files.telehelp.se/bep.mp3", "digits": 5, 
+					"next": BASE_URL+"/checkZipcode"} }}}}}}}}}
+
+	return json.dumps(payload)
+
 @app.route('/postcodeInput', methods = ['POST'])
 def postcodeInput():
-	zipcode = request.form.get("result")
 	phone = request.form.get("from")
 	district = getDistrict(int(zipcode), district_dict)
 	# TODO: Add sound if zipcode is invalid (n/a)
@@ -64,14 +108,7 @@ def postcodeInput():
 	closestHelpers = fetchHelper(DATABASE, district, zipcode, location_dict)
 	if closestHelpers is None:
 		# TODO: Fix this sound clip
-		payload = {"play": "https://files.telehelp.se/du_befinner.mp3",
-					"next": {"play": "https://files.telehelp.se/stammer_det.mp3",
-					"next": {"play": "https://files.telehelp.se/tryck.mp3",
-					"next": {"play": "https://files.telehelp.se/1.mp3",
-					"next": {"play": "https://files.telehelp.se/andra_postnr.mp3",
-					"next": {"play": "https://files.telehelp.se/tryck.mp3",
-					"next": {"ivr": "https://files.telehelp.se/2.mp3",
-					"1": BASE_URL+'/handleNumberInput', "2": {"play": "https://files.telehelp.se/vi_letar.mp3"}}}}}}}}
+		payload = {"play": "https://files.telehelp.se/finns_ingen.mp3"}
 		return json.dumps(payload)
 	else:
 		payload = {"play": "https://files.telehelp.se/du_kopplas.mp3", "skippable":"true", 
@@ -79,19 +116,6 @@ def postcodeInput():
 						"next":{"connect":closestHelpers[0]}}}
 		return json.dumps(payload)
 
-
-# @app.route('/returningUser', methods = ['POST'])
-# def returningUser():
-# 	payload = {"play":"https://files.telehelp.se/behover_hjalp.mp3", 
-# 			   "next":{"play":"https://files.telehelp.se/tryck.mp3",
-# 			   "next":{"play":"https://files.telehelp.se/1.mp3",
-# 			   "next":{"play":"https://files.telehelp.se/andra_postnr.mp3",
-# 			   "next":{"play": "https://files.telehelp.se/tryck.mp3",
-# 			   "next":{"play": "https://files.telehelp.se/2",
-# 			   "next":{"play": "https://files.telehelp.se/avreg.mp3",
-# 			   "next":{"play": "https://files.telehelp.se/tryck.mp3",
-# 			   "next":{"ivr": "https://files.telehelp.se/3.mp3", "digits": 1, "next":BASE_URL+"/handleReturningUser"} }}}}}}}}
-# 	return json.dumps(payload)
 
 @app.route('/handleReturningUser', methods = ['POST'])
 def handleReturningUser():
@@ -153,11 +177,12 @@ def handleNumberInput():
 		print('Write your zipcode')
 		payload = {"play": "https://files.telehelp.se/post_nr.mp3", "skippable":"true", 
 					"next": {"ivr": "https://files.telehelp.se/bep.mp3", "digits": 5, 
-					"next": BASE_URL+"/postcodeInput"}}
+					"next": BASE_URL+"/checkZipcode"}}
 		return json.dumps(payload)
 
 	elif number == 2:
-		payload = {"play": "https://files.telehelp.se/info.mp3", "next":BASE_URL+'/receiveCall'}
+		# TODO: this is broken, fix it
+		payload = {BASE_URL+'/receiveCall'}
 		return json.dumps(payload)
 	
 	elif number == 3:
@@ -200,7 +225,7 @@ def receiveCall():
 			   "next":{"ivr": "https://files.telehelp.se/3.mp3", "digits": 1, "next":BASE_URL+"/handleReturningUser"} }}}}}}}}}}
 		return json.dumps(payload)
 
-
+	# New customer
 	payload = {"play": "https://files.telehelp.se/info.mp3", "skippable":"true", 
 				"next":{"play":"https://files.telehelp.se/behover_hjalp.mp3", 
 				"next":{"play":"https://files.telehelp.se/tryck.mp3",
@@ -208,7 +233,7 @@ def receiveCall():
 				"next":{"play":"https://files.telehelp.se/info_igen.mp3",
 				"next":{"play":"https://files.telehelp.se/tryck.mp3",
 				"next":{"ivr":"https://files.telehelp.se/2.mp3",
-				"digits": 1, "next": BASE_URL+"/handleNumberInput"}}}}}}}
+				"digits": 1, "2":BASE_URL+"/receiveCall", "next": BASE_URL+"/handleNumberInput"}}}}}}}
 	return json.dumps(payload)
 
 @app.route('/test', methods=["GET"])
