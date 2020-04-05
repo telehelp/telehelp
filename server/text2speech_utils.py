@@ -39,6 +39,9 @@ text_input['nod'] = 'Någon i nöd'
 text_input['en_volontar'] = 'en volontär'
 text_input['avreg'] = 'Du är nu avregistrerad. Din data kommer att raderas.'
 text_input['finns_ingen'] = 'Ingen volontär är registrerad i ditt område. Vänligen försök senare.'
+text_input['registrerad_volontar'] = 'Välkommen till Telehelp. Vi ser att du är registrerad som volontär.'
+text_input['ring_upp_riskgrupp'] = 'Vill du nå den person du hjälpte sist?'
+text_input['hjalper_ingen'] = 'Du hjälper för närvarande ingen i riskgruppen. Förhoppningsvis ringer vi upp dig snart, när någon ber om hjälp! Tack för din insats.'
 
 def generateSoundBytes():
     # Instantiates a client
