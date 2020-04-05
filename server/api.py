@@ -80,9 +80,8 @@ def checkZipcode():
 	zipcode = request.form.get("result")
 	phone = request.form.get("from")
 	district = getDistrict(int(zipcode), district_dict)
-	generateCustomSoundByte(district, district+'.mp3', mediaFolder)
+	#generateCustomSoundByte(district, district+'.mp3', mediaFolder)
 	payload = {"play": "https://files.telehelp.se/du_befinner.mp3",
-				"next": {"play": "https://files.telehelp.se/"+district+".mp3",
 				"next": {"play": "https://files.telehelp.se/stammer_det.mp3",
 				"next": {"play": "https://files.telehelp.se/tryck.mp3",
 				"next": {"play": "https://files.telehelp.se/1.mp3",
@@ -92,7 +91,7 @@ def checkZipcode():
 				"1": BASE_URL+'/postcodeInput', 
 				"2": {"play": "https://files.telehelp.se/post_nr.mp3", "skippable":"true", 
 					"next": {"ivr": "https://files.telehelp.se/bep.mp3", "digits": 5, 
-					"next": BASE_URL+"/checkZipcode"} }}}}}}}}}
+					"next": BASE_URL+"/checkZipcode"} }}}}}}}}
 
 	return json.dumps(payload)
 
@@ -269,7 +268,7 @@ def register():
 def getVolunteerLocations():
     # Fetch all ZIP codes for volunteer users:
     query = "SELECT zipcode FROM user_helpers"
-    zip_pd_dict = fetchData(DATABASE, DATABASE_KEY, query, params=None):
+    zip_pd_dict = fetchData(DATABASE, DATABASE_KEY, query, params=None)
     zip_list = list(zip_pd_dict)
 
     # Use ZIPs to get GPS coordinates (lat, long):
@@ -278,5 +277,5 @@ def getVolunteerLocations():
     for zip in zip_list:
         latlongs.append(getLatLong(zip))
 
-    payload {'coordinates' : latlongs }
+    payload = {'coordinates' : latlongs }
     return json.dumps(payload)
