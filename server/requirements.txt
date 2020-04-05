@@ -1,8 +1,10 @@
 cachetools==4.0.0
 certifi==2019.11.28
+cffi==1.14.0
 chardet==3.0.4
 click==7.1.1
 contextlib2==0.5.5
+cryptography==2.9
 Flask==1.1.1
 Flask-JWT==0.3.2
 Flask-Login==0.5.0
@@ -24,7 +26,9 @@ pkg-resources==0.0.0
 protobuf==3.11.3
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
+pycparser==2.20
 PyJWT==1.4.2
+pyOpenSSL==19.1.0
 pysqlcipher3==1.0.3
 python-dateutil==2.8.1
 pytz==2019.3
