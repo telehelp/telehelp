@@ -11,7 +11,14 @@ There are two parts to the project
  - Server &mdash; handles the data and api calls
  - Client &mdash; handles the user interface
 
+### Dependencies
+The following libs needs to be installed
+```
+libsqlcipher-dev
+```
+
 ### Server
+
 The server is (probably going to be) written in python (`3.7.5`) and can be installed (from the root directory) with
 ```
 cd server && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt
