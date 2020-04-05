@@ -8,7 +8,7 @@ import json
 from middlewares import login_required #Should maybe be properly relative
 from schema import Schema, And, Use, Optional, Regex
 from zipcode_utils import *
-from text2speech_utils import generateCustomSoundByte
+#from text2speech_utils import generateCustomSoundByte
 
 app = Flask(__name__, static_folder='../client/build', static_url_path='/')
 
@@ -267,13 +267,15 @@ def getVolunteerLocations():
     # Fetch all ZIP codes for volunteer users:
     query = "SELECT zipcode FROM user_helpers"
     zip_pd_dict = fetchData(DATABASE, DATABASE_KEY, query, params=None)
-    zip_list = list(zip_pd_dict)
+    zip_list = zip_pd_dict.values.tolist()
 
     # Use ZIPs to get GPS coordinates (lat, long):
     latlongs = []
 
+    print(zip_list)
     for zip in zip_list:
-        latlongs.append(getLatLong(zip))
+        latlongs.append(getLatLong(zip[0], location_dict))
 
     payload = {'coordinates' : latlongs }
     return json.dumps(payload)
+

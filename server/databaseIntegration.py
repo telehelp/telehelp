@@ -22,7 +22,10 @@ def create_connection(db_file, key):
 
 def fetchData(db, key, query, params=None):
 	conn, cursor = create_connection(db, key)
-	execute = cursor.execute(query, params)
+	if params==None:
+		execute = cursor.execute(query)
+	else:
+		execute = cursor.execute(query, params)
 	data = cursor.fetchall()
 	cols = [column[0] for column in execute.description]
 	data = pd.DataFrame(data=data, columns = cols)

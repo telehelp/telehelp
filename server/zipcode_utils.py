@@ -39,7 +39,7 @@ def getDistrict(zip, district_dict):
 
 # Input: zip code to look up
 # Output: zip code's location, as latlong. (0, 0) returned if position is unknown
-def getLatLong(zip):
+def getLatLong(zip, location_dictionary):
 	try:
 		latlong = location_dictionary[int(zip)]
 	except KeyError:
