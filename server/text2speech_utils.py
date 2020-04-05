@@ -6,7 +6,7 @@ Note: ssml must be well-formed according to:
 from google.cloud import texttospeech
 
 text_input = dict() # contains key as filename and string for tts
-'''
+
 text_input['info'] = 'Hej och välkommen till telehelp. Här kan du bli tilldelad en volontär som kan hjälpa dig med en vardagssyssla. Det kan exempelvis vara att handla mat eller medicin.  Nästa gång du ringer kan du välja att bli tilldelad samma person. Dina uppgifter kommer att samlas.'
 text_input['post_nr'] = 'Knappa vänligen in ditt postnummer, 5 siffor, efter tonen'
 text_input['du_befinner'] = 'Du befinner dig i närheten av'
