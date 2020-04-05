@@ -67,16 +67,16 @@ def saveHelperToDatabase(db, key, name, phone, zipcode, district):
 	return flag
 
 def writeActiveCustomer(db, key, helperPhone, customerPhone):
-	query = ''' UPDATE user_helpers set active_customer=? where phone=?) '''
+	query = ''' UPDATE user_helpers set active_customers=? where phone=? '''
 	params = (customerPhone, helperPhone)
 	flag = writeToDatabase(db, key, query, params)
 	return flag
 
 def readActiveCustomer(db, key, helperPhone):
-	query = ''' SELECT active_customer FROM user_helpers where phone=?) '''
+	query = ''' SELECT active_customers FROM user_helpers where phone=? '''
 	params = [helperPhone]
 	res = readDatabase(db, key, query, params)
-	return res
+	return res[0][0]
 
 def saveCustomerToDatabase(db, key, phone, zipcode, district):
 	print("Writing phone and postcode to database")

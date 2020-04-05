@@ -139,9 +139,14 @@ def postcodeInput():
 
 @app.route('/connectUsers', methods = ['POST'])
 def connectUsers():
+	print('Connecting users')
 	callId = request.form.get("callid")
+	fromUser = request.form.get("from")
+	print('fromUser: ', fromUser)
 	helperPhone = request.form.get("to")
+	print('helper: ', helperPhone)
 	currentCustomer = readActiveCustomer(DATABASE, DATABASE_KEY, helperPhone)
+	print('customer:', currentCustomer)
 	payload = {"connect":currentCustomer, "callerid": elkNumber, "timeout":"15"}
 	return json.dumps(payload)
 
