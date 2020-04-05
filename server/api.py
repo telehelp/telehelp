@@ -12,15 +12,13 @@ from zipcode_utils import *
 
 app = Flask(__name__, static_folder='../client/build', static_url_path='/')
 
-dev = True
+dev = False
 
 if dev:
 	BASE_URL = "http://272985e7.ngrok.io"
 	elkNumber = '+46766862446'
-	#API_USERNAME = os.environ.get('API_USERNAME_DEV')
-	#API_PASSWORD = os.environ.get('API_PASSWORD_DEV')
-	API_USERNAME = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
-	API_PASSWORD = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+	API_USERNAME = os.environ.get('API_USERNAME_DEV')
+	API_PASSWORD = os.environ.get('API_PASSWORD_DEV')
 else:
 	BASE_URL = "https://telehelp.se"
 	elkNumber = '+46766861551'
