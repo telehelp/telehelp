@@ -32,8 +32,8 @@ function RegistrationForm(props) {
             id="helperName"
             placeholder="Bengan"
             invalid={'helperName' in errors}
-            innerRef={register({ required: true })}/>
-        <FormFeedback invalid></FormFeedback>
+            innerRef={register({pattern: /^[a-z ,.'-]+$/i, required: true })}/>
+        <FormFeedback invalid>Skriv in ett ordentligt namn</FormFeedback>
     </FormGroup>
      <FormGroup>
      <Label for="zipCode">Postnummer</Label>
@@ -42,8 +42,8 @@ function RegistrationForm(props) {
             id="zipCode"
             placeholder="12345"
             invalid={'zipCode' in errors}
-            innerRef={register({pattern: /\d+/, required: true })}/>
-        <FormFeedback invalid>Den postnummer som du skrev in är ogilitigt</FormFeedback>
+            innerRef={register({pattern: /^[0-9]{5}$/, required: true })}/>
+        <FormFeedback invalid>Den postnummer som du skrev in är ogilitigt, måste vara 5 siffror</FormFeedback>
       </FormGroup>
       <FormGroup>
      <Label for="phoneNumber">Telefonnummer</Label>
@@ -52,7 +52,7 @@ function RegistrationForm(props) {
             id="phoneNumber"
             placeholder="0701234567"
             invalid={'phoneNumber' in errors}
-            innerRef={register({pattern: /\d+/, required: true })}/>
+            innerRef={register({pattern: /^(\d|\+){1}\d{9,12}$/, required: true })}/>
         <FormFeedback invalid>Det telefonnummer som du skrev in är ogilitigt</FormFeedback>
       </FormGroup>
       <FormGroup>
