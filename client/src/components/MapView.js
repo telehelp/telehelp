@@ -126,8 +126,8 @@ class MapView extends React.Component {
             url='https://{s}.tile.osm.org/{z}/{x}/{y}.png'
           />
 
-          {addressPoints.map(e => {
-            return <Marker position={[e[0], e[1]]}><Popup>{e[2]}</Popup></Marker>
+          {addressPoints.map((e, i) => {
+            return <Marker key={i} position={[e[0], e[1]]}><Popup>{e[2]}</Popup></Marker>
           })}
         </LeafletMap>
       </div>

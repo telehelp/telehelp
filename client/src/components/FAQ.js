@@ -48,12 +48,12 @@ class FAQ extends React.Component{
                 {zipped.map((e, i) => {
                     return (
                         <span key={i}>
-                            <UncontrolledCollapse key={i} toggler={"faq-toggle-"+i}>
+                            <UncontrolledCollapse toggler={"faq-toggle-"+i}>
                             </UncontrolledCollapse>
-                            <Button key={i} color="info" id={"faq-toggle-"+i} style={{ marginBottom: '1rem', marginRight: '1rem' }}>
+                            <Button color="info" id={"faq-toggle-"+i} style={{ marginBottom: '1rem', marginRight: '1rem' }}>
                                 {e[0]}
                             </Button>
-                            <UncontrolledCollapse key={i} toggler={"faq-toggle-"+i}>
+                            <UncontrolledCollapse toggler={"faq-toggle-"+i}>
                             <p>
                                 {e[1]}
                             </p>
