@@ -11,9 +11,13 @@ from zipcode_utils import *
 
 app = Flask(__name__, static_folder='../client/build', static_url_path='/')
 
+dev = True
 API_USERNAME = os.environ.get('API_USERNAME')
 API_PASSWORD = os.environ.get('API_PASSWORD')
-BASE_URL = "https://telehelp.se"
+if dev:
+	BASE_URL = "https://59408f3f.ngrok.io"
+else:
+	BASE_URL = "https://telehelp.se"
 DATABASE = 'telehelp.db'
 ZIPDATA = 'SE.txt'
 
@@ -60,7 +64,14 @@ def postcodeInput():
 	closestHelpers = fetchHelper(DATABASE, district, zipcode, location_dict)
 	if closestHelpers is None:
 		# TODO: Fix this sound clip
-		payload = {"play": "https://files.telehelp.se/vi_letar.mp3", "skippable":"true"}
+		payload = {"play": "https://files.telehelp.se/du_befinner.mp3",
+					"next": {"play": "https://files.telehelp.se/stammer_det.mp3",
+					"next": {"play": "https://files.telehelp.se/tryck.mp3",
+					"next": {"play": "https://files.telehelp.se/1.mp3",
+					"next": {"play": "https://files.telehelp.se/andra_postnr.mp3",
+					"next": {"play": "https://files.telehelp.se/tryck.mp3",
+					"next": {"ivr": "https://files.telehelp.se/2.mp3",
+					"1": BASE_URL+'/handleNumberInput', "2": {"play": "https://files.telehelp.se/vi_letar.mp3"}}}}}}}}
 		return json.dumps(payload)
 	else:
 		payload = {"play": "https://files.telehelp.se/du_kopplas.mp3", "skippable":"true", 
@@ -86,6 +97,28 @@ def postcodeInput():
 def handleReturningUser():
 	pass
 
+@app.route('/removeHelper', methods = ['POST'])
+def removeHelper():
+	from_sender = request.form.get("from")
+	deleteFromDatabase(DATABASE, from_sender, 'helper')
+	return
+
+@app.route('/handleReturningHelper', methods = ['POST'])
+def handleReturningHelper():
+	print(request.form.get("result"))
+	number = int(request.form.get("result"))
+	if number == 1:
+		# TODO: fetch customer from database
+		payload = {"play": "https://files.telehelp.se/du_kopplas.mp3", "skippable":"true", 
+					"next": {"ivr": "https://files.telehelp.se/bep.mp3", "digits": 5, 
+					"next": BASE_URL+"/postcodeInput"}}
+		return json.dumps(payload)
+	
+	elif number == 2:
+		payload = {"play": "https://files.telehelp.se/avreg_confirmed.mp3", "next": BASE_URL+"/removeHelper"}
+		return json.dumps(payload)
+
+
 @app.route('/secret', methods = ['POST'])
 def secret():
 	payload = {"play": "https://files.telehelp.se/6.mp3",
@@ -95,18 +128,6 @@ def secret():
 
 @app.route('/handleNumberInput', methods = ['POST'])
 def handleNumberInput():
-	from_sender = request.form.get("from")
-	if userExists(DATABASE, from_sender, 'customer'):
-		payload = {"play":"https://files.telehelp.se/behover_hjalp.mp3", 
-			   "next":{"play":"https://files.telehelp.se/tryck.mp3",
-			   "next":{"play":"https://files.telehelp.se/1.mp3",
-			   "next":{"play":"https://files.telehelp.se/andra_postnr.mp3",
-			   "next":{"play": "https://files.telehelp.se/tryck.mp3",
-			   "next":{"play": "https://files.telehelp.se/2",
-			   "next":{"play": "https://files.telehelp.se/avreg.mp3",
-			   "next":{"play": "https://files.telehelp.se/tryck.mp3",
-			   "next":{"ivr": "https://files.telehelp.se/3.mp3", "digits": 1, "next":BASE_URL+"/handleReturningUser"} }}}}}}}}
-		return json.dumps(payload)
 	
 	print(request.form.get("result"))
 	number = int(request.form.get("result"))
@@ -118,7 +139,7 @@ def handleNumberInput():
 		return json.dumps(payload)
 
 	elif number == 2:
-		payload = {"play": "https://files.telehelp.se/info.mp3"}
+		payload = {"play": "https://files.telehelp.se/info.mp3", "next":BASE_URL+'/receiveCall'}
 		return json.dumps(payload)
 	
 	elif number == 3:
@@ -131,6 +152,37 @@ def receiveCall():
 	from_sender = request.form.get("from")
 	print(from_sender)
 	auth = (API_USERNAME, API_PASSWORD)
+	from_sender = request.form.get("from")
+
+	# For registered helpers
+	if userExists(DATABASE, from_sender, 'helper'):
+		# TODO: Fix sound
+		print("Registered helper")
+		payload = {"play":"https://files.telehelp.se/registrerad_volontar.mp3",
+				"next":{"play":"https://files.telehelp.se/ring_upp_riskgrupp.mp3", 
+			   "next":{"play":"https://files.telehelp.se/tryck.mp3",
+			   "next":{"play":"https://files.telehelp.se/1.mp3",
+			   "next":{"play": "https://files.telehelp.se/avreg.mp3",
+			   "next":{"play": "https://files.telehelp.se/tryck.mp3",
+			   "next":{"ivr": "https://files.telehelp.se/2.mp3", "digits": 1, "next":BASE_URL+"/handleReturningHelper"} }}}}}}
+		return json.dumps(payload)
+
+	# For registered customers
+	elif userExists(DATABASE, from_sender, 'customer'):
+		payload = {"play":"https://files.telehelp.se/behover_hjalp.mp3", 
+				"next":{"play":"https://files.telehelp.se/kontakta.mp3",
+				"next":{"play":"https://files.telehelp.se/igen.mp3",
+			   "next":{"play":"https://files.telehelp.se/tryck.mp3",
+			   "next":{"play":"https://files.telehelp.se/1.mp3",
+			   "next":{"play":"https://files.telehelp.se/nagon_annan.mp3",
+			   "next":{"play": "https://files.telehelp.se/tryck.mp3",
+			   "next":{"play": "https://files.telehelp.se/2",
+			   "next":{"play": "https://files.telehelp.se/avreg.mp3",
+			   "next":{"play": "https://files.telehelp.se/tryck.mp3",
+			   "next":{"ivr": "https://files.telehelp.se/3.mp3", "digits": 1, "next":BASE_URL+"/handleReturningUser"} }}}}}}}}}}
+		return json.dumps(payload)
+
+
 	payload = {"play": "https://files.telehelp.se/info.mp3", "skippable":"true", 
 				"next":{"play":"https://files.telehelp.se/behover_hjalp.mp3", 
 				"next":{"play":"https://files.telehelp.se/tryck.mp3",
