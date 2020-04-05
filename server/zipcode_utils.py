@@ -42,7 +42,7 @@ def getDistrict(zip, district_dict):
 def getLatLong(zip):
 	try:
 		latlong = location_dictionary[int(zip)]
-	except: KeyError:
+	except KeyError:
 		return (0, 0)
 
 	return latlong
