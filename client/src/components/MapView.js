@@ -107,10 +107,10 @@ class MapView extends React.Component {
       [59.72232229300064, 15.236942540536049, '98'],
       [59.66318740793199, 18.022921781795475, '99']
       ]
-    
+
     return (
       <div className="mapHolder">
-        <h2>Våra volontärer finns i hela landet</h2>
+        <h2>Våra X st volontärer finns i hela landet</h2>
       <div id="mapid" className="leaflet-container">
         <LeafletMap
           center={[60, 14]}
