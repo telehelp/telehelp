@@ -1,10 +1,13 @@
-# Matkrasslig
+# Telehelp - Bridge the Digital Divide
 
-Call a volunteer nearby if you need help with buying your groceries, or anything else.
+Call a volunteer nearby if you need help with buying your groceries, or anything else, if you belong to an at-risk group during the coronavirus pandemic.
 
 ## Features
- - No buttons required, just call the number: XXX-XXX XX XX
- - Allows you to feel good about yourself
+ - No fancy tech required, just call the number +46766861551 from your phone to request help if you are self-isolating.
+ - Built for use by minimally tech literate users
+ - Signing up to be a local volunteer allows you to feel good about yourself (and do good).
+ - Minimal user data collected
+ - Uses ZIP codes to match you with local users
 
 ## Installation
 There are two parts to the project
@@ -17,9 +20,16 @@ The following libs needs to be installed
 sqlcipher libsqlcipher-dev
 ```
 
+### External resources
+
+The project relies on the following APIs:
+
+- [Google Cloud Text-to-speech](https://cloud.google.com/text-to-speech)
+- [46elks telephony](https://46elks.se/)
+
 ### Server
 
-The server is (probably going to be) written in python (`3.7.5`) and can be installed (from the root directory) with
+The server is written in Python (`3.7.5`) and can be installed (from the root directory) with
 ```
 cd server && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt
 ```
@@ -28,26 +38,11 @@ If(when) you install new dependencies, add them with `pip freeze > requirements.
 To run the api simply navigate to the `server` folder and do `flask run`, the server will be available on port 5000 by default.
 
 ### Client
-To be determined, but I think that [create-react-app](https://github.com/facebook/create-react-app) is worth considering. Although, [Vue](https://cli.vuejs.org/guide/creating-a-project.html) is also an option.
+To be determined, but I think that [create-react-app](https://github.com/facebook/create-react-app) is worth considering.
 
-At the moment I have just setup a simple react frontend that shows the current time.
-It can be started by navigating to the `client` directory and running `yarn start`.
+It can be started by navigating to the `client` directory, build the yarn environment with `yarn`, and start it with `yarn start`.
 
 If you haven't started the server you can also do it from this folder by running `yarn start-api`.
-
-
-## Usage and ideas
-- Login authentication can be done with JSON webtokens and the [Flask-JWT](https://pythonhosted.org/Flask-JWT/) package to allow access to protected endpoints.
-- The protected endpoints handle access to account management and the [46elks api](https://46elks.se/docs/overview).
-- Potentially use [Marshmallow](https://marshmallow.readthedocs.io/en/stable/) for object (de)serialization of user data.
-
-### Hosting
-- Digital ocean [droplet](https://www.digitalocean.com/products/droplets/)
-- GCloud/Aws
-- Linode
-- Heroku PaaS
-- Our own hardware
-- We could use gh-pages probably if we handle the CORS, but I think that is more trouble than it's worth. We could just put our server behind CF anyway, since most the entire frontend should be cacheable. But we are not expecting that amount of users anytime soon.
 
 ## Quick Git Guide
 
@@ -82,3 +77,6 @@ if the the issue is complicated
 
 Commit messages are written in imperative mood i.e `If applied, this commit will <my-short-description>`
 
+## Citations
+
+The ZIP code database file (SE.txt) used in this project is attributed to [GeoNames](http://download.geonames.org/export/zip/) and is licensed under the [Creative Commons Attribution 4.0 License](https://creativecommons.org/licenses/by/4.0/).
