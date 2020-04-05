@@ -3,8 +3,6 @@ import { Map as LeafletMap, TileLayer, Marker, Popup } from 'react-leaflet';
 
 class MapView extends React.Component {
   render() {
-    //An extract of address points from the LINZ bulk extract: http://www.linz.govt.nz/survey-titles/landonline-data/landonline-bde
-    //Should be this data set: http://data.linz.govt.nz/#/layer/779-nz-street-address-electoral/
     var addressPoints = [
       [59.321051789769314, 16.321737535467456, '0'],
       [59.275588587351294, 14.486207028120337, '1'],
