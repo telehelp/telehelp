@@ -4,6 +4,7 @@ Note: ssml must be well-formed according to:
     https://www.w3.org/TR/speech-synthesis/
 """
 from google.cloud import texttospeech
+import os
 
 text_input = dict() # contains key as filename and string for tts
 
@@ -72,7 +73,7 @@ def generateSoundBytes():
             out.write(response.audio_content)
             print('Audio content written to file "'+'media/'+key+'.mp3'+'"')
 
-def generateCustomSoundByte(text_string):
+def generateCustomSoundByte(text_string, filename, saveDir='/media'):
         # Instantiates a client
         client = texttospeech.TextToSpeechClient()
 
@@ -95,10 +96,11 @@ def generateCustomSoundByte(text_string):
         response = client.synthesize_speech(synthesis_input, voice, audio_config)
 
         # The response's audio_content is binary.
-        with open('media/'+key+'.mp3', 'wb') as out:
+        with open(os.path.join(saveDir, filename), 'wb') as out:
             # Write the response to the output file.
             out.write(response.audio_content)
-            print('Audio content written to file "'+'media/'+key+'.mp3'+'"')
+            print('Audio content written to file %s'%os.path.join(saveDir, filename))
 
 if __name__ == '__main__':
-    generateSoundBytes()
+    #generateSoundBytes()
+    generateCustomSoundByte("Vi letar efter en ledig volontär i ditt område. Samtalet avslutas nu, men du kommer snart att ringas upp av en volontär", 'ringer_tillbaka.mp3', saveDir='../../media')
