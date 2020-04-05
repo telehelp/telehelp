@@ -18,7 +18,7 @@ DATABASE = 'telehelp.db'
 DATABASE_KEY = os.environ.get('DATABASE_KEY')
 ZIPDATA = 'SE.txt'
 
-reg_schema = Schema({'helperName': str, 'zipCode':  Regex("^[0-9]{5}$"), 'phoneNumber': Regex("^(\d|\+){1}\d{9,12}$"), 'terms': bool })  
+reg_schema = Schema({'helperName': str, 'zipCode':  Regex("^[0-9]{5}$"), 'phoneNumber': Regex("^(\d|\+){1}\d{9,12}$"), 'terms': bool })
 location_dict, district_dict = readZipCodeData(ZIPDATA)
 
 
@@ -64,15 +64,15 @@ def postcodeInput():
 		payload = {"play": "https://files.telehelp.se/vi_letar.mp3", "skippable":"true"}
 		return json.dumps(payload)
 	else:
-		payload = {"play": "https://files.telehelp.se/du_kopplas.mp3", "skippable":"true", 
-						"next": {"play": "https://files.telehelp.se/en_volontar.mp3", 
+		payload = {"play": "https://files.telehelp.se/du_kopplas.mp3", "skippable":"true",
+						"next": {"play": "https://files.telehelp.se/en_volontar.mp3",
 						"next":{"connect":closestHelpers[0]}}}
 		return json.dumps(payload)
 
 
 # @app.route('/returningUser', methods = ['POST'])
 # def returningUser():
-# 	payload = {"play":"https://files.telehelp.se/behover_hjalp.mp3", 
+# 	payload = {"play":"https://files.telehelp.se/behover_hjalp.mp3",
 # 			   "next":{"play":"https://files.telehelp.se/tryck.mp3",
 # 			   "next":{"play":"https://files.telehelp.se/1.mp3",
 # 			   "next":{"play":"https://files.telehelp.se/andra_postnr.mp3",
@@ -91,7 +91,7 @@ def handleReturningUser():
 def handleNumberInput():
 	from_sender = request.form.get("from")
 	if userExists(DATABASE, DATABASE_KEY, from_sender, 'customer'):
-		payload = {"play":"https://files.telehelp.se/behover_hjalp.mp3", 
+		payload = {"play":"https://files.telehelp.se/behover_hjalp.mp3",
 			   "next":{"play":"https://files.telehelp.se/tryck.mp3",
 			   "next":{"play":"https://files.telehelp.se/1.mp3",
 			   "next":{"play":"https://files.telehelp.se/andra_postnr.mp3",
@@ -101,20 +101,20 @@ def handleNumberInput():
 			   "next":{"play": "https://files.telehelp.se/tryck.mp3",
 			   "next":{"ivr": "https://files.telehelp.se/3.mp3", "digits": 1, "next":BASE_URL+"/handleReturningUser"} }}}}}}}}
 		return json.dumps(payload)
-	
+
 	print(request.form.get("result"))
 	number = int(request.form.get("result"))
 	if number == 1:
 		print('Write your zipcode')
-		payload = {"play": "https://files.telehelp.se/post_nr.mp3", "skippable":"true", 
-					"next": {"ivr": "https://files.telehelp.se/bep.mp3", "digits": 5, 
+		payload = {"play": "https://files.telehelp.se/post_nr.mp3", "skippable":"true",
+					"next": {"ivr": "https://files.telehelp.se/bep.mp3", "digits": 5,
 					"next": BASE_URL+"/postcodeInput"}}
 		return json.dumps(payload)
 
 	elif number == 2:
 		payload = {"play": "https://files.telehelp.se/info.mp3"}
 		return json.dumps(payload)
-	
+
 	elif number == 3:
 		payload = payload = {"play": "https://files.telehelp.se/6.mp3",
 				"next": {"play":"https://files.telehelp.se/igen.mp3",
@@ -127,8 +127,8 @@ def receiveCall():
 	from_sender = request.form.get("from")
 	print(from_sender)
 	auth = (API_USERNAME, API_PASSWORD)
-	payload = {"play": "https://files.telehelp.se/info.mp3", "skippable":"true", 
-				"next":{"play":"https://files.telehelp.se/behover_hjalp.mp3", 
+	payload = {"play": "https://files.telehelp.se/info.mp3", "skippable":"true",
+				"next":{"play":"https://files.telehelp.se/behover_hjalp.mp3",
 				"next":{"play":"https://files.telehelp.se/tryck.mp3",
 				"next":{"play":"https://files.telehelp.se/1.mp3",
 				"next":{"play":"https://files.telehelp.se/info_igen.mp3",
@@ -164,3 +164,18 @@ def register():
 			return {'type': 'failure'}
 	return {'type': 'failure'}
 
+@app.route('/getVolunteerLocations', methods=["GET"])
+def getVolunteerLocations():
+    # Fetch all ZIP codes for volunteer users:
+    query = "SELECT zipcode FROM user_helpers"
+    zip_pd_dict = fetchData(DATABASE, DATABASE_KEY, query, params=None):
+    zip_list = list(zip_pd_dict)
+
+    # Use ZIPs to get GPS coordinates (lat, long):
+    latlongs = []
+
+    for zip in zip_list:
+        latlongs.append(getLatLong(zip))
+
+    payload {'coordinates' : latlongs }
+    return json.dumps(payload)
