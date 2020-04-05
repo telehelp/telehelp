@@ -168,7 +168,7 @@ def register():
 def getVolunteerLocations():
     # Fetch all ZIP codes for volunteer users:
     query = "SELECT zipcode FROM user_helpers"
-    zip_pd_dict = fetchData(DATABASE, DATABASE_KEY, query, params=None):
+    zip_pd_dict = fetchData(DATABASE, DATABASE_KEY, query, params=None)
     zip_list = list(zip_pd_dict)
 
     # Use ZIPs to get GPS coordinates (lat, long):
@@ -177,5 +177,5 @@ def getVolunteerLocations():
     for zip in zip_list:
         latlongs.append(getLatLong(zip))
 
-    payload {'coordinates' : latlongs }
+    payload = {'coordinates' : latlongs }
     return json.dumps(payload)
