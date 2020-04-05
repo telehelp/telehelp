@@ -49,5 +49,14 @@ $old-background: #b6f0e3;
     margin-bottom: 2em;
     //animation: blink .5s step-end infinite alternate;
   }
+
+  #mapid, .leaflet-container
+  {
+    height: 400px;
+    width: 100%;
+  }
+  .mapHolder {
+    padding-top: 3em;
+  }
 }
 

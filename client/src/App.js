@@ -3,6 +3,7 @@ import './App.scss';
 import RegistrationForm from './components/RegistrationForm';
 import FAQ from './components/FAQ';
 import TeleHelpBar from './components/TeleHelpBar';
+import MapView from './components/MapView';
 
 class App extends React.Component {
   constructor(props) {
@@ -65,6 +66,11 @@ class App extends React.Component {
         <div className="row">
           <div className="col-12">
             <FAQ/>
+          </div>
+        </div>
+        <div className="row">
+          <div className="col-12">
+            <MapView/>
           </div>
         </div>
       </div>
