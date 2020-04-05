@@ -10,7 +10,8 @@ class App extends React.Component {
     super(props)
     this.state = {
       time: 0,
-      isRegistered: false
+      isRegistered: false,
+      isRegisteredMsg: ""
     }
   }
 
@@ -60,8 +61,19 @@ class App extends React.Component {
 </svg><a href="tel:+46766861551">0766861551</a></h1>
             </div>
             <div className="signup" id="register">
-              {this.state.isRegistered ? <h3>Tack för din registrering!</h3> 
-              : <RegistrationForm handler={() => this.setState({time: time, isRegistered: true})}/>}
+              {this.state.isRegistered ? <h3>{this.state.isRegisteredMsg}</h3> 
+              : <RegistrationForm handler={(respdata) => {
+                if (respdata.type === 'success')
+                {
+                  this.setState({time: time, isRegistered: true, isRegisteredMsg: "Tack för din registrering!"})
+                }
+                else if (respdata.type === 'failure')
+                {
+                  this.setState({time: time, isRegistered: true, isRegisteredMsg: "Något gick fel, kunde inte genomföra registreringen!"})
+                }
+
+                
+              }}/>}
             </div>
           </div>
         </div>
