@@ -37,7 +37,19 @@ def writeToDatabase(db, query, params):
 		return 'Success'
 	except Exception as err:
 		print(err)
-		return 'Failure'    
+		return 'Failure'  
+
+def readDatabase(db, query, params):
+	try:
+		conn = create_connection(db)
+		cursor = conn.cursor()
+		cursor.execute(query, params)
+		res = cursor.fetchall()
+		conn.close()
+		return res
+	except Exception as err:
+		print(Exception, err)
+		return 'Failure'  
 
 def saveHelperToDatabase(db, name, phone, zipcode, district):
 	print("Writing phone and postcode to database")
@@ -59,6 +71,25 @@ def saveCustomerToDatabase(db, phone, zipcode, district):
 	flag = writeToDatabase(db, query, params)
 	print(flag)
 	return flag
+
+def userExists(db, phone, userType):
+	
+	if userType == 'customer':
+		query = '''SELECT * FROM user_customer WHERE phone = ?'''
+	elif userType == 'helper':
+		query = '''SELECT * FROM user_helpers WHERE phone = ?'''
+	else:
+		print('Inavlid userType')
+		return
+	
+	params = [phone]
+	ans = readDatabase(db, query, params)
+	if ans == []:
+		return False
+	else:
+		return True
+	return 
+	
 	
 	
 def getHelpers(db='telehelp.db'):
@@ -67,7 +98,7 @@ def getHelpers(db='telehelp.db'):
 
 def getCustomers(db='telehelp.db'):
 	query = "SELECT * FROM user_customers"   
-	return fetchData(query, db)
+	return fetchData(db, query)
 
 def fetchHelper(db, district, zipcode, location_dict):
 	query = '''SELECT * FROM user_helpers where district=?'''
@@ -91,6 +122,11 @@ def fetchHelper(db, district, zipcode, location_dict):
 
 
 if __name__ == '__main__':
+	# print(savePostcodeToDatabase('telehelp.db', '125', '17070', 'customer'))
+	# print(getCustomers(db='telehelp.db'))
+	print(userExists('telehelp.db', '+46761423456', 'helper'))
+	print(userExists('telehelp.db', '+45674623456', 'helper'))
+
 
 	ZIPDATA = 'SE.txt'
 	location_dict, district_dict = readZipCodeData(ZIPDATA)
