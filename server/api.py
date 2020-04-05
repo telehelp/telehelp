@@ -12,7 +12,7 @@ from zipcode_utils import *
 
 app = Flask(__name__, static_folder='../client/build', static_url_path='/')
 
-dev = False
+dev = True
 API_USERNAME = os.environ.get('API_USERNAME')
 API_PASSWORD = os.environ.get('API_PASSWORD')
 
@@ -26,7 +26,7 @@ DATABASE = 'telehelp.db'
 DATABASE_KEY = os.environ.get('DATABASE_KEY')
 ZIPDATA = 'SE.txt'
 mediaFolder = '../../media'
-
+callHistory = {}
 
 reg_schema = Schema({'helperName': str, 'zipCode':  Regex("^[0-9]{5}$"), 'phoneNumber': Regex("^(\d|\+){1}\d{9,12}$"), 'terms': bool })
 location_dict, district_dict = readZipCodeData(ZIPDATA)
@@ -42,8 +42,10 @@ def current_time():
 
 @app.route('/call', methods = ['POST'])
 def call():
-	global helperNumber
 	#from_sender = request.forms.get("from")
+	callId = request.form.get("id")
+	helperNumber = callHistory[callId]['helperNumber']
+	closestHelpers = callHistory[callId]['closestHelpers']
 	auth = (API_USERNAME, API_PASSWORD)
 
 	payload = {"play": "https://files.telehelp.se/hjalte.mp3",
@@ -62,6 +64,7 @@ def call():
 		'voice_start': json.dumps(payload)}
 
 	helperNumber += 1
+	callHistory[callId]['helperNumber'] = helperNumber
 	response = requests.post(
 		"https://api.46elks.com/a1/calls",
 		data=fields,
@@ -69,13 +72,15 @@ def call():
 		)
 
 	print(response.text)
-	return
+	return ""
 
 
 @app.route('/checkZipcode', methods = ['POST'])
 def checkZipcode():
-	global zipcode
 	zipcode = request.form.get("result")
+	callId = request.form.get("id")
+	callHistory[callId]['zipcode'] = zipcode
+
 	phone = request.form.get("from")
 	district = getDistrict(int(zipcode), district_dict)
 	#generateCustomSoundByte(district, district+'.mp3', mediaFolder)
@@ -95,13 +100,17 @@ def checkZipcode():
 
 @app.route('/postcodeInput', methods = ['POST'])
 def postcodeInput():
-	global closestHelpers, currentCustomer, helperNumber
+	callId = request.form.get("id")
+	zipcode = callHistory[callId]['zipcode']
 	phone = request.form.get("from")
 	currentCustomer = phone
 	district = getDistrict(int(zipcode), district_dict)
 	# TODO: Add sound if zipcode is invalid (n/a)
 	saveCustomerToDatabase(DATABASE, DATABASE_KEY, phone, zipcode, district)
 	closestHelpers = fetchHelper(DATABASE, DATABASE_KEY, district, zipcode, location_dict)
+	callHistory[callId]['closestHelpers'] = closestHelpers
+	callHistory[callId]['currentCustomer'] = currentCustomer
+
 	if closestHelpers is None:
 		# TODO: Fix this sound clip
 		payload = {"play": "https://files.telehelp.se/finns_ingen.mp3"}
@@ -112,11 +121,14 @@ def postcodeInput():
 		payload = {"play": "https://files.telehelp.se/ringer_tillbaka.mp3", "skippable":"true", 
 						"next": BASE_URL+"/call"}
 		helperNumber = 0
+		callHistory[callId]['helperNumber'] = helperNumber
 
 		return json.dumps(payload)
 
 @app.route('/connectUsers', methods = ['POST'])
 def connectUsers():
+	callId = request.form.get("id")
+	currentCustomer = callHistory[callId]['currentCustomer']
 	payload = {"connect":currentCustomer, "callerid": elkNumber, "timeout":"15"}
 	return json.dumps(payload)
 
@@ -142,13 +154,13 @@ def handleReturningUser():
 def removeHelper():
 	from_sender = request.form.get("from")
 	deleteFromDatabase(DATABASE, DATABASE_KEY, from_sender, 'helper')
-	return
+	return ""
 
 @app.route('/removeCustomer', methods = ['POST'])
 def removeCustomer():
 	from_sender = request.form.get("from")
 	deleteFromDatabase(DATABASE, DATABASE_KEY, from_sender, 'customer')
-	return
+	return ""
 
 @app.route('/handleReturningHelper', methods = ['POST'])
 def handleReturningHelper():
@@ -190,10 +202,12 @@ def handleNumberInput():
 
 @app.route('/receiveCall',methods = ['POST'])
 def receiveCall():
+	callId = request.form.get("id")
+	callHistory[callId] = {}
 	from_sender = request.form.get("from")
 	print(from_sender)
 	auth = (API_USERNAME, API_PASSWORD)
-	from_sender = request.form.get("from")
+	#from_sender = request.form.get("from")
 
 	# For registered helpers
 	if userExists(DATABASE, DATABASE_KEY, from_sender, 'helper'):
