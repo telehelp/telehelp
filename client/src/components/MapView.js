@@ -113,7 +113,7 @@ class MapView extends React.Component {
         <h2>Våra X st volontärer finns i hela landet</h2>
       <div id="mapid" className="leaflet-container">
         <LeafletMap
-          center={[60, 14]}
+          center={[59.73, 17.4]}
           zoom={7}
           maxZoom={20}
           attributionControl={true}
