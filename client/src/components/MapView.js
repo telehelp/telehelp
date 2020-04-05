@@ -29,15 +29,15 @@ class MapView extends React.Component {
 
     fetch('/getVolunteerLocations')
     .then(res => res.json())
-    .catch(console.log('error fetching coords, using defaults'))
     .then(data => {
       this.setState({addressPoints: data.coordinates});
       })
+    .catch(console.log('error fetching coords, using defaults'))
     
-      if (this.state.addressPoints.length === 0)
-      {
-        this.setState({addressPoints: coords});
-      }
+    if (this.state.addressPoints.length === 0)
+    {
+      this.setState({addressPoints: coords});
+    }
   }
 
   render() {
