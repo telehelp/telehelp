@@ -88,12 +88,36 @@ def postcodeInput():
 	return json.dumps(payload)
 
 
-@app.rout('returningUser', methods = ['POST'])
+@app.route('returningUser', methods = ['POST'])
 def returningUser():
-    pass
+    payload = {"play":"https://files.telehelp.se/behover_hjalp.mp3", 
+			   "next":{"play":"https://files.telehelp.se/tryck.mp3"},
+			   "next":{"play":"https://files.telehelp.se/1.mp3"},
+               "next":{"play":"https://files.telehelp.se/andra_postnr.mp3"},
+               "next":{"play", "https://files.telehelp.se/tryck.mp3"},
+               "next":{"play", "https://files.telehelp.se/2"},
+               "next":{"play", "https://files.telehelp.se/avreg.mp3"},
+               "next":{"play", "https://files.telehelp.se/tryck.mp3"},
+               "next":{"ivr", "https://files.telehelp.se/3.mp3", "digits": 1, "next":BASE_URL+"/handleReturningUser"} }
+
+@app.route('handleReturningUser', method = ['POST'])
+def handleReturningUser():
+    
+
+@app.route('secret', methods = ['POST'])
+def secret():
+    payload = {"play": "https://files.telehelp.se/6.mp3",
+                "next", {"play":"https://files.telehelp.se/igen.mp3"},
+                "next", {"play":"https://files.telehelp.se/om_inte.mp3"}}
+    return json.dumps(payload)
 
 @app.route('/handleNumberInput', methods = ['POST'])
 def handleNumberInput():
+    from_sender = request.form.get("from")
+    if userExists(DATABASE, from_sender, 'customer'):
+        payload = {"next": BASE_URL+'/returningUsers'}
+        return json.dumps(payload)
+
 	print(request.form.get("result"))
 	number = int(request.form.get("result"))
 	if number == 1:
@@ -106,6 +130,9 @@ def handleNumberInput():
 	elif number == 2:
 		payload = {"play": "https://files.telehelp.se/info.mp3"}
 		return json.dumps(payload)
+    
+    elif number == 3:
+        payload = {"next": "https://telehelp.se/secret"}
 
 
 @app.route('/receiveCall',methods = ['POST'])
