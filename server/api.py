@@ -12,11 +12,9 @@ from text2speech_utils import generateCustomSoundByte
 
 app = Flask(__name__, static_folder='../client/build', static_url_path='/')
 
-dev = True
-#API_USERNAME = os.environ.get('API_USERNAME')
-#API_PASSWORD = os.environ.get('API_PASSWORD')
-API_USERNAME = "u47c104a222f9839ed9137e9c0cc814a6"
-API_PASSWORD = "2C000B5B6E284038DD31BD6FB1D2D976"
+dev = False
+API_USERNAME = os.environ.get('API_USERNAME')
+API_PASSWORD = os.environ.get('API_PASSWORD')
 
 if dev:
 	BASE_URL = "https://59408f3f.ngrok.io"
