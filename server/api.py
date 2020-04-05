@@ -15,6 +15,7 @@ API_USERNAME = os.environ.get('API_USERNAME')
 API_PASSWORD = os.environ.get('API_PASSWORD')
 BASE_URL = "https://telehelp.se"
 DATABASE = 'telehelp.db'
+DATABASE_KEY = os.environ.get('DATABASE_KEY')
 ZIPDATA = 'SE.txt'
 
 reg_schema = Schema({'helperName': str, 'zipCode':  Regex("^[0-9]{5}$"), 'phoneNumber': Regex("^(\d|\+){1}\d{9,12}$"), 'terms': bool })  
@@ -56,8 +57,8 @@ def postcodeInput():
 	phone = request.form.get("from")
 	district = getDistrict(int(zipcode), district_dict)
 	# TODO: Add sound if zipcode is invalid (n/a)
-	saveCustomerToDatabase(DATABASE, phone, zipcode, district)
-	closestHelpers = fetchHelper(DATABASE, district, zipcode, location_dict)
+	saveCustomerToDatabase(DATABASE, DATABASE_KEY, phone, zipcode, district, DATABASE_KEY)
+	closestHelpers = fetchHelper(DATABASE, DATABASE_KEY, district, zipcode, location_dict, DATABASE_KEY)
 	if closestHelpers is None:
 		# TODO: Fix this sound clip
 		payload = {"play": "https://files.telehelp.se/vi_letar.mp3", "skippable":"true"}
@@ -89,7 +90,7 @@ def handleReturningUser():
 @app.route('/handleNumberInput', methods = ['POST'])
 def handleNumberInput():
 	from_sender = request.form.get("from")
-	if userExists(DATABASE, from_sender, 'customer'):
+	if userExists(DATABASE, DATABASE_KEY, from_sender, 'customer'):
 		payload = {"play":"https://files.telehelp.se/behover_hjalp.mp3", 
 			   "next":{"play":"https://files.telehelp.se/tryck.mp3",
 			   "next":{"play":"https://files.telehelp.se/1.mp3",
@@ -153,9 +154,9 @@ def register():
 				return {'type': 'failure', 'message': 'Invalid Zip'}
 			if request.json['phoneNumber'][0] == '0':
 				request.json['phoneNumber'] = '+46' + request.json['phoneNumber'][1:]
-			if userExists(DATABASE, request.json['phoneNumber'], 'helper'):
+			if userExists(DATABASE, DATABASE_KEY, request.json['phoneNumber'], 'helper'):
 				return {'type': 'failure', 'message': 'User already exists'}
-			saveHelperToDatabase(DATABASE, request.json['helperName'], request.json['phoneNumber'], request.json['zipCode'], city)
+			saveHelperToDatabase(DATABASE, DATABASE_KEY, request.json['helperName'], request.json['phoneNumber'], request.json['zipCode'], city)
 			return {'type': 'success'}
 		except Exception as err:
 			print(err)
