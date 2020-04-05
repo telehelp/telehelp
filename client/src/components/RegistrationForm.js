@@ -2,8 +2,8 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { Form, FormFeedback, FormGroup, Label, Input, Button } from 'reactstrap';
 
-function RegistrationForm() {
-  const { register, handleSubmit, errors } = useForm(); // initialise the hook
+function RegistrationForm(props) {
+  const { register, handleSubmit, errors, reset } = useForm(); // initialise the hook
   const onSubmit = data => {
     console.log(data);
     if (!data)
@@ -15,7 +15,11 @@ function RegistrationForm() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
-    });
+    })
+    .then(res => res.json())
+    .then(data => props.handler(data));
+
+    reset();
   };
 
   return (
@@ -28,8 +32,8 @@ function RegistrationForm() {
             id="helperName"
             placeholder="Bengan"
             invalid={'helperName' in errors}
-            innerRef={register({ required: true })}/>
-        <FormFeedback invalid></FormFeedback>
+            innerRef={register({pattern: /^[a-z ,.'-]+$/i, required: true })}/>
+        <FormFeedback invalid>Skriv in ett ordentligt namn</FormFeedback>
     </FormGroup>
      <FormGroup>
      <Label for="zipCode">Postnummer</Label>
@@ -38,8 +42,8 @@ function RegistrationForm() {
             id="zipCode"
             placeholder="12345"
             invalid={'zipCode' in errors}
-            innerRef={register({pattern: /\d+/, required: true })}/>
-        <FormFeedback invalid>Den postnummer som du skrev in är ogilitigt</FormFeedback>
+            innerRef={register({pattern: /^[0-9]{5}$/, required: true })}/>
+        <FormFeedback invalid>Den postnummer som du skrev in är ogilitigt, måste vara 5 siffror</FormFeedback>
       </FormGroup>
       <FormGroup>
      <Label for="phoneNumber">Telefonnummer</Label>
@@ -48,7 +52,7 @@ function RegistrationForm() {
             id="phoneNumber"
             placeholder="0701234567"
             invalid={'phoneNumber' in errors}
-            innerRef={register({pattern: /\d+/, required: true })}/>
+            innerRef={register({pattern: /^(\d|\+){1}\d{9,12}$/, required: true })}/>
         <FormFeedback invalid>Det telefonnummer som du skrev in är ogilitigt</FormFeedback>
       </FormGroup>
       <FormGroup>
