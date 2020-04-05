@@ -2,7 +2,7 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { Form, FormFeedback, FormGroup, Label, Input, Button } from 'reactstrap';
 
-function RegistrationForm() {
+function RegistrationForm(props) {
   const { register, handleSubmit, errors, reset } = useForm(); // initialise the hook
   const onSubmit = data => {
     console.log(data);
@@ -18,6 +18,8 @@ function RegistrationForm() {
     });
 
     reset();
+    // Set state to registered
+    props.handler()
   };
 
   return (

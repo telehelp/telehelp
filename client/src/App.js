@@ -10,6 +10,7 @@ class App extends React.Component {
     super(props)
     this.state = {
       time: 0,
+      isRegistered: false
     }
   }
 
@@ -59,7 +60,8 @@ class App extends React.Component {
 </svg><a href="tel:+46766861551">0766861551</a></h1>
             </div>
             <div className="signup" id="register">
-              <RegistrationForm/>
+              {this.state.isRegistered ? <h3>Tack för din registrering!</h3> 
+              : <RegistrationForm handler={() => this.setState({time: time, isRegistered: true})}/>}
             </div>
           </div>
         </div>
