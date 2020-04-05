@@ -95,12 +95,32 @@ def postcodeInput():
 
 @app.route('/handleReturningUser', methods = ['POST'])
 def handleReturningUser():
-	pass
+	print(request.form.get("result"))
+	number = int(request.form.get("result"))
+	if number == 1:
+		# TODO: fetch customer from database
+		payload = {"play": "https://files.telehelp.se/du_kopplas.mp3", "skippable":"true"}
+		return json.dumps(payload)
+
+	if number == 2:
+		# TODO: fetch customer from database
+		payload = {"play": "https://files.telehelp.se/du_kopplas.mp3", "skippable":"true"}
+		return json.dumps(payload)
+	
+	if number == 3:
+		payload = {"play": "https://files.telehelp.se/avreg_confirmed.mp3", "next": BASE_URL+"/removeCustomer"}
+		return json.dumps(payload)
 
 @app.route('/removeHelper', methods = ['POST'])
 def removeHelper():
 	from_sender = request.form.get("from")
 	deleteFromDatabase(DATABASE, from_sender, 'helper')
+	return
+
+@app.route('/removeCustomer', methods = ['POST'])
+def removeCustomer():
+	from_sender = request.form.get("from")
+	deleteFromDatabase(DATABASE, from_sender, 'customer')
 	return
 
 @app.route('/handleReturningHelper', methods = ['POST'])
@@ -109,13 +129,11 @@ def handleReturningHelper():
 	number = int(request.form.get("result"))
 	if number == 1:
 		# TODO: fetch customer from database
-		payload = {"play": "https://files.telehelp.se/du_kopplas.mp3", "skippable":"true", 
-					"next": {"ivr": "https://files.telehelp.se/bep.mp3", "digits": 5, 
-					"next": BASE_URL+"/postcodeInput"}}
+		payload = {"play": "https://files.telehelp.se/du_kopplas.mp3", "skippable":"true"}
 		return json.dumps(payload)
 	
 	elif number == 2:
-		payload = {"play": "https://files.telehelp.se/avreg_confirmed.mp3", "next": BASE_URL+"/removeHelper"}
+		payload = {"play": "https://files.telehelp.se/avreg_confirmed.mp3", "next": BASE_URL+"/removeCustomer"}
 		return json.dumps(payload)
 
 
