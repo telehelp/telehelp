@@ -66,6 +66,18 @@ def saveHelperToDatabase(db, key, name, phone, zipcode, district):
 	print(flag)
 	return flag
 
+def writeActiveCustomer(db, key, helperPhone, customerPhone):
+	query = ''' UPDATE user_helpers set active_customer=? where phone=?) '''
+	params = (customerPhone, helperPhone)
+	flag = writeToDatabase(db, key, query, params)
+	return flag
+
+def readActiveCustomer(db, key, helperPhone):
+	query = ''' SELECT active_customer FROM user_helpers where phone=?) '''
+	params = [helperPhone]
+	res = readDatabase(db, key, query, params)
+	return res
+
 def saveCustomerToDatabase(db, key, phone, zipcode, district):
 	print("Writing phone and postcode to database")
 	print('zipcode:', zipcode, '\nphone: ', phone)
@@ -141,17 +153,55 @@ def fetchHelper(db, key, district, zipcode, location_dict):
 	print(list(sortedNumbers))
 	return list(sortedNumbers)
 
+def addCallHistoryToDB(db, key, callid, columnName, data):
+	print(data)
+	if columnName == 'zipcode':
+		query = ''' UPDATE call_history set zipcode=? where callid=? '''
+	elif columnName == 'helper_number':
+		query = ''' UPDATE call_history set helper_number=? where callid=? '''
+	elif columnName == 'closest_helpers':
+		query = ''' UPDATE call_history set closest_helpers=? where callid=? '''
+	elif columnName == 'current_customer':
+		query = ''' UPDATE call_history set current_customer=? where callid=? '''
+	params = (data, callid)
+	writeToDatabase(db, key, query, params)
+
+def readCallHistory(db, key, callid, columnName):
+	if columnName == 'zipcode':
+		query = ''' SELECT zipcode FROM call_history WHERE callid=? '''
+	elif columnName == 'helper_number':
+		query = ''' SELECT helper_number FROM call_history WHERE callid=? '''
+	elif columnName == 'closest_helpers':
+		query = ''' SELECT closest_helpers FROM call_history WHERE callid=? '''
+	elif columnName == 'current_customer':
+		query = ''' SELECT current_customer FROM call_history WHERE callid=? '''
+	params = [callid]
+	res = readDatabase(db, key, query, params)
+	print(res)
+	# print(res[columnName])
+	# result = res[columnName].to_string()
+	# print(result)
+	return res[0][0]
+
+def createNewCallHistory(db, key, callid):
+	query = ''' INSERT INTO call_history (callid) values(?) '''	
+	params = [callid]
+	writeToDatabase(db, key, query, params)
 
 if __name__ == '__main__':
 	DATABASE_KEY = os.environ.get('DATABASE_KEY')
-	conn, cursor = create_connection('telehelp.db', DATABASE_KEY)
-	# print(savePostcodeToDatabase('telehelp.db', DATABASSE_KEY, '125', '17070', 'customer'))
-	# print(getCustomers('telehelp.db', DATABASE_KEY)
-	print(userExists('telehelp.db', DATABASE_KEY,'+46761423456', 'helper'))
-	print(userExists('telehelp.db', DATABASE_KEY,'+45674623456', 'helper'))
+	result = readCallHistory('telehelp.db', DATABASE_KEY, 'c978d94b07cef017b39f4e4b42332b8e6', 'current_customer')
+	print(result)
 
 
-	ZIPDATA = 'SE.txt'
-	location_dict, district_dict = readZipCodeData(ZIPDATA)
-	# fetchHelper('telehelp.db', DATABASE_KEY, 'Stockholm', 17070, location_dict)
-	# print(getCustomers('telehelp.db', DATABASE_KEY))
+	# conn, cursor = create_connection('telehelp.db', DATABASE_KEY)
+	# # print(savePostcodeToDatabase('telehelp.db', DATABASSE_KEY, '125', '17070', 'customer'))
+	# # print(getCustomers('telehelp.db', DATABASE_KEY)
+	# print(userExists('telehelp.db', DATABASE_KEY,'+46761423456', 'helper'))
+	# print(userExists('telehelp.db', DATABASE_KEY,'+45674623456', 'helper'))
+
+
+	# ZIPDATA = 'SE.txt'
+	# location_dict, district_dict = readZipCodeData(ZIPDATA)
+	# # fetchHelper('telehelp.db', DATABASE_KEY, 'Stockholm', 17070, location_dict)
+	# # print(getCustomers('telehelp.db', DATABASE_KEY))

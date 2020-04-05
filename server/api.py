@@ -12,13 +12,15 @@ from zipcode_utils import *
 
 app = Flask(__name__, static_folder='../client/build', static_url_path='/')
 
-dev = False
+dev = True
 
 if dev:
-	BASE_URL = "https://59408f3f.ngrok.io"
+	BASE_URL = "http://272985e7.ngrok.io"
 	elkNumber = '+46766862446'
-	API_USERNAME = os.environ.get('API_USERNAME_DEV')
-	API_PASSWORD = os.environ.get('API_PASSWORD_DEV')
+	#API_USERNAME = os.environ.get('API_USERNAME_DEV')
+	#API_PASSWORD = os.environ.get('API_PASSWORD_DEV')
+	API_USERNAME = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+	API_PASSWORD = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
 else:
 	BASE_URL = "https://telehelp.se"
 	elkNumber = '+46766861551'
@@ -28,7 +30,7 @@ DATABASE = 'telehelp.db'
 DATABASE_KEY = os.environ.get('DATABASE_KEY')
 ZIPDATA = 'SE.txt'
 mediaFolder = '../../media'
-callHistory = {}
+#callHistory = {}
 
 reg_schema = Schema({'helperName': str, 'zipCode':  Regex("^[0-9]{5}$"), 'phoneNumber': Regex("^(\d|\+){1}\d{9,12}$"), 'terms': bool })
 location_dict, district_dict = readZipCodeData(ZIPDATA)
@@ -44,29 +46,31 @@ def current_time():
 
 @app.route('/call', methods = ['POST'])
 def call():
-	#from_sender = request.forms.get("from")
+	from_sender = request.form.get("from")
 	callId = request.form.get("callid")
-	helperNumber = callHistory[callId]['helperNumber']
-	closestHelpers = callHistory[callId]['closestHelpers']
+
+	helperNumber = readCallHistory(DATABASE, DATABASE_KEY, callId, 'helper_number')
+	closestHelpers = json.loads(readCallHistory(DATABASE, DATABASE_KEY, callId, 'closest_helpers'))
+	print(closestHelpers)
 	auth = (API_USERNAME, API_PASSWORD)
 
 	payload = {"play": "https://files.telehelp.se/hjalte.mp3",
-				"next": {"play": "https://files.telehelp.se/tryck.mp3",
 				"next": {"play": "https://files.telehelp.se/1.mp3",
-				"next": {"play": "https://files.telehelp.se/tryck.mp3",
 				"next": {"ivr": "https://files.telehelp.se/2.mp3",
-				"1": BASE_URL+"/connectUsers", "2":BASE_URL+"/call"}}}}}
+				"1": BASE_URL+"/connectUsers", "2":BASE_URL+"/call"}}}
 
 
 	print(closestHelpers[helperNumber])
 	print(elkNumber)
+	writeActiveCustomer(DATABASE, DATABASE_KEY, closestHelpers[helperNumber], from_sender)
 	fields = {
 		'from': elkNumber,
 		'to': closestHelpers[helperNumber],
 		'voice_start': json.dumps(payload)}
 
 	helperNumber += 1
-	callHistory[callId]['helperNumber'] = helperNumber
+	addCallHistoryToDB(DATABASE, DATABASE_KEY, callId, 'helper_number', helperNumber)
+	#callHistory[callId]['helperNumber'] = helperNumber
 	response = requests.post(
 		"https://api.46elks.com/a1/calls",
 		data=fields,
@@ -81,37 +85,42 @@ def call():
 def checkZipcode():
 	zipcode = request.form.get("result")
 	callId = request.form.get("callid")
-	callHistory[callId]['zipcode'] = zipcode
+	print('zipcode: ', zipcode)
+	print('callId: ', callId)
+	addCallHistoryToDB(DATABASE, DATABASE_KEY, callId, 'zipcode', zipcode)
+	print('Added to database')
+	#callHistory[callId]['zipcode'] = zipcode
 
 	phone = request.form.get("from")
 	district = getDistrict(int(zipcode), district_dict)
 	#generateCustomSoundByte(district, district+'.mp3', mediaFolder)
 	payload = {"play": "https://files.telehelp.se/du_befinner.mp3",
 				"next": {"play": "https://files.telehelp.se/stammer_det.mp3",
-				"next": {"play": "https://files.telehelp.se/tryck.mp3",
 				"next": {"play": "https://files.telehelp.se/1.mp3",
 				"next": {"play": "https://files.telehelp.se/andra_postnr.mp3",
-				"next": {"play": "https://files.telehelp.se/tryck.mp3",
 				"next": {"ivr": "https://files.telehelp.se/2.mp3",
 				"1": BASE_URL+'/postcodeInput', 
 				"2": {"play": "https://files.telehelp.se/post_nr.mp3", "skippable":"true", 
 					"next": {"ivr": "https://files.telehelp.se/bep.mp3", "digits": 5, 
-					"next": BASE_URL+"/checkZipcode"} }}}}}}}}
+					"next": BASE_URL+"/checkZipcode"} }}}}}}
 
 	return json.dumps(payload)
 
 @app.route('/postcodeInput', methods = ['POST'])
 def postcodeInput():
 	callId = request.form.get("callid")
-	zipcode = callHistory[callId]['zipcode']
+	zipcode = readCallHistory(DATABASE, DATABASE_KEY, callId, 'zipcode')
 	phone = request.form.get("from")
 	currentCustomer = phone
 	district = getDistrict(int(zipcode), district_dict)
 	# TODO: Add sound if zipcode is invalid (n/a)
-	saveCustomerToDatabase(DATABASE, DATABASE_KEY, phone, zipcode, district)
+	print('zipcode: ', zipcode)
+	saveCustomerToDatabase(DATABASE, DATABASE_KEY, phone, str(zipcode), district)
 	closestHelpers = fetchHelper(DATABASE, DATABASE_KEY, district, zipcode, location_dict)
-	callHistory[callId]['closestHelpers'] = closestHelpers
-	callHistory[callId]['currentCustomer'] = currentCustomer
+	addCallHistoryToDB(DATABASE, DATABASE_KEY, callId, 'closest_helpers', json.dumps(closestHelpers))
+	addCallHistoryToDB(DATABASE, DATABASE_KEY, callId, 'current_customer', currentCustomer)
+	#callHistory[callId]['closestHelpers'] = closestHelpers
+	#callHistory[callId]['currentCustomer'] = currentCustomer
 
 	if closestHelpers is None:
 		# TODO: Fix this sound clip
@@ -123,14 +132,16 @@ def postcodeInput():
 		payload = {"play": "https://files.telehelp.se/ringer_tillbaka.mp3", "skippable":"true", 
 						"next": BASE_URL+"/call"}
 		helperNumber = 0
-		callHistory[callId]['helperNumber'] = helperNumber
+		addCallHistoryToDB(DATABASE, DATABASE_KEY, callId, 'helper_number', helperNumber)
+		#callHistory[callId]['helperNumber'] = helperNumber
 
 		return json.dumps(payload)
 
 @app.route('/connectUsers', methods = ['POST'])
 def connectUsers():
 	callId = request.form.get("callid")
-	currentCustomer = callHistory[callId]['currentCustomer']
+	helperPhone = request.form.get("to")
+	currentCustomer = readActiveCustomer(DATABASE, DATABASE_KEY, helperPhone)
 	payload = {"connect":currentCustomer, "callerid": elkNumber, "timeout":"15"}
 	return json.dumps(payload)
 
@@ -182,6 +193,7 @@ def handleReturningHelper():
 def handleNumberInput():
 	print(request.form.get("result"))
 	number = int(request.form.get("result"))
+	print('number: ', number)
 	if number == 1:
 		print('Write your zipcode')
 		payload = {"play": "https://files.telehelp.se/post_nr.mp3", "skippable":"true", 
@@ -205,7 +217,8 @@ def handleNumberInput():
 @app.route('/receiveCall',methods = ['POST'])
 def receiveCall():
 	callId = request.form.get("callid")
-	callHistory[callId] = {}
+	createNewCallHistory(DATABASE, DATABASE_KEY, callId)
+	#callHistory[callId] = {}
 	from_sender = request.form.get("from")
 	print(from_sender)
 	auth = (API_USERNAME, API_PASSWORD)
@@ -217,11 +230,9 @@ def receiveCall():
 		print("Registered helper")
 		payload = {"play":"https://files.telehelp.se/registrerad_volontar.mp3",
 				"next":{"play":"https://files.telehelp.se/ring_upp_riskgrupp.mp3", 
-			   "next":{"play":"https://files.telehelp.se/tryck.mp3",
 			   "next":{"play":"https://files.telehelp.se/1.mp3",
 			   "next":{"play": "https://files.telehelp.se/avreg.mp3",
-			   "next":{"play": "https://files.telehelp.se/tryck.mp3",
-			   "next":{"ivr": "https://files.telehelp.se/2.mp3", "digits": 1, "next":BASE_URL+"/handleReturningHelper"} }}}}}}
+			   "next":{"ivr": "https://files.telehelp.se/2.mp3", "digits": 1, "next":BASE_URL+"/handleReturningHelper"} }}}}
 		return json.dumps(payload)
 
 	# For registered customers
@@ -229,14 +240,11 @@ def receiveCall():
 		payload = {"play":"https://files.telehelp.se/behover_hjalp.mp3", 
 				"next":{"play":"https://files.telehelp.se/kontakta.mp3",
 				"next":{"play":"https://files.telehelp.se/igen.mp3",
-			   "next":{"play":"https://files.telehelp.se/tryck.mp3",
 			   "next":{"play":"https://files.telehelp.se/1.mp3",
 			   "next":{"play":"https://files.telehelp.se/nagon_annan.mp3",
-			   "next":{"play": "https://files.telehelp.se/tryck.mp3",
 			   "next":{"play": "https://files.telehelp.se/2.mp3",
 			   "next":{"play": "https://files.telehelp.se/avreg.mp3",
-			   "next":{"play": "https://files.telehelp.se/tryck.mp3",
-			   "next":{"ivr": "https://files.telehelp.se/3.mp3", "digits": 1, "next":BASE_URL+"/handleReturningUser"} }}}}}}}}}}
+			   "next":{"ivr": "https://files.telehelp.se/3.mp3", "digits": 1, "next":BASE_URL+"/handleReturningUser"} }}}}}}}
 		return json.dumps(payload)
 
 	# New customer
