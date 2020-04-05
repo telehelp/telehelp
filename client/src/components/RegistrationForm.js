@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { Form, FormFeedback, FormGroup, Label, Input, Button } from 'reactstrap';
 
 function RegistrationForm() {
-  const { register, handleSubmit, errors } = useForm(); // initialise the hook
+  const { register, handleSubmit, errors, reset } = useForm(); // initialise the hook
   const onSubmit = data => {
     console.log(data);
     if (!data)
@@ -16,6 +16,8 @@ function RegistrationForm() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     });
+
+    reset();
   };
 
   return (
