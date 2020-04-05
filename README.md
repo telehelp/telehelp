@@ -14,7 +14,7 @@ There are two parts to the project
 ### Dependencies
 The following libs needs to be installed
 ```
-libsqlcipher-dev
+sqlcipher libsqlcipher-dev
 ```
 
 ### Server
