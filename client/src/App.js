@@ -63,6 +63,7 @@ class App extends React.Component {
             <div className="signup" id="register">
               {this.state.isRegistered ? <h3>{this.state.isRegisteredMsg}</h3> 
               : <RegistrationForm handler={(respdata) => {
+                console.log(respdata);
                 if (respdata.type === 'success')
                 {
                   this.setState({time: time, isRegistered: true, isRegisteredMsg: "Tack för din registrering!"})
@@ -71,7 +72,9 @@ class App extends React.Component {
                 {
                   this.setState({time: time, isRegistered: true, isRegisteredMsg: "Något gick fel, kunde inte genomföra registreringen!"})
                 }
-
+                else {
+                  this.setState({time: time, isRegistered: true, isRegisteredMsg: "Tack för din registrering!"})
+                }
                 
               }}/>}
             </div>
