@@ -47,9 +47,7 @@ class FAQ extends React.Component{
                 <h2>Vanliga frågor</h2>
                 {zipped.map((e, i) => {
                     return (
-                        <span key={i}>
-                            <UncontrolledCollapse toggler={"faq-toggle-"+i}>
-                            </UncontrolledCollapse>
+                        <div key={i}>
                             <Button color="info" id={"faq-toggle-"+i} style={{ marginBottom: '1rem', marginRight: '1rem' }}>
                                 {e[0]}
                             </Button>
@@ -58,7 +56,7 @@ class FAQ extends React.Component{
                                 {e[1]}
                             </p>
                             </UncontrolledCollapse>
-                        </span>
+                        </div>
                     )
                 })}
                 {/*
