@@ -45,7 +45,7 @@ def current_time():
 @app.route('/call', methods = ['POST'])
 def call():
 	#from_sender = request.forms.get("from")
-	callId = request.form.get("id")
+	callId = request.form.get("callid")
 	helperNumber = callHistory[callId]['helperNumber']
 	closestHelpers = callHistory[callId]['closestHelpers']
 	auth = (API_USERNAME, API_PASSWORD)
@@ -80,7 +80,7 @@ def call():
 @app.route('/checkZipcode', methods = ['POST'])
 def checkZipcode():
 	zipcode = request.form.get("result")
-	callId = request.form.get("id")
+	callId = request.form.get("callid")
 	callHistory[callId]['zipcode'] = zipcode
 
 	phone = request.form.get("from")
@@ -102,7 +102,7 @@ def checkZipcode():
 
 @app.route('/postcodeInput', methods = ['POST'])
 def postcodeInput():
-	callId = request.form.get("id")
+	callId = request.form.get("callid")
 	zipcode = callHistory[callId]['zipcode']
 	phone = request.form.get("from")
 	currentCustomer = phone
@@ -129,7 +129,7 @@ def postcodeInput():
 
 @app.route('/connectUsers', methods = ['POST'])
 def connectUsers():
-	callId = request.form.get("id")
+	callId = request.form.get("callid")
 	currentCustomer = callHistory[callId]['currentCustomer']
 	payload = {"connect":currentCustomer, "callerid": elkNumber, "timeout":"15"}
 	return json.dumps(payload)
@@ -204,7 +204,7 @@ def handleNumberInput():
 
 @app.route('/receiveCall',methods = ['POST'])
 def receiveCall():
-	callId = request.form.get("id")
+	callId = request.form.get("callid")
 	callHistory[callId] = {}
 	from_sender = request.form.get("from")
 	print(from_sender)
@@ -242,13 +242,10 @@ def receiveCall():
 	# New customer
 	payload = {"play": "https://files.telehelp.se/info.mp3", "skippable":"true", 
 				"next":{"play":"https://files.telehelp.se/behover_hjalp.mp3", 
-
-				"next":{"play":"https://files.telehelp.se/tryck.mp3",
 				"next":{"play":"https://files.telehelp.se/1.mp3",
 				"next":{"play":"https://files.telehelp.se/info_igen.mp3",
-				"next":{"play":"https://files.telehelp.se/tryck.mp3",
 				"next":{"ivr":"https://files.telehelp.se/2.mp3",
-				"digits": 1, "2":BASE_URL+"/receiveCall", "next": BASE_URL+"/handleNumberInput"}}}}}}}
+				"digits": 1, "2":BASE_URL+"/receiveCall", "next": BASE_URL+"/handleNumberInput"}}}}}
 	return json.dumps(payload)
 
 @app.route('/test', methods=["GET"])
