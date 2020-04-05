@@ -43,7 +43,7 @@ function RegistrationForm(props) {
             placeholder="12345"
             invalid={'zipCode' in errors}
             innerRef={register({pattern: /^[0-9]{5}$/, required: true })}/>
-        <FormFeedback invalid>Den postnummer som du skrev in är ogilitigt, måste vara 5 siffror</FormFeedback>
+        <FormFeedback invalid>Det postnummer som du skrev in är ogilitigt, måste vara 5 siffror</FormFeedback>
       </FormGroup>
       <FormGroup>
      <Label for="phoneNumber">Telefonnummer</Label>
