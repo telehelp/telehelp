@@ -13,15 +13,21 @@ from text2speech_utils import generateCustomSoundByte
 app = Flask(__name__, static_folder='../client/build', static_url_path='/')
 
 dev = True
-API_USERNAME = os.environ.get('API_USERNAME')
-API_PASSWORD = os.environ.get('API_PASSWORD')
+#API_USERNAME = os.environ.get('API_USERNAME')
+#API_PASSWORD = os.environ.get('API_PASSWORD')
+API_USERNAME = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+API_PASSWORD = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
 if dev:
 	BASE_URL = "https://59408f3f.ngrok.io"
+	elkNumber = '+46766862446'
 else:
 	BASE_URL = "https://telehelp.se"
+	elkNumber = '+46766861551'
 DATABASE = 'telehelp.db'
 ZIPDATA = 'SE.txt'
 mediaFolder = '../../media'
+
 
 reg_schema = Schema({'helperName': str, 'zipCode':  Regex("^[0-9]{5}$"), 'phoneNumber': Regex("^(\d|\+){1}\d{9,12}$"), 'terms': bool })  
 location_dict, district_dict = readZipCodeData(ZIPDATA)
@@ -35,18 +41,28 @@ def index():
 def current_time():
 	return {'time': time.time()}
 
-@app.route('/call')
+@app.route('/call', methods = ['POST'])
 def call():
+	global helperNumber
 	#from_sender = request.forms.get("from")
 	auth = (API_USERNAME, API_PASSWORD)
 
-	payload = '{"ivr": "https://46elks.com/static/sound/testcall.mp3"}'
+	payload = {"play": "https://files.telehelp.se/hjalte.mp3",
+				"next": {"play": "https://files.telehelp.se/tryck.mp3",
+				"next": {"play": "https://files.telehelp.se/1.mp3",
+				"next": {"play": "https://files.telehelp.se/tryck.mp3",
+				"next": {"ivr": "https://files.telehelp.se/2.mp3",
+				"1": BASE_URL+"/connectUsers", "2":BASE_URL+"/call"}}}}}
 
+
+	print(closestHelpers[helperNumber])
+	print(elkNumber)
 	fields = {
-		'from': '+46766861551',
-		'to': helper,
-		'voice_start': payload}
+		'from': elkNumber,
+		'to': closestHelpers[helperNumber],
+		'voice_start': json.dumps(payload)}
 
+	helperNumber += 1
 	response = requests.post(
 		"https://api.46elks.com/a1/calls",
 		data=fields,
@@ -56,26 +72,6 @@ def call():
 	print(response.text)
 	return
 
-@app.route('/call')
-def sms():
-	#from_sender = request.forms.get("from")
-	auth = (API_USERNAME, API_PASSWORD)
-
-	payload = '{"ivr": "https://46elks.com/static/sound/testcall.mp3"}'
-
-	fields = {
-		'from': '+46766861551',
-		'to': helper,
-		'voice_start': payload}
-
-	response = requests.post(
-		"https://api.46elks.com/a1/calls",
-		data=fields,
-		auth=auth
-		)
-
-	print(response.text)
-	return
 
 @app.route('/checkZipcode', methods = ['POST'])
 def checkZipcode():
@@ -101,7 +97,9 @@ def checkZipcode():
 
 @app.route('/postcodeInput', methods = ['POST'])
 def postcodeInput():
+	global closestHelpers, currentCustomer, helperNumber
 	phone = request.form.get("from")
+	currentCustomer = phone
 	district = getDistrict(int(zipcode), district_dict)
 	# TODO: Add sound if zipcode is invalid (n/a)
 	saveCustomerToDatabase(DATABASE, phone, zipcode, district)
@@ -111,10 +109,16 @@ def postcodeInput():
 		payload = {"play": "https://files.telehelp.se/finns_ingen.mp3"}
 		return json.dumps(payload)
 	else:
-		payload = {"play": "https://files.telehelp.se/du_kopplas.mp3", "skippable":"true", 
-						"next": {"play": "https://files.telehelp.se/en_volontar.mp3", 
-						"next":{"connect":closestHelpers[0]}}}
+		# TODO: add "en volontär ringer upp dig snart"
+		payload = {"play": "https://files.telehelp.se/ringer_tillbaka.mp3", "skippable":"true", 
+						"next": BASE_URL+"/call"}
+		helperNumber = 0
 		return json.dumps(payload)
+
+@app.route('/connectUsers', methods = ['POST'])
+def connectUsers():
+	payload = {"connect":currentCustomer, "callerid": elkNumber, "timeout":"15"}
+	return json.dumps(payload)
 
 
 @app.route('/handleReturningUser', methods = ['POST'])
@@ -219,7 +223,7 @@ def receiveCall():
 			   "next":{"play":"https://files.telehelp.se/1.mp3",
 			   "next":{"play":"https://files.telehelp.se/nagon_annan.mp3",
 			   "next":{"play": "https://files.telehelp.se/tryck.mp3",
-			   "next":{"play": "https://files.telehelp.se/2",
+			   "next":{"play": "https://files.telehelp.se/2.mp3",
 			   "next":{"play": "https://files.telehelp.se/avreg.mp3",
 			   "next":{"play": "https://files.telehelp.se/tryck.mp3",
 			   "next":{"ivr": "https://files.telehelp.se/3.mp3", "digits": 1, "next":BASE_URL+"/handleReturningUser"} }}}}}}}}}}

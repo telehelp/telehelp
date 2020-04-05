@@ -99,4 +99,5 @@ def generateCustomSoundByte(text_string, filename, saveDir='/media'):
             print('Audio content written to file %s'%os.path.join(saveDir, filename))
 
 if __name__ == '__main__':
-    generateSoundBytes()
+    #generateSoundBytes()
+    generateCustomSoundByte("Vi letar efter en ledig volontär i ditt område. Samtalet avslutas nu, men du kommer snart att ringas upp av en volontär", 'ringer_tillbaka.mp3', saveDir='../../media')
