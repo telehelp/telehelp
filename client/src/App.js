@@ -3,7 +3,6 @@ import './App.scss';
 import RegistrationForm from './components/RegistrationForm';
 import FAQ from './components/FAQ';
 import TeleHelpBar from './components/TeleHelpBar';
-import TeleHelpIntroduction from './components/TeleHelpIntroduction'
 
 class App extends React.Component {
   constructor(props) {
@@ -68,6 +67,9 @@ class App extends React.Component {
             <FAQ/>
           </div>
         </div>
+      </div>
+      <div class="footer-copyright text-center py-3">BETA © 2020 Alla rättigheter förbehållna. 
+      Kontakt: <a href="mailto:info@telehelp.se">info@telehelp.se</a>. Skapad under <a href="https://www.hackthecrisis.se/">Hack the Crisis 2020</a>
       </div>
     </div>
   )

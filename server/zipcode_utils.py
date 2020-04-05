@@ -21,8 +21,8 @@ def readZipCodeData(file_name):
 #Output: distance between zip code locations in km. Returns -1 if not found
 def getDistanceApart(zip1, zip2, location_dict):
 	try:
-		coords1 = location_dict[zip1]
-		coords2 = location_dict[zip2]
+		coords1 = location_dict[int(zip1)]
+		coords2 = location_dict[int(zip2)]
 	except KeyError: # One of the provided zip codes is not included in SE.txt
 		return -1
 
