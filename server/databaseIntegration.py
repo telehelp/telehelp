@@ -134,6 +134,7 @@ def getCustomers(db, key):
 	return fetchData(db, key, query)
 
 def fetchHelper(db, key, district, zipcode, location_dict):
+	# TODO: Filter by distance
 	query = '''SELECT * FROM user_helpers where district=?'''
 	params = [district]
 	helperData = fetchData(db, key, query, params)
