@@ -8,40 +8,39 @@ import os
 
 text_input = dict() # contains key as filename and string for tts
 
-# NOTE: Manually edited with additional pauses: text_input['info'] = 'Hej och välkommen till Telehelp. Här kan du bli tilldelad en volontär som kan hjälpa dig med en vardagssyssla. Det kan exempelvis vara att handla mat eller hämta ut medicin. Nästa gång du ringer kan du välja att bli tilldelad samma person. Dina uppgifter kommer att samlas.'
+'''
+Common sound bytes (both customer and volunteer)
+'''
+text_input['avreg_confirmed'] = 'Du är nu avregistrerad. Din data kommer att raderas.'
+text_input['du_kopplas'] = 'Du kopplas nu till personen som du senast pratade med.'
+
+'''
+Sound bytes played to customer only
+'''
+text_input['info'] = 'Hej och välkommen till Telehelp. Här kan du bli tilldelad en volontär \
+    som kan hjälpa dig med en vardagssyssla. Det kan exempelvis vara att handla mat eller hämta \
+    ut medicin. Nästa gång du ringer kan du välja att bli tilldelad samma person. \
+    Behöver du hjälp med en vardagssyssla? Tryck 1. Vill du höra informationen igen? Tryck 2'
+
 text_input['post_nr'] = 'Knappa vänligen in ditt postnummer, 5 siffror, efter tonen.'
 text_input['du_befinner'] = 'Du befinner dig i närheten av '
-text_input['stammer_det'] = 'Stämmer det?'
-text_input['om_inte'] = 'Stämmer det?'
-text_input['behover_hjalp'] = 'Behöver du hjälp med en vardagssyssla?'
+text_input['stammer_det'] = 'Stämmer det? För att fortsätta, tryck 1. Din postkod kommer att lagras. Vill du ändra ditt postnummer? Tryck 2.'
+
+text_input['behover_hjalp'] = 'Välkommen till Telehelp! \
+    Vi ser att du redan använt vår tjänst. Vill du att vi kontaktar'
+text_input['pratade_sist'] = 'som du pratade med sist? Tryck 1. Vill du byta till en ny volontär? \
+    Tryck 2. Vill du avregistrera dig från tjänsten? Tryck 3.'
 text_input['info_igen'] = 'Vill du höra informationen igen?'
-text_input['andra_postnr'] = 'Vill du ändra ditt postnummer?'
-text_input['avreg'] = 'Vill du avregistrera dig från tjänsten?'
-text_input['kontakta'] = 'Vill du att vi kontaktar '
-text_input['igen'] = 'igen?'
-text_input['nagon_annan'] = 'Vill du prova någon annan?'
-text_input['vi_letar'] = 'Vi letar efter någon som kan hjälpa i närområdet '
-text_input['du_kopplas'] = 'Du kopplas nu upp med'
-text_input['upp_till_er'] = 'Det är upp till er att bestämma hur du bäst får hjälp.'
-#text_input['tryck'] = 'Tryck '
-text_input['1'] = 'Tryck 1'
-text_input['2'] = 'Tryck 2'
-text_input['3'] = 'Tryck 3'
-text_input['4'] = 'Tryck 4'
-text_input['5'] = 'Tryck 5'
-text_input['6'] = 'Tryck 6'
-text_input['6'] = 'Tryck 6'
-text_input['7'] = 'Tryck 7'
-text_input['8'] = 'Tryck 8'
-text_input['9'] = 'Tryck 9'
-text_input['0'] = 'Tryck 0'
-text_input['hjalte'] = 'Någon från Telehelp behöver en hjälte, dröj kvar medan vi kopplar dig vidare.'
-#text_input['nod'] = 'Någon i nöd'
-text_input['en_volontar'] = 'en volontär'
-text_input['avreg_confirmed'] = 'Du är nu avregistrerad. Din data kommer att raderas.'
-text_input['finns_ingen'] = 'Ingen volontär är registrerad i ditt område. Vänligen försök senare.'
-text_input['registrerad_volontar'] = 'Välkommen till Telehelp. Vi ser att du är registrerad som volontär.'
-text_input['ring_upp_riskgrupp'] = 'Vill du nå den person du hjälpte sist?'
+
+text_input['vi_letar'] = 'Vi letar efter någon som kan hjälpa dig i närområdet.'
+text_input['finns_ingen'] = 'Ingen volontär är registrerad i ditt närområde. Vänligen försök igen senare.'
+text_input['ringer_tillbaka'] = 'Samtalet kommer nu att avslutas, men du kommer snart att ringas upp av en volontär. Då är det upp till dig att berätta vad du behöver hjälp med. Hejdå!'
+
+'''
+Sound bytes played to volunteer only
+'''
+text_input['hjalte'] = 'Hej! En användare av Telehelp behöver en hjälte. Vill du ta detta samtal? Tryck 1. Om inte tryck 2.'
+text_input['registrerad_volontar'] = 'Välkommen till Telehelp. Vi ser att du är registrerad som volontär. Vill du nå den person du hjälpte sist? Tryck 1. Vill du avregistrera dig från tjänsten? Tryck 2.'
 text_input['hjalper_ingen'] = 'Du hjälper för närvarande ingen i riskgruppen. Förhoppningsvis ringer vi upp dig snart, när någon ber om hjälp! Tack för din insats.'
 
 def generateSoundBytes():
@@ -102,5 +101,5 @@ def generateCustomSoundByte(text_string, filename, saveDir='/media'):
             print('Audio content written to file %s'%os.path.join(saveDir, filename))
 
 if __name__ == '__main__':
-    #generateSoundBytes()
-    generateCustomSoundByte("Vi letar efter en ledig volontär i ditt område. Samtalet avslutas nu, men du kommer snart att ringas upp av en volontär", 'ringer_tillbaka.mp3', saveDir='../../media')
+    generateSoundBytes()
+    #generateCustomSoundByte("Vi letar efter en ledig volontär i ditt område. Samtalet avslutas nu, men du kommer snart att ringas upp av en volontär", 'ringer_tillbaka.mp3', saveDir='../../media')
