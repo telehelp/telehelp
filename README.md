@@ -56,6 +56,7 @@ git push production master
 ```
 Your changes should now be deployed on the server.
 
+
 ## Quick Git Guide
 
 Ideally every issue should be given a pull request, this also allows for other people to check your changes as a quick code review. An extra set of eyes on code is always good.
