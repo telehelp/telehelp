@@ -44,6 +44,17 @@ It can be started by navigating to the `client` directory, build the yarn enviro
 
 If you haven't started the server you can also do it from this folder by running `yarn start-api`.
 
+
+## Deployment
+In order to initialize the deployment add the remote for the server.
+```
+git remote add production user@deploy_server:matkrasslig.git
+```
+Then push the changes to  the deployment server
+```
+git push production master
+```
+
 ## Quick Git Guide
 
 Ideally every issue should be given a pull request, this also allows for other people to check your changes as a quick code review. An extra set of eyes on code is always good.
