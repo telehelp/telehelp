@@ -54,7 +54,7 @@ Then push the changes to  the deployment server
 ```
 git push production master
 ```
-Your changes should now be deployed on the server
+Your changes should now be deployed on the server.
 
 ## Quick Git Guide
 
