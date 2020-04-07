@@ -17,7 +17,7 @@ There are two parts to the project
 ### Dependencies
 The following libs needs to be installed
 ```
-sqlcipher libsqlcipher-dev
+sqlcipher libsqlcipher-dev libpython3.6-dev
 ```
 
 ### External resources
