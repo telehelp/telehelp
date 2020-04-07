@@ -22,9 +22,9 @@ text_input['info'] = 'Hej och välkommen till Telehelp. Här kan du bli tilldela
     ut medicin. Nästa gång du ringer kan du välja att bli tilldelad samma person. \
     Behöver du hjälp med en vardagssyssla? Tryck 1. Vill du höra informationen igen? Tryck 2'
 
-text_input['post_nr'] = 'Knappa vänligen in ditt postnummer, 5 siffror, efter tonen.'
+text_input['post_nr'] = 'Knappa vänligen in ditt postnummer, 5 siffror, efter tonen. Din postkod kommer att lagras.'
 text_input['du_befinner'] = 'Du befinner dig i närheten av '
-text_input['stammer_det'] = 'Stämmer det? För att fortsätta, tryck 1. Din postkod kommer att lagras. Vill du ändra ditt postnummer? Tryck 2.'
+text_input['stammer_det'] = 'Stämmer det? För att fortsätta, tryck 1. Vill du ändra ditt postnummer? Tryck 2.'
 
 text_input['behover_hjalp'] = 'Välkommen till Telehelp! \
     Vi ser att du redan använt vår tjänst. Vill du att vi kontaktar'
