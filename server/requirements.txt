@@ -31,6 +31,7 @@ PyJWT==1.4.2
 pyOpenSSL==19.1.0
 pysqlcipher3==1.0.3
 python-dateutil==2.8.1
+python-dotenv==0.12.0
 pytz==2019.3
 requests==2.23.0
 rsa==4.0
