@@ -4,6 +4,7 @@ import RegistrationForm from './components/RegistrationForm';
 import FAQ from './components/FAQ';
 import TeleHelpBar from './components/TeleHelpBar';
 import MapView from './components/MapView';
+import ThanksTo from './components/ThanksTo'
 
 class App extends React.Component {
   constructor(props) {
@@ -45,7 +46,7 @@ class App extends React.Component {
               </p>
               <div className="row">
                 <div className="col-md-12 text-center">
-                  <img className="img-fluid" src="/old-people.png" alt="Two happy old people on a bench"></img>
+                  <img className="img-fluid" src="/img/old-people.png" alt="Two happy old people on a bench"></img>
                 </div>
               </div>
               <p>
@@ -75,7 +76,6 @@ class App extends React.Component {
                 else {
                   this.setState({time: time, isRegistered: true, isRegisteredMsg: "Något gick väldigt fel, försök gärna igen senare."})
                 }
-                
               }}/>}
             </div>
           </div>
@@ -88,6 +88,12 @@ class App extends React.Component {
         <div className="row">
           <div className="col-md-12">
             <MapView/>
+          </div>
+        </div>
+        <div className="row">
+          <div className="col-md-12 thanks-to">
+            <h2>Tack för att ni gör Telehelp möjligt</h2>
+            <ThanksTo/>
           </div>
         </div>
       </div>

@@ -62,7 +62,7 @@ function RegistrationForm(props) {
             id="terms"
             invalid={'terms' in errors}
             innerRef={register({required: true })}/>
-        <Label for="terms">Jag accepterar <a href="/terms-and-conditions.pdf">användarvillkoren</a></Label>
+        <Label for="terms">Jag accepterar <a href="/static/terms-and-conditions.pdf">användarvillkoren</a></Label>
         <FormFeedback invalid>Du måste acceptera användarvillkoren</FormFeedback>
       </FormGroup>
       <Button color="info">Registrera</Button>
