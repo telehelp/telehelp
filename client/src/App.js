@@ -70,10 +70,10 @@ class App extends React.Component {
                 }
                 else if (respdata.type === 'failure')
                 {
-                  this.setState({time: time, isRegistered: true, isRegisteredMsg: "Något gick fel, kunde inte genomföra registreringen!"})
+                  this.setState({time: time, isRegistered: true, isRegisteredMsg: "Något gick fel, kunde inte genomföra registreringen."})
                 }
                 else {
-                  this.setState({time: time, isRegistered: true, isRegisteredMsg: "Tack för din registrering!"})
+                  this.setState({time: time, isRegistered: true, isRegisteredMsg: "Något gick väldigt fel, försök gärna igen senare."})
                 }
                 
               }}/>}
