@@ -1,8 +1,9 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { Form, FormFeedback, FormGroup, Label, Input, Button } from 'reactstrap';
-import { advanceRegistration } from '../actions';
-import { useDispatch, useSelector} from 'react-redux';
+import { setRegistrationProgress, FormStatus, setPhoneNumber } from '../actions';
+import { useDispatch } from 'react-redux';
+import { batchActions } from 'redux-batched-actions';
 
 function RegistrationForm(props) {
   const dispatch = useDispatch();
@@ -21,11 +22,19 @@ function RegistrationForm(props) {
       body: JSON.stringify(data)
     })
     .then(res => res.json())
-    .then(data => props.handler(data));
+    .then(respData => {
 
-    // This actually depends on response data
-    dispatch(advanceRegistration());
-    
+      if (respData.type === "success")
+      {
+        //Same here i am not sure redux allows this
+        dispatch(batchActions([setRegistrationProgress(FormStatus.VERIFY_NUMBER), setPhoneNumber(data.phoneNumber)]));
+      }
+      else
+      {
+        dispatch(setRegistrationProgress(FormStatus.BAD_DETAILS));
+      }
+    });
+  
     reset();
   };
 

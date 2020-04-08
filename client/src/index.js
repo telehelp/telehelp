@@ -9,8 +9,9 @@ import * as serviceWorker from './serviceWorker';
 import { Provider } from 'react-redux';
 import { createStore } from 'redux'
 import rootReducer from './reducers'
+import { enableBatching } from 'redux-batched-actions';
 
-const store = createStore(rootReducer)
+const store = createStore(enableBatching(rootReducer));
 
 ReactDOM.render(
   <Provider store={store}>

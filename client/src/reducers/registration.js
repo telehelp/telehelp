@@ -1,14 +1,20 @@
+import { FormStatus } from '../actions';
 
 const initialState = {
-    progress: 0,
-    message: "Registrera dig som volontär!"
+    progress: FormStatus.REGISTER_DETAILS,
+    number: "ABC123"
 };
 
 const registration = (state = initialState, action) => {
     switch (action.type) {
-        case 'ADD_DETAILS':
+        case 'SET_REGISTRATION_PROGRESS':
+            // For reasons unknown, this fails with ++ 
             return Object.assign({}, state, {
-                progress: state.progress++
+                progress: action.state
+            })
+        case 'SET_NUMBER':
+            return Object.assign({}, state, {
+                number: action.number
             })
         default:
             return state

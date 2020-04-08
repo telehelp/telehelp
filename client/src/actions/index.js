@@ -1,7 +1,21 @@
 //let registrationState = 0
-export const advanceRegistration = () => ({
-  type: 'ADD_DETAILS'
+export const setRegistrationProgress = nextProgress => ({
+  type: 'SET_REGISTRATION_PROGRESS',
+  state: nextProgress
 })
+
+export const setPhoneNumber = phoneNumber => ({
+    type: 'SET_NUMBER',
+    number: phoneNumber
+})
+
+export const FormStatus = {
+    REGISTER_DETAILS: 'REGISTER_DETAILS',
+    BAD_DETAILS: 'BAD_DETAILS',
+    VERIFY_NUMBER: 'VERIFY_NUMBER',
+    VERIFICATION_FAILED: 'VERIFICATION_FAILED',
+    REGISTRATION_COMPLETE: 'REGISTRATION_COMPLETE'
+  }
 
 // export const setVisibilityFilter = filter => ({
 //   type: 'SET_VISIBILITY_FILTER',
