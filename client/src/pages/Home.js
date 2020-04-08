@@ -1,9 +1,9 @@
 import React from 'react';
-import FAQ from './FAQ';
-import MapView from './MapView';
-import ThanksTo from './ThanksTo'
-import MainForm from './MainForm';
-import BackgroundInfo from './BackgroundInfo';
+import FAQ from '../components/FAQ';
+import MapView from '../components/MapView';
+import ThanksTo from '../components/ThanksTo'
+import MainForm from '../components/MainForm';
+import BackgroundInfo from '../components/BackgroundInfo';
 
 
 function Home() {
