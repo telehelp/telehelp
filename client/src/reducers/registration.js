@@ -2,7 +2,7 @@ import { FormStatus } from '../actions';
 
 const initialState = {
     progress: FormStatus.REGISTER_DETAILS,
-    number: "ABC123"
+    number: "123123"
 };
 
 const registration = (state = initialState, action) => {

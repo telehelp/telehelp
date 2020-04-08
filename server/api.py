@@ -33,6 +33,7 @@ MEDIA_FOLDER = '../../media'
 #callHistory = {}
 
 reg_schema = Schema({'helperName': str, 'zipCode':  Regex("^[0-9]{5}$"), 'phoneNumber': Regex("^(\d|\+){1}\d{9,12}$"), 'terms': bool })
+verification_schema = Schema({'verificationCode':  Regex("^[0-9]{6}$"), 'number': Regex("^(\d|\+){1}\d{9,12}$")})
 location_dict, district_dict = readZipCodeData(ZIPDATA)
 
 
@@ -246,6 +247,7 @@ def test():
 def register():
 	if request.json:
 		print(request.json)
+		return {'type': 'success'}
 		try:
 			reg_schema.validate(request.json)
 			print("valid data")
@@ -257,6 +259,22 @@ def register():
 			if userExists(DATABASE, DATABASE_KEY, request.json['phoneNumber'], 'helper'):
 				return {'type': 'failure', 'message': 'User already exists'}
 			saveHelperToDatabase(DATABASE, DATABASE_KEY, request.json['helperName'], request.json['phoneNumber'], request.json['zipCode'], city)
+			return {'type': 'success'}
+		except Exception as err:
+			print(err)
+			print('Invalid Data')
+			return {'type': 'failure'}
+	return {'type': 'failure'}
+
+@app.route('/verify', methods=["POST"])
+def verify():
+	if request.json:
+		print(request.json)
+		try:
+			verification_schema.validate(request.json)
+			if request.json['number'][0] == '0':
+				request.json['number'] = '+46' + request.json['number'][1:]
+				# TODO handle some sort of global verification number store that times out, idk
 			return {'type': 'success'}
 		except Exception as err:
 			print(err)
