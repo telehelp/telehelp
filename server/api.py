@@ -2,12 +2,12 @@ import time
 from flask import Flask, request
 import requests
 import os
-from databaseIntegration import *
+from .databaseIntegration import *
 import pandas as pd
 import json
-from middlewares import login_required #Should maybe be properly relative
+from .middlewares import login_required
 from schema import Schema, And, Use, Optional, Regex
-from zipcode_utils import *
+from .zipcode_utils import *
 #from text2speech_utils import generateCustomSoundByte
 
 app = Flask(__name__, static_folder='../client/build', static_url_path='/')
