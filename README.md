@@ -56,6 +56,7 @@ API_PASSWORD=your_pass
 ELK_NUMBER=your_number
 DATABASE=test.db
 BASE_URL=https://mysite.org
+SECRET_KEY=your_secret_key #can be generated with for example: secrets::token_urlsafe
 ```
 
 ```
