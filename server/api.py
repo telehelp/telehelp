@@ -12,22 +12,24 @@ from zipcode_utils import *
 
 app = Flask(__name__, static_folder='../client/build', static_url_path='/')
 
-if os.environ['FLASK_ENV'] == 'development':
+if os.getenv('FLASK_ENV') == 'development':
 	BASE_URL = "http://272985e7.ngrok.io"
 	elkNumber = '+46766862446'
-	API_USERNAME = os.environ.get('API_USERNAME_DEV')
-	API_PASSWORD = os.environ.get('API_PASSWORD_DEV')
-elif os.environ['FLASK_ENV'] == 'prod':
+	API_USERNAME = os.getenv('API_USERNAME_DEV')
+	API_PASSWORD = os.getenv('API_PASSWORD_DEV')
+	DATABASE = 'test.db'
+elif os.getenv('FLASK_ENV') == 'prod':
 	BASE_URL = "https://telehelp.se"
 	elkNumber = '+46766861551'
-	API_USERNAME = os.environ.get('API_USERNAME')
-	API_PASSWORD = os.environ.get('API_PASSWORD')
+	API_USERNAME = os.getenv('API_USERNAME')
+	API_PASSWORD = os.getenv('API_PASSWORD')
+	DATABASE = 'telehelp.db'
 else:
 	assert False, "Flask environment not specified"
-DATABASE = 'telehelp.db'
-DATABASE_KEY = os.environ.get('DATABASE_KEY')
+
+DATABASE_KEY = os.getenv('DATABASE_KEY')
 ZIPDATA = 'SE.txt'
-mediaFolder = '../../media'
+MEDIA_FOLDER = '../../media'
 #callHistory = {}
 
 reg_schema = Schema({'helperName': str, 'zipCode':  Regex("^[0-9]{5}$"), 'phoneNumber': Regex("^(\d|\+){1}\d{9,12}$"), 'terms': bool })
@@ -87,7 +89,7 @@ def checkZipcode():
 
 	phone = request.form.get("from")
 	district = getDistrict(int(zipcode), district_dict)
-	#generateCustomSoundByte(district, district+'.mp3', mediaFolder)
+	#generateCustomSoundByte(district, district+'.mp3', MEDIA_FOLDER)
 	payload = {"play": "https://files.telehelp.se/du_befinner.mp3",
 				"next": {"play": "https://files.telehelp.se/stammer_det.mp3",
 				"next": {"play": "https://files.telehelp.se/1.mp3",
