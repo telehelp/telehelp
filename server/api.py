@@ -360,7 +360,7 @@ def register():
 		print(code)
 		## ==========
 
-		session[phone_number] = {"zipCode": validated['zipCode'], "name": validated['helperName'], 'city': city, 'timestamp': time.time_ns(), 'code': code}
+		session[phone_number] = {"zipCode": validated['zipCode'], "name": validated['helperName'], 'city': city, 'timestamp': int(time.time()), 'code': code}
 		return {'type': 'success'}
 	return {'type': 'failure'}
 
@@ -372,7 +372,7 @@ def verify():
 		phone_number = canonicalize_number(validated['number'])
 		code = validated['verificationCode']
 		if phone_number in session \
-			and time.time_ns() - session[phone_number]["timestamp"] < VERIFICATION_EXPIRY_TIME \
+			and int(time.time()) - session[phone_number]["timestamp"] < VERIFICATION_EXPIRY_TIME \
 			and code == session[phone_number]['code']:
 
 			sess = session[phone_number]
