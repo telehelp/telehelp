@@ -22,21 +22,7 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 handler.setFormatter(formatter)
 log.addHandler(handler)
 
-
-# #BASE_URL = "http://272985e7.ngrok.io"
-# BASE_URL = os.getenv('BASE_URL')
-# #ELK_NUMBER = '+46766862446'
-# ELK_NUMBER = os.getenv('ELK_NUMBER')
-# API_USERNAME = os.getenv('API_USERNAME')
-# API_PASSWORD = os.getenv('API_PASSWORD')
-# #API_USERNAME = os.getenv('API_USERNAME_DEV')
-# #API_PASSWORD = os.getenv('API_PASSWORD_DEV')
-# DATABASE = os.getenv('DATABASE')
-
-
-#BASE_URL = "https://telehelp.se"
 BASE_URL = os.getenv('BASE_URL')
-#ELK_NUMBER = '+46766861551'
 ELK_NUMBER = os.getenv('ELK_NUMBER')
 API_USERNAME = os.getenv('API_USERNAME')
 API_PASSWORD = os.getenv('API_PASSWORD')
