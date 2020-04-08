@@ -10,13 +10,10 @@ def create_connection(db_file, key):
 	:return: Connection object or None
 	"""
 	conn = None
-	try:
-		conn = sqlite3.connect(db_file)
-		cursor = conn.cursor()
-		cursor.execute("PRAGMA key = \"x\'"+key+"\'\"")
-	except Error as e:
-		print(e)
- 
+	conn = sqlite3.connect(db_file)
+	cursor = conn.cursor()
+	cursor.execute("PRAGMA key = \"x\'"+key+"\'\"")
+
 	return conn, cursor
 
 
@@ -55,6 +52,16 @@ def readDatabase(db, key, query, params):
 	# 	print(Exception, err)
 	# 	return 'Failure'  
 
+def readZipcodeFromDatabase(db, key, phone, userType):
+	if userType == 'customer':
+		query = ''' SELECT zipcode FROM user_customers where phone=? '''
+	if userType == 'helper':
+		query = ''' SELECT zipcode FROM user_helpers where phone=? '''
+	params = [phone]
+	res = readDatabase(db, key, query, params)
+	return res[0][0]
+
+
 def saveHelperToDatabase(db, key, name, phone, zipcode, district):
 	print("Writing phone and postcode to database")
 	print('\nname: ', name, '\nzipcode:', zipcode, '\nphone: ', phone, '\ndistrict:', district)
@@ -72,9 +79,21 @@ def writeActiveCustomer(db, key, helperPhone, customerPhone):
 	flag = writeToDatabase(db, key, query, params)
 	return flag
 
+def writeActiveHelper(db, key, customerPhone, helperPhone):
+	query = ''' UPDATE user_customers set active_helpers=? where phone=? '''
+	params = (helperPhone, customerPhone)
+	flag = writeToDatabase(db, key, query, params)
+	return flag
+
 def readActiveCustomer(db, key, helperPhone):
 	query = ''' SELECT active_customers FROM user_helpers where phone=? '''
 	params = [helperPhone]
+	res = readDatabase(db, key, query, params)
+	return res[0][0]
+
+def readActiveHelper(db, key, customerPhone):
+	query = ''' SELECT active_helpers FROM user_customers where phone=? '''
+	params = [customerPhone]
 	res = readDatabase(db, key, query, params)
 	return res[0][0]
 
@@ -83,7 +102,7 @@ def saveCustomerToDatabase(db, key, phone, zipcode, district):
 	print('zipcode:', zipcode, '\nphone: ', phone)
 
 	if userExists(db, key, phone, 'customer'):
-		query = ''' UPDATE user_customers set district=? where phone=?) '''
+		query = ''' UPDATE user_customers set district=? where phone=? '''
 		params = (district, phone)
 	else:
 		query = ''' INSERT INTO user_customers (phone, zipcode, district) 
@@ -115,15 +134,19 @@ def userExists(db, key, phone, userType):
 	
 def deleteFromDatabase(db, key, phone, userType):
 	if userType == 'customer':
-		query = '''DELETE FROM user_customers WHERE phone = ?'''
+		userQuery = '''DELETE FROM user_customers WHERE phone = ?'''
+		linkQuery = '''UPDATE user_helpers set active_customers=null where active_customers=?'''
 	elif userType == 'helper':
-		query = '''DELETE FROM user_helpers WHERE phone = ?'''
+		userQuery = '''DELETE FROM user_helpers WHERE phone = ?'''
+		linkQuery = '''UPDATE user_customers set active_helpers=null where active_helpers=?'''
 	else:
 		print('Invalid userType')
 		return
-	params = [phone]
-	flag = writeToDatabase(db, key, query, params)
-	return flag
+	userParams = [phone]
+	linkParams = [phone]
+	flag1 = writeToDatabase(db, key, userQuery, userParams)
+	flag2 = writeToDatabase(db, key, linkQuery, linkParams)
+	return flag1, flag2
 
 def getHelpers(db, key):
 	query = "SELECT * FROM user_helpers" 
@@ -134,6 +157,7 @@ def getCustomers(db, key):
 	return fetchData(db, key, query)
 
 def fetchHelper(db, key, district, zipcode, location_dict):
+	# TODO: Filter by distance
 	query = '''SELECT * FROM user_helpers where district=?'''
 	params = [district]
 	helperData = fetchData(db, key, query, params)
@@ -177,7 +201,7 @@ def readCallHistory(db, key, callid, columnName):
 		query = ''' SELECT current_customer FROM call_history WHERE callid=? '''
 	params = [callid]
 	res = readDatabase(db, key, query, params)
-	print(res)
+	print('result readCallHistory: ', res)
 	# print(res[columnName])
 	# result = res[columnName].to_string()
 	# print(result)
