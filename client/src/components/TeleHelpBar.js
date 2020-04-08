@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Collapse, Navbar, NavbarToggler, NavbarBrand, Nav, NavItem, NavLink } from 'reactstrap';
+import { Link } from 'react-router-dom';
 
 const TeleHelpBar = (props) => {
   const [collapsed, setCollapsed] = useState(true);
@@ -26,10 +27,14 @@ const TeleHelpBar = (props) => {
               <NavLink href="/static/terms-and-conditions.pdf">Användarvillkor</NavLink>
             </NavItem>
             <NavItem>
-              <NavLink href="/about">Om oss</NavLink>
+              <Link to="/about">
+                <NavLink>Om oss</NavLink>
+              </Link>
             </NavItem>
             <NavItem>
-              <NavLink href="/press">I media</NavLink>
+              <Link to="/press">
+                <NavLink>I media</NavLink>
+              </Link>
             </NavItem>
           </Nav>
         </Collapse>
