@@ -53,8 +53,8 @@ DATABASE = os.getenv('DATABASE')
 
 DATABASE_KEY = os.getenv('DATABASE_KEY')
 ZIPDATA = 'SE.txt'
-MEDIA_FOLDER = '../../media'
-
+MEDIA_FOLDER = 'media'
+MEDIA_URL = 'https://files.telehelp.se/new'
 
 VERIFICATION_EXPIRY_TIME = 5 * 60 * 1_000_000_000 # 5 minutes
 
@@ -92,10 +92,10 @@ def receiveCall():
 		activeCustomer = readActiveCustomer(DATABASE, DATABASE_KEY, from_sender)
 		print(activeCustomer)
 		if activeCustomer is None:
-			payload = {"ivr": filePath+"/hjalper_ingen.mp3", "skippable":"true", "digits": 1,
-			"1":{"play": filePath+"/avreg_confirmed.mp3", "next": BASE_URL+"/removeHelper"}}
+			payload = {"ivr": MEDIA_URL+"/hjalper_ingen.mp3", "skippable":"true", "digits": 1,
+			"1":{"play": MEDIA_URL+"/avreg_confirmed.mp3", "next": BASE_URL+"/removeHelper"}}
 		else:
-			payload = {"ivr":filePath+"/registrerad_volontar.mp3", "digits": 1, 
+			payload = {"ivr":MEDIA_URL+"/registrerad_volontar.mp3", "digits": 1, 
 						"next":BASE_URL+"/handleReturningHelper"}
 		return json.dumps(payload)
 
@@ -103,13 +103,13 @@ def receiveCall():
 	elif userExists(DATABASE, DATABASE_KEY, from_sender, 'customer'):
 		print("Registered customer")
 		#TODO: Add name.mp3 from generated file
-		payload = {"play":filePath+"/behover_hjalp.mp3", 
-			   "next":{"ivr":filePath+"/pratade_sist.mp3", 
+		payload = {"play":MEDIA_URL+"/behover_hjalp.mp3", 
+			   "next":{"ivr":MEDIA_URL+"/pratade_sist.mp3", 
 			   "digits": 1,"next":BASE_URL+"/handleReturningCustomer"} }
 		return json.dumps(payload)
 
 	# New customer
-	payload = {"ivr": filePath+"/info.mp3", "skippable":"true", 
+	payload = {"ivr": MEDIA_URL+"/info.mp3", "skippable":"true", 
 				"digits": 1, "2":BASE_URL+"/receiveCall", "next": BASE_URL+"/handleNumberInput"}
 	return json.dumps(payload)
 
@@ -128,12 +128,12 @@ def handleReturningHelper():
 		helperPhone = request.form.get("from")
 		activeCustomer = readActiveCustomer(DATABASE, DATABASE_KEY, helperPhone)
 
-		payload = {"ivr": filePath+"/du_kopplas.mp3", "skippable":"true",
+		payload = {"ivr": MEDIA_URL+"/du_kopplas.mp3", "skippable":"true",
 					"next":BASE_URL+"/callExistingCustomer"}
 		return json.dumps(payload)
 	
 	elif number == 2:
-		payload = {"play": filePath+"/avreg_confirmed.mp3", "next": BASE_URL+"/removeHelper"}
+		payload = {"play": MEDIA_URL+"/avreg_confirmed.mp3", "next": BASE_URL+"/removeHelper"}
 		return json.dumps(payload)
 
 
@@ -143,7 +143,7 @@ def callExistingCustomer():
 	customerPhone = readActiveCustomer(DATABASE, DATABASE_KEY, helperPhone)
 	payload = {
 			  "connect": customerPhone,
-			  "callerid": elkNumber
+			  "callerid": ELK_NUMBER
 			}
 	return json.dumps(payload)
 
@@ -159,16 +159,16 @@ def handleReturningCustomer():
 	number = int(request.form.get("result"))
 	if number == 1:
 
-		payload = {"play": filePath+"/du_kopplas.mp3", "skippable":"true", "next": BASE_URL+"/callExistingHelper"}
+		payload = {"play": MEDIA_URL+"/du_kopplas.mp3", "skippable":"true", "next": BASE_URL+"/callExistingHelper"}
 		return json.dumps(payload)
 
 	if number == 2:
-		payload = {"play": filePath+"/vi_letar.mp3", "skippable":"true", "next": BASE_URL+"/postcodeInput"}
+		payload = {"play": MEDIA_URL+"/vi_letar.mp3", "skippable":"true", "next": BASE_URL+"/postcodeInput"}
 		return json.dumps(payload)
 
 
 	if number == 3:
-		payload = {"play": filePath+"/avreg_confirmed.mp3", "next": BASE_URL+"/removeCustomer"}
+		payload = {"play": MEDIA_URL+"/avreg_confirmed.mp3", "next": BASE_URL+"/removeCustomer"}
 		return json.dumps(payload)
 
 	return ""
@@ -179,7 +179,7 @@ def callExistingHelper():
 	helperPhone = readActiveHelper(DATABASE, DATABASE_KEY, customerPhone)
 	payload = {
 			  "connect": helperPhone,
-			  "callerid": elkNumber
+			  "callerid": ELK_NUMBER
 			}
 	return json.dumps(payload)
 
@@ -202,11 +202,11 @@ def postcodeInput():
 	if closestHelpers is None:
 		# TODO: Fix this sound clip
 
-		payload = {"play": filePath+"/finns_ingen.mp3"}
+		payload = {"play": MEDIA_URL+"/finns_ingen.mp3"}
 		return json.dumps(payload)
 	else:
 
-		payload = {"play": filePath+"/ringer_tillbaka.mp3", "skippable":"true", 
+		payload = {"play": MEDIA_URL+"/ringer_tillbaka.mp3", "skippable":"true", 
 						"next": BASE_URL+"/call/0/%s/%s"%(callId, phone)}
 		helperNumber = 0
 		addCallHistoryToDB(DATABASE, DATABASE_KEY, callId, 'helper_number', helperNumber)
@@ -231,16 +231,16 @@ def call(helperIndex, customerCallId, customerPhone):
 
 
 	# TODO: Handle if call is not picked up
-	payload = {"ivr": filePath+"/hjalte.mp3", "timeout":"30", "whenhangup": BASE_URL+"/call/%s/%s/%s"%(str(helperIndex+1), customerCallId, customerPhone),
+	payload = {"ivr": MEDIA_URL+"/hjalte.mp3", "timeout":"30", "whenhangup": BASE_URL+"/call/%s/%s/%s"%(str(helperIndex+1), customerCallId, customerPhone),
 				"1": BASE_URL+"/connectUsers", "2":BASE_URL+"/call/%s/%s/%s"%(str(helperIndex+1), customerCallId, customerPhone)}
 
 
 	print(closestHelpers[helperIndex])
-	print(elkNumber)
+	print(ELK_NUMBER)
 	writeActiveCustomer(DATABASE, DATABASE_KEY, closestHelpers[helperIndex], customerPhone)
 	print("Calling: ", closestHelpers[helperIndex])
 	fields = {
-		'from': elkNumber,
+		'from': ELK_NUMBER,
 		'to': closestHelpers[helperIndex],
 		'voice_start': json.dumps(payload)}
 
@@ -264,10 +264,10 @@ def callBackToCustomer(customerPhone):
 
 	print('No one found')
 	auth = (API_USERNAME, API_PASSWORD)
-	payload = {"play": filePath+"/ingen_hittad.mp3"}
+	payload = {"play": MEDIA_URL+"/ingen_hittad.mp3"}
 
 	fields = {
-		'from': elkNumber,
+		'from': ELK_NUMBER,
 		'to': customerPhone,
 		'voice_start': json.dumps(payload)}
 
@@ -293,8 +293,8 @@ def handleNumberInput():
 	if number == 1:
 		print('Write your zipcode')
 
-		payload = {"play": filePath+"/post_nr.mp3", 
-					"next": {"ivr": filePath+"/bep.mp3", "digits": 5, 
+		payload = {"play": MEDIA_URL+"/post_nr.mp3", 
+					"next": {"ivr": MEDIA_URL+"/bep.mp3", "digits": 5, 
 					"next": BASE_URL+"/checkZipcode"}}
 
 		return json.dumps(payload)
@@ -318,11 +318,11 @@ def checkZipcode():
 
 
 	# TODO: add district file
-	payload = {"play": filePath+"/du_befinner.mp3",
-				"next": {"ivr": filePath+"/stammer_det.mp3",
+	payload = {"play": MEDIA_URL+"/du_befinner.mp3",
+				"next": {"ivr": MEDIA_URL+"/stammer_det.mp3",
 				"1": BASE_URL+'/postcodeInput', 
-				"2": {"play": filePath+"/post_nr.mp3", "skippable":"true", 
-					"next": {"ivr": filePath+"/bep.mp3", "digits": 5, 
+				"2": {"play": MEDIA_URL+"/post_nr.mp3", "skippable":"true", 
+					"next": {"ivr": MEDIA_URL+"/bep.mp3", "digits": 5, 
 					"next": BASE_URL+"/checkZipcode"} }}}
 
 	return json.dumps(payload)
@@ -340,7 +340,7 @@ def connectUsers():
 	print('Connecting users')
 
 	print('customer:', customerPhone)
-	payload = {"connect":customerPhone, "callerid": elkNumber, "timeout":"15"}
+	payload = {"connect":customerPhone, "callerid": ELK_NUMBER, "timeout":"15"}
 	return json.dumps(payload)
 
 #-----------------------------------------------------------------------------------------------
