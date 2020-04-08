@@ -1,12 +1,8 @@
 import React from 'react';
 import './App.scss';
-import FAQ from './components/FAQ';
 import TeleHelpBar from './components/TeleHelpBar';
-import MapView from './components/MapView';
-import ThanksTo from './components/ThanksTo'
 import Footer from './components/Footer';
-import MainForm from './components/MainForm';
-import BackgroundInfo from './components/BackgroundInfo';
+import Main from './components/Main';
 
 
 function App() {
@@ -18,29 +14,7 @@ function App() {
             <TeleHelpBar/>
           </div>
         </div>
-        <div className="row">
-          <div className="col-md-8">
-            <BackgroundInfo/>
-          </div>
-          <div className="col-md-4">
-            <MainForm/>
-          </div>
-        </div>
-        <div className="row">
-          <div className="col-md-12">
-            <FAQ/>
-          </div>
-        </div>
-        <div className="row">
-          <div className="col-md-12">
-            <MapView/>
-          </div>
-        </div>
-        <div className="row">
-          <div className="col-md-12">
-            <ThanksTo/>
-          </div>
-        </div>
+        <Main/>
       </div>
       <Footer/>
     </div>

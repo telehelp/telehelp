@@ -25,6 +25,12 @@ const TeleHelpBar = (props) => {
             <NavItem>
               <NavLink href="/static/terms-and-conditions.pdf">Användarvillkor</NavLink>
             </NavItem>
+            <NavItem>
+              <NavLink href="/about">Om oss</NavLink>
+            </NavItem>
+            <NavItem>
+              <NavLink href="/press">I media</NavLink>
+            </NavItem>
           </Nav>
         </Collapse>
       </Navbar>
