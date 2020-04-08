@@ -33,7 +33,7 @@ class MapView extends React.Component {
       this.setState({addressPoints: data.coordinates});
       })
     .catch(console.log('error fetching coords, using defaults'))
-    
+
     if (this.state.addressPoints.length === 0)
     {
       this.setState({addressPoints: coords});
@@ -48,8 +48,8 @@ class MapView extends React.Component {
         <h2>Våra {addressPoints.length} st volontärer finns i hela landet</h2>
       <div id="mapid" className="leaflet-container">
         <LeafletMap
-          center={[59.73, 17.4]}
-          zoom={7}
+          center={[59.8, 14.9]}
+          zoom={5}
           maxZoom={20}
           attributionControl={true}
           zoomControl={true}
