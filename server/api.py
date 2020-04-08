@@ -12,18 +12,18 @@ from zipcode_utils import *
 
 app = Flask(__name__, static_folder='../client/build', static_url_path='/')
 
-dev = False
-
-if dev:
+if os.environ['FLASK_ENV'] == 'development':
 	BASE_URL = "http://272985e7.ngrok.io"
 	elkNumber = '+46766862446'
 	API_USERNAME = os.environ.get('API_USERNAME_DEV')
 	API_PASSWORD = os.environ.get('API_PASSWORD_DEV')
-else:
+elif os.environ['FLASK_ENV'] == 'prod':
 	BASE_URL = "https://telehelp.se"
 	elkNumber = '+46766861551'
 	API_USERNAME = os.environ.get('API_USERNAME')
 	API_PASSWORD = os.environ.get('API_PASSWORD')
+else:
+	assert False, "Flask environment not specified"
 DATABASE = 'telehelp.db'
 DATABASE_KEY = os.environ.get('DATABASE_KEY')
 ZIPDATA = 'SE.txt'
@@ -37,10 +37,6 @@ location_dict, district_dict = readZipCodeData(ZIPDATA)
 @app.route('/')
 def index():
 	return app.send_static_file('index.html')
-
-@app.route('/time')
-def current_time():
-	return {'time': time.time()}
 
 @app.route('/call', methods = ['POST'])
 def call():
