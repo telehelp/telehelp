@@ -8,9 +8,19 @@ import json
 from .middlewares import login_required
 from schema import Schema, And, Use, Optional, Regex
 from .zipcode_utils import *
+import logging
+
 #from text2speech_utils import generateCustomSoundByte
 
 app = Flask(__name__, static_folder='../client/build', static_url_path='/')
+
+log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
+handler = logging.FileHandler('flask.log')
+handler.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+log.addHandler(handler)
 
 if os.getenv('FLASK_ENV') == 'development':
 	BASE_URL = "http://272985e7.ngrok.io"
@@ -36,6 +46,10 @@ reg_schema = Schema({'helperName': str, 'zipCode':  Regex("^[0-9]{5}$"), 'phoneN
 verification_schema = Schema({'verificationCode':  Regex("^[0-9]{6}$"), 'number': Regex("^(\d|\+){1}\d{9,12}$")})
 location_dict, district_dict = readZipCodeData(ZIPDATA)
 
+def canonicalize_number(phone_number):
+	if phone_number[0] == '0':
+		phone_number = '+46' + phone_number[1:]
+	return phone_number
 
 @app.route('/')
 def index():
@@ -247,22 +261,23 @@ def test():
 def register():
 	if request.json:
 		print(request.json)
-		return {'type': 'success'}
 		try:
+			log.info("Trying")
 			reg_schema.validate(request.json)
+			zipcode = int(request.json['zipCode'])
+			phone_number = canonicalize_number(request.json['phoneNumber'])
+			name = request.json['helperName']
 			print("valid data")
-			city = getDistrict(int(request.json['zipCode']), district_dict)
+			city = getDistrict(zipcode, district_dict)
 			if city == "n/a":
 				return {'type': 'failure', 'message': 'Invalid Zip'}
-			if request.json['phoneNumber'][0] == '0':
-				request.json['phoneNumber'] = '+46' + request.json['phoneNumber'][1:]
-			if userExists(DATABASE, DATABASE_KEY, request.json['phoneNumber'], 'helper'):
+			if userExists(DATABASE, DATABASE_KEY, phone_number, 'helper'):
 				return {'type': 'failure', 'message': 'User already exists'}
-			saveHelperToDatabase(DATABASE, DATABASE_KEY, request.json['helperName'], request.json['phoneNumber'], request.json['zipCode'], city)
+			saveHelperToDatabase(DATABASE, DATABASE_KEY, name, phone_number, zipcode, city)
+			log.info(f"Saving helper to database {name}, {phone_number}, {zipcode}, {city}")
 			return {'type': 'success'}
 		except Exception as err:
-			print(err)
-			print('Invalid Data')
+			log.exception('Got invalid data when registering user {request.json}', err)
 			return {'type': 'failure'}
 	return {'type': 'failure'}
 
@@ -277,24 +292,23 @@ def verify():
 				# TODO handle some sort of global verification number store that times out, idk
 			return {'type': 'success'}
 		except Exception as err:
-			print(err)
-			print('Invalid Data')
+			log.exception('Got invalid data when verifying user', request, err)
 			return {'type': 'failure'}
 	return {'type': 'failure'}
 
 @app.route('/getVolunteerLocations', methods=["GET"])
 def getVolunteerLocations():
-    # Fetch all ZIP codes for volunteer users:
-    query = "SELECT zipcode FROM user_helpers"
-    zip_pd_dict = fetchData(DATABASE, DATABASE_KEY, query, params=None)
-    zip_list = zip_pd_dict.values.tolist()
+	# Fetch all ZIP codes for volunteer users:
+	query = "SELECT zipcode FROM user_helpers"
+	zip_pd_dict = fetchData(DATABASE, DATABASE_KEY, query, params=None)
+	zip_list = zip_pd_dict.values.tolist()
 
-    # Use ZIPs to get GPS coordinates (lat, long):
-    latlongs = []
+	# Use ZIPs to get GPS coordinates (lat, long):
+	latlongs = []
 
-    print(zip_list)
-    for zip in zip_list:
-        latlongs.append(getLatLong(zip[0], location_dict))
+	print(zip_list)
+	for zip in zip_list:
+		latlongs.append(getLatLong(zip[0], location_dict))
 
-    return {'coordinates' : latlongs }
+	return {'coordinates' : latlongs }
 
