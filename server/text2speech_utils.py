@@ -6,6 +6,7 @@ Note: ssml must be well-formed according to:
 from dotenv import load_dotenv
 load_dotenv()
 from google.cloud import texttospeech
+from google.oauth2 import service_account
 import os
 
 text_input = dict() # contains key as filename and string for tts
@@ -62,7 +63,10 @@ audio_config = texttospeech.types.AudioConfig(
     audio_encoding=texttospeech.enums.AudioEncoding.MP3, speaking_rate = 0.85)
 
 # Instantiates a client
-client = texttospeech.TextToSpeechClient() # NOTE: Can optionally include credentials arg: https://googleapis.dev/python/texttospeech/latest/gapic/v1/api.html
+dirname = os.path.dirname(__file__)
+filepath_json = os.path.join(dirname, '..', '..', 'GoogleTextToSpeech.json')
+cred = service_account.Credentials.from_service_account_file(filepath_json)
+client = texttospeech.TextToSpeechClient(credentials = cred)
 
 def generateSoundBytes():
     for key in text_input:
@@ -74,10 +78,11 @@ def generateSoundBytes():
         response = client.synthesize_speech(synthesis_input, voice, audio_config)
 
         # The response's audio_content is binary.
-        with open('media/'+key+'.mp3', 'wb') as out:
+        #with open('media/'+key+'.mp3', 'wb') as out:
+        with open(os.path.join(dirname,'media', key+'.mp3'), 'wb') as out:
             # Write the response to the output file.
             out.write(response.audio_content)
-            print('Audio content written to file "'+'media/'+key+'.mp3'+'"')
+            print('Audio content written to file "'+os.path.join(dirname,'media', key+'.mp3')+'" (relative to current dir).')
 
 def generateCustomSoundByte(text_string, filename, saveDir='/media'):
         # Set the text input to be synthesized
