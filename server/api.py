@@ -1,48 +1,70 @@
 import time
-from flask import Flask, request, redirect
+
+from flask import Flask, request, session, redirect
+from flask_session import Session
 import requests
 import os
-from databaseIntegration import *
+from .databaseIntegration import *
 import pandas as pd
 import json
-from middlewares import login_required #Should maybe be properly relative
+from .middlewares import login_required
 from schema import Schema, And, Use, Optional, Regex
-from zipcode_utils import *
+from .zipcode_utils import *
+import logging
+import time
+import secrets
+
 #from text2speech_utils import generateCustomSoundByte
 
 app = Flask(__name__, static_folder='../client/build', static_url_path='/')
 
-dev = True
-if dev:
-	BASE_URL = "https://9cfa803d.ngrok.io"
-	elkNumber = '+46766862446'
-	API_USERNAME = os.environ.get('API_USERNAME_DEV')
-	API_PASSWORD = os.environ.get('API_PASSWORD_DEV')
-else:
-	BASE_URL = "https://telehelp.se"
-	elkNumber = '+46766861551'
-	API_USERNAME = os.environ.get('API_USERNAME')
-	API_PASSWORD = os.environ.get('API_PASSWORD')
-DATABASE = 'telehelp.db'
-DATABASE_KEY = os.environ.get('DATABASE_KEY')
+SESSION_TYPE = 'redis'
+SECRET_KEY = os.getenv('SECRET_KEY')
+app.config.from_object(__name__)
+#app.config["SECRET_KEY"] = os.getenv('SECRET')
+Session(app)
+
+log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
+handler = logging.FileHandler('flask.log')
+handler.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+log.addHandler(handler)
+
+BASE_URL = os.getenv('BASE_URL')
+ELK_NUMBER = os.getenv('ELK_NUMBER')
+API_USERNAME = os.getenv('API_USERNAME')
+API_PASSWORD = os.getenv('API_PASSWORD')
+DATABASE = os.getenv('DATABASE')
+
+DATABASE_KEY = os.getenv('DATABASE_KEY')
 ZIPDATA = 'SE.txt'
-mediaFolder = '../../media'
-filePath = 'https://files.telehelp.se/new'
-#callHistory = {}
+MEDIA_FOLDER = '../../media'
+
+
+VERIFICATION_EXPIRY_TIME = 120_000_000_000 # Nanoseconds
 
 reg_schema = Schema({'helperName': str, 'zipCode':  Regex("^[0-9]{5}$"), 'phoneNumber': Regex("^(\d|\+){1}\d{9,12}$"), 'terms': bool })
+verification_schema = Schema({'verificationCode':  Regex("^[0-9]{6}$"), 'number': Regex("^(\d|\+){1}\d{9,12}$")})
 location_dict, district_dict = readZipCodeData(ZIPDATA)
 
+def canonicalize_number(phone_number):
+	if phone_number[0] == '0':
+		phone_number = '+46' + phone_number[1:]
+	return phone_number
 
 @app.route('/')
 def index():
 	return app.send_static_file('index.html')
+
 
 @app.route('/time')
 def current_time():
 	return {'time': time.time()}
 
 #------------------------------ PHONE API ----------------------------------------------------
+
 
 @app.route('/receiveCall',methods = ['POST'])
 def receiveCall():
@@ -79,6 +101,7 @@ def receiveCall():
 				"digits": 1, "2":BASE_URL+"/receiveCall", "next": BASE_URL+"/handleNumberInput"}
 	return json.dumps(payload)
 
+
 @app.route('/hangup', methods = ['POST'])
 def hangup():
 
@@ -100,6 +123,7 @@ def handleReturningHelper():
 	elif number == 2:
 		payload = {"play": filePath+"/avreg_confirmed.mp3", "next": BASE_URL+"/removeHelper"}
 		return json.dumps(payload)
+
 
 @app.route('/callExistingCustomer', methods = ['POST'])
 def callExistingCustomer():
@@ -165,6 +189,7 @@ def postcodeInput():
 
 	if closestHelpers is None:
 		# TODO: Fix this sound clip
+
 		payload = {"play": filePath+"/finns_ingen.mp3"}
 		return json.dumps(payload)
 	else:
@@ -175,10 +200,12 @@ def postcodeInput():
 		addCallHistoryToDB(DATABASE, DATABASE_KEY, callId, 'helper_number', helperNumber)
 		return json.dumps(payload)
 
+
 @app.route('/call/<int:helperIndex>/<string:customerCallId>/<string:customerPhone>', methods = ['POST'])
 def call(helperIndex, customerCallId, customerPhone):
 	print('helperIndex:', helperIndex)
 	callId = request.form.get("callid")
+
 	print('Customer callId: ', customerCallId)
 
 
@@ -237,6 +264,7 @@ def callBackToCustomer(customerPhone):
 		data=fields,
 		auth=auth)
 
+
 	return ""
 
 @app.route('/removeCustomer', methods = ['POST'])
@@ -252,6 +280,7 @@ def handleNumberInput():
 	print('number: ', number)
 	if number == 1:
 		print('Write your zipcode')
+
 		payload = {"play": filePath+"/post_nr.mp3", 
 					"next": {"ivr": filePath+"/bep.mp3", "digits": 5, 
 					"next": BASE_URL+"/checkZipcode"}}
@@ -274,6 +303,7 @@ def checkZipcode():
 	# TODO: Add sound if zipcode is invalid (n/a)
 	print('zipcode: ', zipcode)
 	saveCustomerToDatabase(DATABASE, DATABASE_KEY, phone, str(zipcode), district)
+
 
 	# TODO: add district file
 	payload = {"play": filePath+"/du_befinner.mp3",
@@ -301,13 +331,7 @@ def connectUsers():
 	payload = {"connect":customerPhone, "callerid": elkNumber, "timeout":"15"}
 	return json.dumps(payload)
 
-
 #-----------------------------------------------------------------------------------------------
-
-
-
-
-
 
 
 
@@ -319,39 +343,71 @@ def test():
 @app.route('/register', methods=["POST"])
 def register():
 	if request.json:
-		print(request.json)
+		data = request.json
+		print(data)
 		try:
-			reg_schema.validate(request.json)
-			print("valid data")
-			city = getDistrict(int(request.json['zipCode']), district_dict)
+			log.info("Trying")
+			reg_schema.validate(data)
+			zipcode = int(data['zipCode'])
+			phone_number = canonicalize_number(data['phoneNumber'])
+			name = data['helperName']
+			city = getDistrict(zipcode, district_dict)
 			if city == "n/a":
 				return {'type': 'failure', 'message': 'Invalid Zip'}
-			if request.json['phoneNumber'][0] == '0':
-				request.json['phoneNumber'] = '+46' + request.json['phoneNumber'][1:]
-			if userExists(DATABASE, DATABASE_KEY, request.json['phoneNumber'], 'helper'):
+			if userExists(DATABASE, DATABASE_KEY, phone_number, 'helper'):
 				return {'type': 'failure', 'message': 'User already exists'}
-			saveHelperToDatabase(DATABASE, DATABASE_KEY, request.json['helperName'], request.json['phoneNumber'], request.json['zipCode'], city)
+			ts = time.time_ns()
+			## TODO SEND THIS BY SMS
+			code = secrets.randbelow(1_000_000)
+			print(code)
+			## ==========
+			session[phone_number] = {"phoneNumber": phone_number, "zipCode": zipcode, "name": name, "city": city, "timestamp": ts, "code": code}
 			return {'type': 'success'}
 		except Exception as err:
-			print(err)
-			print('Invalid Data')
+			log.exception('Got invalid data when registering user {request.json}', err)
+		return {'type': 'failure'}
+	return {'type': 'failure'}
+
+@app.route('/verify', methods=["POST"])
+def verify():
+	if request.json:
+		data = request.json
+		print(data)
+		try:
+			verification_schema.validate(data)
+			phone_number = canonicalize_number(data['number'])
+			code = int(data['verificationCode'])
+			if phone_number in session \
+				and time.time_ns() - session[phone_number]["timestamp"] < VERIFICATION_EXPIRY_TIME \
+				and code == session[phone_number]["code"]:
+
+				name = session[phone_number]["name"]
+				zipcode = session[phone_number]["zipCode"]
+				city = session[phone_number]["city"]
+
+				log.info(f"Saving helper to database {name}, {phone_number}, {zipcode}, {city}")
+				saveHelperToDatabase(DATABASE, DATABASE_KEY, name, phone_number, zipcode, city)
+				return {'type': 'success'}
+			else:
+				return {'type': 'failure'}
+		except Exception as err:
+			log.exception('Got invalid data when verifying user', request, err)
 			return {'type': 'failure'}
 	return {'type': 'failure'}
 
 @app.route('/getVolunteerLocations', methods=["GET"])
 def getVolunteerLocations():
-    # Fetch all ZIP codes for volunteer users:
-    query = "SELECT zipcode FROM user_helpers"
-    zip_pd_dict = fetchData(DATABASE, DATABASE_KEY, query, params=None)
-    zip_list = zip_pd_dict.values.tolist()
+	# Fetch all ZIP codes for volunteer users:
+	query = "SELECT zipcode FROM user_helpers"
+	zip_pd_dict = fetchData(DATABASE, DATABASE_KEY, query, params=None)
+	zip_list = zip_pd_dict.values.tolist()
 
-    # Use ZIPs to get GPS coordinates (lat, long):
-    latlongs = []
+	# Use ZIPs to get GPS coordinates (lat, long):
+	latlongs = []
 
-    print(zip_list)
-    for zip in zip_list:
-        latlongs.append(getLatLong(zip[0], location_dict))
+	print(zip_list)
+	for zip in zip_list:
+		latlongs.append(getLatLong(zip[0], location_dict))
 
-    payload = {'coordinates' : latlongs }
-    return json.dumps(payload)
+	return {'coordinates' : latlongs }
 
