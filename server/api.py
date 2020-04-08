@@ -8,11 +8,12 @@ from .databaseIntegration import *
 import pandas as pd
 import json
 from .middlewares import login_required
-from schema import Schema, And, Use, Optional, Regex
+from .schemas import VERIFICATION_SCHEMA, REGISTRATION_SCHEMA
 from .zipcode_utils import *
 import logging
 import time
 import secrets
+import string
 
 #from text2speech_utils import generateCustomSoundByte
 
@@ -21,7 +22,6 @@ app = Flask(__name__, static_folder='../client/build', static_url_path='/')
 SESSION_TYPE = 'redis'
 SECRET_KEY = os.getenv('SECRET_KEY')
 app.config.from_object(__name__)
-#app.config["SECRET_KEY"] = os.getenv('SECRET')
 Session(app)
 
 log = logging.getLogger(__name__)
@@ -43,10 +43,9 @@ ZIPDATA = 'SE.txt'
 MEDIA_FOLDER = '../../media'
 
 
-VERIFICATION_EXPIRY_TIME = 120_000_000_000 # Nanoseconds
+VERIFICATION_EXPIRY_TIME = 5 * 60 * 1_000_000_000 # 5 minutes
 
-reg_schema = Schema({'helperName': str, 'zipCode':  Regex("^[0-9]{5}$"), 'phoneNumber': Regex("^(\d|\+){1}\d{9,12}$"), 'terms': bool })
-verification_schema = Schema({'verificationCode':  Regex("^[0-9]{6}$"), 'number': Regex("^(\d|\+){1}\d{9,12}$")})
+
 location_dict, district_dict = readZipCodeData(ZIPDATA)
 
 def canonicalize_number(phone_number):
@@ -340,59 +339,48 @@ def connectUsers():
 def test():
 	return {'entry': 'test'}
 
-@app.route('/register', methods=["POST"])
+@app.route('/register', methods=['POST'])
 def register():
-	if request.json:
-		data = request.json
-		print(data)
-		try:
-			log.info("Trying")
-			reg_schema.validate(data)
-			zipcode = int(data['zipCode'])
-			phone_number = canonicalize_number(data['phoneNumber'])
-			name = data['helperName']
-			city = getDistrict(zipcode, district_dict)
-			if city == "n/a":
-				return {'type': 'failure', 'message': 'Invalid Zip'}
-			if userExists(DATABASE, DATABASE_KEY, phone_number, 'helper'):
-				return {'type': 'failure', 'message': 'User already exists'}
-			ts = time.time_ns()
-			## TODO SEND THIS BY SMS
-			code = secrets.randbelow(1_000_000)
-			print(code)
-			## ==========
-			session[phone_number] = {"phoneNumber": phone_number, "zipCode": zipcode, "name": name, "city": city, "timestamp": ts, "code": code}
-			return {'type': 'success'}
-		except Exception as err:
-			log.exception('Got invalid data when registering user {request.json}', err)
+	data = request.json
+	if REGISTRATION_SCHEMA.is_valid(data):
+		validated = REGISTRATION_SCHEMA.validate(data)
+
+		city = getDistrict(validated['zipCode'], district_dict)
+		phone_number = canonicalize_number(validated['phoneNumber'])
+
+		if city == 'n/a':
+			return {'type': 'failure', 'message': 'Invalid zip'}
+		if userExists(DATABASE, DATABASE_KEY, phone_number, 'helper'):
+			return {'type': 'failure', 'message': 'User already exists'}
+		
+		## ========== TODO SEND THIS BY SMS
+		code = ''.join(secrets.choice(string.digits) for _ in range(6))
+		print(code)
+		## ==========
+
+		session[phone_number] = {"zipCode": validated['zipCode'], "name": validated['helperName'], "city": city, "timestamp": time.time_ns(), "code": code}
+		return {'type': 'success'}
+	else:
 		return {'type': 'failure'}
-	return {'type': 'failure'}
 
 @app.route('/verify', methods=["POST"])
 def verify():
-	if request.json:
-		data = request.json
-		print(data)
-		try:
-			verification_schema.validate(data)
-			phone_number = canonicalize_number(data['number'])
-			code = int(data['verificationCode'])
-			if phone_number in session \
-				and time.time_ns() - session[phone_number]["timestamp"] < VERIFICATION_EXPIRY_TIME \
-				and code == session[phone_number]["code"]:
+	data = request.json
+	if VERIFICATION_SCHEMA.is_valid(data):
+		validated = VERIFICATION_SCHEMA.validate(data)
+		phone_number = canonicalize_number(validated['number'])
+		code = validated['verificationCode']
+		if phone_number in session \
+			and time.time_ns() - session[phone_number]["timestamp"] < VERIFICATION_EXPIRY_TIME \
+			and code == session[phone_number]["code"]:
 
-				name = session[phone_number]["name"]
-				zipcode = session[phone_number]["zipCode"]
-				city = session[phone_number]["city"]
+			name = session[phone_number]["name"]
+			zipcode = session[phone_number]["zipCode"]
+			city = session[phone_number]["city"]
 
-				log.info(f"Saving helper to database {name}, {phone_number}, {zipcode}, {city}")
-				saveHelperToDatabase(DATABASE, DATABASE_KEY, name, phone_number, zipcode, city)
-				return {'type': 'success'}
-			else:
-				return {'type': 'failure'}
-		except Exception as err:
-			log.exception('Got invalid data when verifying user', request, err)
-			return {'type': 'failure'}
+			log.info(f"Saving helper to database {name}, {phone_number}, {zipcode}, {city}")
+			saveHelperToDatabase(DATABASE, DATABASE_KEY, name, phone_number, zipcode, city)
+			return {'type': 'success'}
 	return {'type': 'failure'}
 
 @app.route('/getVolunteerLocations', methods=["GET"])
