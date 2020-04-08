@@ -14,13 +14,13 @@ app = Flask(__name__, static_folder='../client/build', static_url_path='/')
 
 if os.getenv('FLASK_ENV') == 'development':
 	BASE_URL = "http://272985e7.ngrok.io"
-	elkNumber = '+46766862446'
+	ELK_NUMBER = '+46766862446'
 	API_USERNAME = os.getenv('API_USERNAME_DEV')
 	API_PASSWORD = os.getenv('API_PASSWORD_DEV')
 	DATABASE = 'test.db'
 elif os.getenv('FLASK_ENV') == 'prod':
 	BASE_URL = "https://telehelp.se"
-	elkNumber = '+46766861551'
+	ELK_NUMBER = '+46766861551'
 	API_USERNAME = os.getenv('API_USERNAME')
 	API_PASSWORD = os.getenv('API_PASSWORD')
 	DATABASE = 'telehelp.db'
@@ -51,10 +51,10 @@ def call():
 	auth = (API_USERNAME, API_PASSWORD)
 
 	print(closestHelpers[helperNumber])
-	print(elkNumber)
+	print(ELK_NUMBER)
 	writeActiveCustomer(DATABASE, DATABASE_KEY, closestHelpers[helperNumber], from_sender)
 	fields = {
-		'from': elkNumber,
+		'from': ELK_NUMBER,
 		'to': closestHelpers[helperNumber],
 		'voice_start': {"play": "https://files.telehelp.se/hjalte.mp3",
 				"next": {"play": "https://files.telehelp.se/1.mp3",
@@ -137,7 +137,7 @@ def connectUsers():
 	print('helper: ', helperPhone)
 	currentCustomer = readActiveCustomer(DATABASE, DATABASE_KEY, helperPhone)
 	print('customer:', currentCustomer)
-	return {"connect":currentCustomer, "callerid": elkNumber, "timeout":"15"}
+	return {"connect":currentCustomer, "callerid": ELK_NUMBER, "timeout":"15"}
 
 @app.route('/handleReturningUser', methods = ['POST'])
 def handleReturningUser():
