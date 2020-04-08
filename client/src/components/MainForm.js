@@ -17,6 +17,7 @@ function MainForm() {
       break;
     case FormStatus.VERIFICATION_FAILED:
       form = <CompleteForm message={"Verifiering misslyckades!"}/>;
+      break;
     case FormStatus.VERIFY_NUMBER:
       form = <VerificationForm/>;
       break;

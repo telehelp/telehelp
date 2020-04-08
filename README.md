@@ -19,6 +19,22 @@ The following libs needs to be installed
 ```
 sqlcipher libsqlcipher-dev libpython3.6-dev libsqlite3-dev
 ```
+For redis support
+```
+sudo apt-get install redis-server && sudo systemctl enable redis-server.service
+
+# Edit the maxmemory(256/512 mb) and eviction policy(allkeys-lru)
+sudo vim /etc/redis/redis.conf
+sudo systemctl restart redis-server.service
+```
+
+Check that it's functional by checking
+```
+redis-cli
+127.0.0.1:6379> ping
+PONG
+127.0.0.1:6379>
+```
 
 ### External resources
 

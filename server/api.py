@@ -1,5 +1,6 @@
 import time
-from flask import Flask, request
+from flask import Flask, request, session
+from flask_session import Session
 import requests
 import os
 from .databaseIntegration import *
@@ -9,10 +10,17 @@ from .middlewares import login_required
 from schema import Schema, And, Use, Optional, Regex
 from .zipcode_utils import *
 import logging
+import time
+import secrets
 
 #from text2speech_utils import generateCustomSoundByte
 
 app = Flask(__name__, static_folder='../client/build', static_url_path='/')
+SESSION_TYPE = 'redis'
+SECRET_KEY = os.getenv('SECRET_KEY')
+app.config.from_object(__name__)
+#app.config["SECRET_KEY"] = os.getenv('SECRET')
+Session(app)
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
@@ -32,6 +40,8 @@ DATABASE_KEY = os.getenv('DATABASE_KEY')
 ZIPDATA = 'SE.txt'
 MEDIA_FOLDER = '../../media'
 #callHistory = {}
+
+VERIFICATION_EXPIRY_TIME = 120_000_000_000 # Nanoseconds
 
 reg_schema = Schema({'helperName': str, 'zipCode':  Regex("^[0-9]{5}$"), 'phoneNumber': Regex("^(\d|\+){1}\d{9,12}$"), 'terms': bool })
 verification_schema = Schema({'verificationCode':  Regex("^[0-9]{6}$"), 'number': Regex("^(\d|\+){1}\d{9,12}$")})
@@ -251,37 +261,53 @@ def test():
 @app.route('/register', methods=["POST"])
 def register():
 	if request.json:
-		print(request.json)
+		data = request.json
+		print(data)
 		try:
 			log.info("Trying")
-			reg_schema.validate(request.json)
-			zipcode = int(request.json['zipCode'])
-			phone_number = canonicalize_number(request.json['phoneNumber'])
-			name = request.json['helperName']
-			print("valid data")
+			reg_schema.validate(data)
+			zipcode = int(data['zipCode'])
+			phone_number = canonicalize_number(data['phoneNumber'])
+			name = data['helperName']
 			city = getDistrict(zipcode, district_dict)
 			if city == "n/a":
 				return {'type': 'failure', 'message': 'Invalid Zip'}
 			if userExists(DATABASE, DATABASE_KEY, phone_number, 'helper'):
 				return {'type': 'failure', 'message': 'User already exists'}
-			saveHelperToDatabase(DATABASE, DATABASE_KEY, name, phone_number, zipcode, city)
-			log.info(f"Saving helper to database {name}, {phone_number}, {zipcode}, {city}")
+			ts = time.time_ns()
+			## TODO SEND THIS BY SMS
+			code = secrets.randbelow(1_000_000)
+			print(code)
+			## ==========
+			session[phone_number] = {"phoneNumber": phone_number, "zipCode": zipcode, "name": name, "city": city, "timestamp": ts, "code": code}
 			return {'type': 'success'}
 		except Exception as err:
 			log.exception('Got invalid data when registering user {request.json}', err)
-			return {'type': 'failure'}
+		return {'type': 'failure'}
 	return {'type': 'failure'}
 
 @app.route('/verify', methods=["POST"])
 def verify():
 	if request.json:
-		print(request.json)
+		data = request.json
+		print(data)
 		try:
-			verification_schema.validate(request.json)
-			if request.json['number'][0] == '0':
-				request.json['number'] = '+46' + request.json['number'][1:]
-				# TODO handle some sort of global verification number store that times out, idk
-			return {'type': 'success'}
+			verification_schema.validate(data)
+			phone_number = canonicalize_number(data['number'])
+			code = int(data['verificationCode'])
+			if phone_number in session \
+				and time.time_ns() - session[phone_number]["timestamp"] < VERIFICATION_EXPIRY_TIME \
+				and code == session[phone_number]["code"]:
+
+				name = session[phone_number]["name"]
+				zipcode = session[phone_number]["zipCode"]
+				city = session[phone_number]["city"]
+
+				log.info(f"Saving helper to database {name}, {phone_number}, {zipcode}, {city}")
+				saveHelperToDatabase(DATABASE, DATABASE_KEY, name, phone_number, zipcode, city)
+				return {'type': 'success'}
+			else:
+				return {'type': 'failure'}
 		except Exception as err:
 			log.exception('Got invalid data when verifying user', request, err)
 			return {'type': 'failure'}
