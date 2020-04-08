@@ -7,11 +7,9 @@ import ThanksTo from './components/ThanksTo'
 import Footer from './components/Footer';
 import MainForm from './components/MainForm';
 import BackgroundInfo from './components/BackgroundInfo';
-import {useSelector} from 'react-redux';
+
 
 function App() {
-  const progress = useSelector(state => state.registration.progress);
-  
     return (
     <div className="App">
       <div className="container">
@@ -25,7 +23,7 @@ function App() {
             <BackgroundInfo/>
           </div>
           <div className="col-md-4">
-            <MainForm progress={progress}/>
+            <MainForm/>
           </div>
         </div>
         <div className="row">
