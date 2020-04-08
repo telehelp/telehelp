@@ -34,8 +34,6 @@ function RegistrationForm(props) {
         dispatch(setRegistrationProgress(FormStatus.BAD_DETAILS));
       }
     });
-  
-    reset();
   };
 
   //if progress ngt

@@ -40,8 +40,6 @@ function VerificationForm() {
         dispatch(setRegistrationProgress(FormStatus.VERIFICATION_FAILED));
       }
     });
-
-    reset();
   };
 
   //if progress ngt
