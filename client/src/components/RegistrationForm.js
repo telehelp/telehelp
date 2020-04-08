@@ -1,8 +1,12 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { Form, FormFeedback, FormGroup, Label, Input, Button } from 'reactstrap';
+import { advanceRegistration } from '../actions';
+import { useDispatch, useSelector} from 'react-redux';
 
 function RegistrationForm(props) {
+  const dispatch = useDispatch();
+
   const { register, handleSubmit, errors, reset } = useForm(); // initialise the hook
   const onSubmit = data => {
     console.log(data);
@@ -19,12 +23,20 @@ function RegistrationForm(props) {
     .then(res => res.json())
     .then(data => props.handler(data));
 
+    // This actually depends on response data
+    dispatch(advanceRegistration());
+    
     reset();
   };
 
+  //if progress ngt
+  //use a main form to do this
+  // The main form should have all three steps
+  const message = "Registrera dig som volontär!"
+
   return (
     <Form onSubmit={handleSubmit(onSubmit)} >
-    <h4>Registrera dig som volontär!</h4>
+    <h4>{message}</h4>
     <FormGroup>
         <Label for="helperName">Tilltalsnamn</Label>
         <Input 

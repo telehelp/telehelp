@@ -10,7 +10,7 @@ class ThanksTo extends React.Component {
     <div className="row">
           {sponsors.map((e,i) => {
               return <div key={i} className="col-md-2">
-                  <a href={e.link}><img className="img-fluid sponsor-image" src={e.imagePath} style={{"margin": "1em"}} alt="sponsor logo"/></a>
+                  <a href={e.link}><img className="img-fluid sponsor-image" src={e.imagePath} alt="sponsor logo"/></a>
                   </div>
           })}
       </div>
