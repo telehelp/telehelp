@@ -30,6 +30,16 @@ The project relies on the following APIs:
 ### Server
 
 The server is written in Python (`3.7.5`) and can be installed (from the root directory) with
+## Environmental Varialbles
+In order for the server to operate as intended you need to set a few environmental variables before you start. It is recommended to put these in a .env file that Flask can read automatically.
+```
+export DATABASE_KEY=your_secret_key
+export API_USERNAME=your_user
+export API_PASSWORD=your_pass
+export ELK_NUMBER=your_number
+eport DATABASE=test.db
+```
+
 ```
 cd server && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt
 ```
