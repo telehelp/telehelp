@@ -2,9 +2,6 @@ import time
 
 from flask import Flask, request, session, redirect
 from flask_session import Session
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
-
 import requests
 import os
 from .databaseIntegration import *
@@ -26,16 +23,6 @@ SESSION_TYPE = 'redis'
 SECRET_KEY = os.getenv('SECRET_KEY')
 app.config.from_object(__name__)
 Session(app)
-
-limiter = Limiter(
-    app,
-    key_func=get_remote_address,
-    default_limits=["15 per minute", "1 per second"],
-)
-
-@limiter.request_filter
-def ip_whitelist():
-    return request.remote_addr == "127.0.0.1"
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
