@@ -49,22 +49,22 @@ text_input['hjalper_ingen'] = 'Välkommen till Telehelp. Vi ser att du är regis
                                 annars kan du lägga på nu.'
 text_input['ingen_hittad'] = 'Vi hittade tyvärr ingen ledig volontär i ditt område. Vänligen försök att ringa tillbaka senare. Hejdå'
 
+'''
+Input parameters for text-to-speech model
+'''
+voice = texttospeech.types.VoiceSelectionParams(
+    language_code='sv-SE',
+    name='sv-SE-Wavenet-A',
+    ssml_gender=texttospeech.enums.SsmlVoiceGender.NEUTRAL)
+
+# Select the type of audio file you want returned
+audio_config = texttospeech.types.AudioConfig(
+    audio_encoding=texttospeech.enums.AudioEncoding.MP3, speaking_rate = 0.85)
+
+# Instantiates a client
+client = texttospeech.TextToSpeechClient() # NOTE: Can optionally include credentials arg: https://googleapis.dev/python/texttospeech/latest/gapic/v1/api.html
 
 def generateSoundBytes():
-    # Instantiates a client
-    client = texttospeech.TextToSpeechClient()
-
-    # Build the voice request, select the language code ("en-US") and the ssml
-    # voice gender ("neutral")
-    voice = texttospeech.types.VoiceSelectionParams(
-        language_code='sv-SE',
-        name='sv-SE-Wavenet-A',
-        ssml_gender=texttospeech.enums.SsmlVoiceGender.NEUTRAL)
-
-    # Select the type of audio file you want returned
-    audio_config = texttospeech.types.AudioConfig(
-        audio_encoding=texttospeech.enums.AudioEncoding.MP3, speaking_rate = 0.85)
-
     for key in text_input:
         # Set the text input to be synthesized
         synthesis_input = texttospeech.types.SynthesisInput(text=text_input[key])
@@ -80,20 +80,6 @@ def generateSoundBytes():
             print('Audio content written to file "'+'media/'+key+'.mp3'+'"')
 
 def generateCustomSoundByte(text_string, filename, saveDir='/media'):
-        # Instantiates a client
-        client = texttospeech.TextToSpeechClient()
-
-        # Build the voice request, select the language code ("en-US") and the ssml
-        # voice gender ("neutral")
-        voice = texttospeech.types.VoiceSelectionParams(
-            language_code='sv-SE',
-            name='sv-SE-Wavenet-A',
-            ssml_gender=texttospeech.enums.SsmlVoiceGender.NEUTRAL)
-
-        # Select the type of audio file you want returned
-        audio_config = texttospeech.types.AudioConfig(
-            audio_encoding=texttospeech.enums.AudioEncoding.MP3, speaking_rate = 0.85)
-
         # Set the text input to be synthesized
         synthesis_input = texttospeech.types.SynthesisInput(text=text_string)
 
@@ -109,4 +95,3 @@ def generateCustomSoundByte(text_string, filename, saveDir='/media'):
 
 if __name__ == '__main__':
     generateSoundBytes()
-    #generateCustomSoundByte("Vi letar efter en ledig volontär i ditt område. Samtalet avslutas nu, men du kommer snart att ringas upp av en volontär", 'ringer_tillbaka.mp3', saveDir='../../media')
