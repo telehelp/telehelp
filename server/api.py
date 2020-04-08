@@ -43,7 +43,7 @@ ZIPDATA = 'SE.txt'
 MEDIA_FOLDER = 'media'
 MEDIA_URL = 'https://files.telehelp.se/new'
 
-VERIFICATION_EXPIRY_TIME = 5 * 60 * 1_000_000_000 # 5 minutes
+VERIFICATION_EXPIRY_TIME = 5 * 60  # 5 minutes
 
 
 location_dict, district_dict = readZipCodeData(ZIPDATA)
