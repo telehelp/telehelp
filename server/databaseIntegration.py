@@ -201,7 +201,7 @@ def readCallHistory(db, key, callid, columnName):
 		query = ''' SELECT current_customer FROM call_history WHERE callid=? '''
 	params = [callid]
 	res = readDatabase(db, key, query, params)
-	print(res)
+	print('result readCallHistory: ', res)
 	# print(res[columnName])
 	# result = res[columnName].to_string()
 	# print(result)

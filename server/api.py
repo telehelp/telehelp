@@ -1,5 +1,5 @@
 import time
-from flask import Flask, request
+from flask import Flask, request, redirect
 import requests
 import os
 from databaseIntegration import *
@@ -14,7 +14,7 @@ app = Flask(__name__, static_folder='../client/build', static_url_path='/')
 
 dev = True
 if dev:
-	BASE_URL = "http://4628548d.ngrok.io"
+	BASE_URL = "https://9cfa803d.ngrok.io"
 	elkNumber = '+46766862446'
 	API_USERNAME = os.environ.get('API_USERNAME_DEV')
 	API_PASSWORD = os.environ.get('API_PASSWORD_DEV')
@@ -71,13 +71,19 @@ def receiveCall():
 		#TODO: Add name.mp3 from generated file
 		payload = {"play":filePath+"/behover_hjalp.mp3", 
 			   "next":{"ivr":filePath+"/pratade_sist.mp3", 
-			   "digits": 1, "next":BASE_URL+"/handleReturningCustomer"} }
+			   "digits": 1,"next":BASE_URL+"/handleReturningCustomer"} }
 		return json.dumps(payload)
 
 	# New customer
 	payload = {"ivr": filePath+"/info.mp3", "skippable":"true", 
 				"digits": 1, "2":BASE_URL+"/receiveCall", "next": BASE_URL+"/handleNumberInput"}
 	return json.dumps(payload)
+
+@app.route('/hangup', methods = ['POST'])
+def hangup():
+
+	print('hangup')
+	return ""
 
 @app.route('/handleReturningHelper', methods = ['POST'])
 def handleReturningHelper():
@@ -86,10 +92,7 @@ def handleReturningHelper():
 	if number == 1:
 		helperPhone = request.form.get("from")
 		activeCustomer = readActiveCustomer(DATABASE, DATABASE_KEY, helperPhone)
-		# This helper does not have an active customer
-		
-		# The helper gets connected to its active customer
-		#else:
+
 		payload = {"ivr": filePath+"/du_kopplas.mp3", "skippable":"true",
 					"next":BASE_URL+"/callExistingCustomer"}
 		return json.dumps(payload)
@@ -110,7 +113,6 @@ def callExistingCustomer():
 
 @app.route('/removeHelper', methods = ['POST'])
 def removeHelper():
-	# TODO: Remove active_helper from customer database
 	from_sender = request.form.get("from")
 	deleteFromDatabase(DATABASE, DATABASE_KEY, from_sender, 'helper')
 	return ""
@@ -168,51 +170,77 @@ def postcodeInput():
 	else:
 
 		payload = {"play": filePath+"/ringer_tillbaka.mp3", "skippable":"true", 
-						"next": BASE_URL+"/call"}
+						"next": BASE_URL+"/call/0/%s/%s"%(callId, phone)}
 		helperNumber = 0
 		addCallHistoryToDB(DATABASE, DATABASE_KEY, callId, 'helper_number', helperNumber)
 		return json.dumps(payload)
 
-@app.route('/call', methods = ['POST'])
-def call():
-	from_sender = request.form.get("from")
+@app.route('/call/<int:helperIndex>/<string:customerCallId>/<string:customerPhone>', methods = ['POST'])
+def call(helperIndex, customerCallId, customerPhone):
+	print('helperIndex:', helperIndex)
 	callId = request.form.get("callid")
+	print('Customer callId: ', customerCallId)
 
-	helperNumber = readCallHistory(DATABASE, DATABASE_KEY, callId, 'helper_number')
-	closestHelpers = json.loads(readCallHistory(DATABASE, DATABASE_KEY, callId, 'closest_helpers'))
-	print(closestHelpers)
+
+	closestHelpers = json.loads(readCallHistory(DATABASE, DATABASE_KEY, customerCallId, 'closest_helpers'))
+	print('closest helpers: ', closestHelpers)
+
 	auth = (API_USERNAME, API_PASSWORD)
 
-	# TODO: Handle when user hangs up
+	if helperIndex >= len(closestHelpers):
+		return redirect('/callBackToCustomer/%s'%customerPhone)
+
+
 	# TODO: Handle if call is not picked up
-	# TODO: Handle when end of helper list is reached
-	payload = {"ivr": filePath+"/hjalte.mp3",
-				"1": BASE_URL+"/connectUsers", "2":BASE_URL+"/call"}
+	payload = {"ivr": filePath+"/hjalte.mp3", "timeout":"30", "whenhangup": BASE_URL+"/call/%s/%s/%s"%(str(helperIndex+1), customerCallId, customerPhone),
+				"1": BASE_URL+"/connectUsers", "2":BASE_URL+"/call/%s/%s/%s"%(str(helperIndex+1), customerCallId, customerPhone)}
 
 
-	print(closestHelpers[helperNumber])
+	print(closestHelpers[helperIndex])
 	print(elkNumber)
-	writeActiveCustomer(DATABASE, DATABASE_KEY, closestHelpers[helperNumber], from_sender)
+	writeActiveCustomer(DATABASE, DATABASE_KEY, closestHelpers[helperIndex], customerPhone)
+	print("Calling: ", closestHelpers[helperIndex])
 	fields = {
 		'from': elkNumber,
-		'to': closestHelpers[helperNumber],
+		'to': closestHelpers[helperIndex],
 		'voice_start': json.dumps(payload)}
 
-	helperNumber += 1
-	addCallHistoryToDB(DATABASE, DATABASE_KEY, callId, 'helper_number', helperNumber)
-	#callHistory[callId]['helperNumber'] = helperNumber
 	response = requests.post(
 		"https://api.46elks.com/a1/calls",
 		data=fields,
 		auth=auth
 		)
 
+	# print(json.loads(response.text))
+	# state = json.loads(response.text)["state"]
+	# print('state: ', state)
+	# result = request.form.get("result")
+	# print('result', result)
+
 	print(response.text)
+	return ""
+
+@app.route('/callBackToCustomer/<string:customerPhone>', methods = ['POST', 'GET'])
+def callBackToCustomer(customerPhone):
+
+	print('No one found')
+	auth = (API_USERNAME, API_PASSWORD)
+	payload = {"play": filePath+"/ingen_hittad.mp3"}
+
+	fields = {
+		'from': elkNumber,
+		'to': customerPhone,
+		'voice_start': json.dumps(payload)}
+
+	response = requests.post(
+		"https://api.46elks.com/a1/calls",
+		data=fields,
+		auth=auth)
+
 	return ""
 
 @app.route('/removeCustomer', methods = ['POST'])
 def removeCustomer():
-	# TODO: Remove active_helper from customer database
 	from_sender = request.form.get("from")
 	deleteFromDatabase(DATABASE, DATABASE_KEY, from_sender, 'customer')
 	return ""
@@ -246,8 +274,7 @@ def checkZipcode():
 	# TODO: Add sound if zipcode is invalid (n/a)
 	print('zipcode: ', zipcode)
 	saveCustomerToDatabase(DATABASE, DATABASE_KEY, phone, str(zipcode), district)
-	#callHistory[callId]['zipcode'] = zipcode
-	#generateCustomSoundByte(district, district+'.mp3', mediaFolder)
+
 	# TODO: add district file
 	payload = {"play": filePath+"/du_befinner.mp3",
 				"next": {"ivr": filePath+"/stammer_det.mp3",

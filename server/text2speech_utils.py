@@ -41,7 +41,12 @@ Sound bytes played to volunteer only
 '''
 text_input['hjalte'] = 'Hej! En användare av Telehelp behöver en hjälte. Vill du ta detta samtal? Tryck 1. Om inte tryck 2.'
 text_input['registrerad_volontar'] = 'Välkommen till Telehelp. Vi ser att du är registrerad som volontär. Vill du nå den person du hjälpte sist? Tryck 1. Vill du avregistrera dig från tjänsten? Tryck 2.'
-text_input['hjalper_ingen'] = 'Du hjälper för närvarande ingen i riskgruppen. Förhoppningsvis ringer vi upp dig snart, när någon ber om hjälp! Tack för din insats.'
+text_input['hjalper_ingen'] = 'Välkommen till Telehelp. Vi ser att du är registrerad som volontär. \
+                                Du hjälper för närvarande ingen i riskgruppen. Förhoppningsvis ringer vi upp dig snart, \
+                                när någon ber om hjälp! Tack för din insats. Vill du avregistrera dig från tjänsten? Tryck 1, \
+                                annars kan du lägga på nu.'
+text_input['ingen_hittad'] = 'Vi hittade tyvärr ingen ledig volontär i ditt område. Vänligen försök att ringa tillbaka senare. Hejdå'
+
 
 def generateSoundBytes():
     # Instantiates a client
