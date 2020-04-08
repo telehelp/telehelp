@@ -358,10 +358,9 @@ def register():
 		print(code)
 		## ==========
 
-		session[phone_number] = {"zipCode": validated['zipCode'], "name": validated['helperName'], "city": city, "timestamp": time.time_ns(), "code": code}
+		session[phone_number] = {"zipCode": validated['zipCode'], "name": validated['helperName'], 'city': city, 'timestamp': time.time_ns(), 'code': code}
 		return {'type': 'success'}
-	else:
-		return {'type': 'failure'}
+	return {'type': 'failure'}
 
 @app.route('/verify', methods=["POST"])
 def verify():
@@ -372,13 +371,15 @@ def verify():
 		code = validated['verificationCode']
 		if phone_number in session \
 			and time.time_ns() - session[phone_number]["timestamp"] < VERIFICATION_EXPIRY_TIME \
-			and code == session[phone_number]["code"]:
+			and code == session[phone_number]['code']:
 
-			name = session[phone_number]["name"]
-			zipcode = session[phone_number]["zipCode"]
-			city = session[phone_number]["city"]
+			sess = session[phone_number]
 
-			log.info(f"Saving helper to database {name}, {phone_number}, {zipcode}, {city}")
+			name = sess['name']
+			zipcode = sess['zipCode']
+			city = sess['city']
+
+			log.info(f'Saving helper to database {name}, {phone_number}, {zipcode}, {city}')
 			saveHelperToDatabase(DATABASE, DATABASE_KEY, name, phone_number, zipcode, city)
 			return {'type': 'success'}
 	return {'type': 'failure'}
