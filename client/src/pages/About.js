@@ -25,6 +25,12 @@ const About = () => {
             "responsibility": "Backend developer",
             "about": "Data engineer hos Sellpy",
             "email": "therese@telehelp.se"
+        },
+        {
+            "name": "Dennis Lioubartsev",
+            "responsibility": "Chief Creative Designer",
+            "about": "Civilingenjör i mekatronik",
+            "email": "dennis@telehelp.se"
         }
     ]
     return (
