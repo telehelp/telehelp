@@ -9,6 +9,12 @@ const About = () => {
             "email": "david@telehelp.se"
         },
         {
+            "name": "Daniel Eriksson",
+            "responsibility": "System administrator",
+            "about": "Elektroingenjör på SAAB",
+            "email": "daniel@telehelp.se"
+        },
+        {
             "name": "Johan Ehrenfors",
             "responsibility": "Backend developer",
             "about": "Konsult åt Ericsson hos Cybercom",
