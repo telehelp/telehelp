@@ -357,6 +357,17 @@ def register():
 		## ========== TODO SEND THIS BY SMS
 		code = ''.join(secrets.choice(string.digits) for _ in range(6))
 		print(code)
+		auth = (API_USERNAME, API_PASSWORD)
+		fields = {
+			'from': 'Telehelp',
+			'to' : phone_number,
+			'message' : code
+		}
+		requests.post(
+			'https://api.46elks.com/a1/sms',
+			auth = auth,
+			data = fields
+			)
 		## ==========
 
 		session[phone_number] = {"zipCode": validated['zipCode'], "name": validated['helperName'], 'city': city, 'timestamp': int(time.time()), 'code': code}
