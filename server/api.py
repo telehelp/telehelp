@@ -291,7 +291,7 @@ def checkZipcode():
 	callId = request.form.get("callid")
 	print('zipcode: ', zipcode)
 	print('callId: ', callId)
-	writeCallHistory(DATABASE, DATABASE_KEY, callId, 'zipcode', zipcode)
+	#writeCallHistory(DATABASE, DATABASE_KEY, callId, 'zipcode', zipcode)
 	print('Added to zipcode to call history database')
 
 	phone = request.form.get("from")
