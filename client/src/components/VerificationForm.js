@@ -52,7 +52,7 @@ function VerificationForm() {
      <h4>{message}</h4>
      <FormGroup>
       <Label for="Verifieringskod">Verifieringkod</Label>
-        <Input 
+        <Input
           name="verificationCode"
           id="verificationCode"
           placeholder="123456"
