@@ -1,4 +1,5 @@
 import os
+import random
 
 import pandas as pd
 from pysqlcipher3 import dbapi2 as sqlite3
@@ -113,6 +114,12 @@ def readActiveHelper(db, key, customerPhone):
     return res[0][0]
 
 
+def readNameByNumber(db, key, helperPhone):
+    query = """ SELECT name FROM user_helpers WHERE phone=? """
+    res = readDatabase(db, key, query, [helperPhone])
+    return res[0][0]
+
+
 def saveCustomerToDatabase(db, key, phone, zipcode, district):
     print("Writing phone and postcode to database")
     print("zipcode:", zipcode, "\nphone: ", phone)
@@ -131,7 +138,6 @@ def saveCustomerToDatabase(db, key, phone, zipcode, district):
 
 
 def userExists(db, key, phone, userType):
-
     if userType == "customer":
         query = """SELECT * FROM user_customers WHERE phone = ?"""
     elif userType == "helper":
@@ -188,6 +194,50 @@ def writeCallHistory(db, key, callid, columnName, data):
     writeToDatabase(db, key, query, params)
 
 
+"""
+Fetch a list of helpers based on a given district, and selecting the
+closest helpers (with some noise to randomize order within zipcodes).
+The output list is limited to maxDist km and maxQueue numbers.
+"""
+
+
+def fetchHelper(db, key, district, zipcode, location_dict):
+    query = """SELECT * FROM user_helpers where district=?"""
+    params = [district]
+    helperData = fetchData(db, key, query, params)
+    distances = []
+    phoneNumbers = []
+    if helperData.empty:
+        print("No helpers found in area")
+        return None
+    for i in range(len(helperData)):
+        phoneNumbers.append(helperData.loc[i, "phone"])
+        # In the case that multiple helpers live in the same postal code, add noise to randomize calling order
+        noisyDistance = (
+            getDistanceApart(zipcode, helperData.loc[i, "zipcode"], location_dict) + random.random()
+        )
+        distances.append(noisyDistance)
+    zipped = list(zip(phoneNumbers, distances))
+    zipped.sort(key=lambda t: t[1])
+
+    # Filter out numbers that are less than maxDist km from caller, and call up to maxQueue numbers
+    maxDist = 20.0
+    maxQueue = 10
+    sortedNumbersFinal = []
+    sortedDistancesFinal = []
+
+    for number, distance in zipped:
+        if distance <= maxDist:
+            sortedNumbersFinal.append(number)
+            sortedDistancesFinal.append(distance)
+
+    sortedDistancesFinal = sortedDistancesFinal[:maxQueue]
+    sortedNumbersFinal = sortedNumbersFinal[:maxQueue]
+    print(list(sortedDistancesFinal))
+    print(list(sortedNumbersFinal))
+    return list(sortedNumbersFinal)
+
+
 def readCallHistory(db, key, callid, columnName):
     if columnName == "hangup":
         query = """ SELECT hangup FROM call_history WHERE callid=? """
@@ -219,27 +269,6 @@ def createNewCallHistory(db, key, callid):
         query = """ INSERT INTO call_history (callid) values(?) """
         params = [callid]
         writeToDatabase(db, key, query, params)
-
-
-def fetchHelper(db, key, district, zipcode, location_dict):
-    # TODO: Filter by distance
-    query = """SELECT * FROM user_helpers where district=?"""
-    params = [district]
-    helperData = fetchData(db, key, query, params)
-    distances = []
-    phoneNumbers = []
-    if helperData.empty:
-        print("No helpers found in area")
-        return None
-    for i in range(len(helperData)):
-        phoneNumbers.append(helperData.loc[i, "phone"])
-        distances.append(getDistanceApart(zipcode, helperData.loc[i, "zipcode"], location_dict))
-    zipped = list(zip(phoneNumbers, distances))
-    zipped.sort(key=lambda t: t[1])
-    sortedNumbers, sortedDistances = zip(*zipped)
-    print(list(sortedDistances))
-    print(list(sortedNumbers))
-    return list(sortedNumbers)
 
 
 if __name__ == "__main__":

@@ -4,19 +4,35 @@ import geopy.distance
 def readZipCodeData(file_name):
     location_dictionary = {}
     district_dictionary = {}
+    city_dictionary = {}
 
+    with open(file_name, "r", encoding="utf-8") as file:
+        for line in file:
+            input = line.split("\t")
+            if len(input) > 10:
+                zipcode = input[1].replace(" ", "")
+                long = input[9]
+                lat = input[10]
+                longlat = (long, lat)  # as tuple
+                location_dictionary[int(zipcode)] = longlat
+                district_dictionary[int(zipcode)] = input[3]
+                city_dictionary[int(zipcode)] = input[2]
+
+    return location_dictionary, district_dictionary, city_dictionary
+
+
+# Input: path to zipcode file (e.g. SE.txt)
+# Output: list of all unique cities (postort)
+def getListOfCities(file_name):
+    cities = set()
     with open(file_name, "r", encoding="utf-8") as file:
         for line in file:
             input = line.split()
             if len(input) > 10:
-                zip = input[1] + input[2]
-                long = input[8]
-                lat = input[9]
-                longlat = (long, lat)  # as tuple
-                location_dictionary[int(zip)] = longlat
-                district_dictionary[int(zip)] = input[4]
-
-    return location_dictionary, district_dictionary
+                city = input[3]
+                if city not in cities:
+                    cities.add(city)
+    return cities
 
 
 # Input: coords1 and coords2 as tuples (lat,long)
@@ -33,9 +49,9 @@ def getDistanceApart(zip1, zip2, location_dict):
 
 # Input: zip code to look up
 # Output: zip code's district, swedish 'län'
-def getDistrict(zip, district_dict):
+def getDistrict(zipcode, district_dict):
     try:
-        district = district_dict[zip]
+        district = district_dict[zipcode]
     except KeyError:
         return "n/a"
     return district
@@ -43,10 +59,20 @@ def getDistrict(zip, district_dict):
 
 # Input: zip code to look up
 # Output: zip code's location, as latlong. (0, 0) returned if position is unknown
-def getLatLong(zip, location_dictionary):
+def getLatLong(zipcode, location_dictionary):
     try:
-        latlong = location_dictionary[int(zip)]
+        latlong = location_dictionary[int(zipcode)]
     except KeyError:
         return (0, 0)
-
     return latlong
+
+
+# Input: zip code to look up
+# Output: zip code's city, as string. "Okänd ort" returned if unknown zip
+# TODO: city_dictionary.get(int(zipcode), "Okänd ort") ska göra samma sak snyggare
+def getCity(zipcode, city_dictionary):
+    try:
+        city = city_dictionary[int(zipcode)]
+    except KeyError:
+        return "Okänd ort"
+    return city

@@ -4,10 +4,14 @@ Note: ssml must be well-formed according to:
     https://www.w3.org/TR/speech-synthesis/
 """
 import os
+import time
+import urllib.parse
 
 from dotenv import load_dotenv
 from google.cloud import texttospeech
 from google.oauth2 import service_account
+from zipcode_utils import getListOfCities
+from zipcode_utils import readZipCodeData
 
 load_dotenv()
 
@@ -90,24 +94,51 @@ client = texttospeech.TextToSpeechClient(credentials=cred)
 
 
 def generateSoundBytes():
+    print("Generating IVR sound bytes (skips existing)")
     for key in text_input:
-        # Set the text input to be synthesized
-        synthesis_input = texttospeech.types.SynthesisInput(text=text_input[key])
+        # The response's audio_content is binary.
+        outputPath = os.path.join("media", "ivr", key + ".mp3")
+        if not os.path.isfile(outputPath):
+            synthesis_input = texttospeech.types.SynthesisInput(text=text_input[key])
+            response = client.synthesize_speech(synthesis_input, voice, audio_config)
 
-        # Perform the text-to-speech request on the text input with the selected
-        # voice parameters and audio file type
+            with open(outputPath, "wb") as out:
+                # Write the response to the output file.
+                out.write(response.audio_content)
+                print('  Audio content written to file "' + outputPath + '" (relative to current dir).')
+
+            # Insert pause to not reach quota of calls per minute
+            time.sleep(0.2)
+
+
+# Generate sound bytes for all cities in SE.txt, without overwriting existing ones
+def generateCitySoundBytes():
+    print("Generating city sound bytes (skips existing)")
+    cities = getListOfCities("SE.txt")
+    for city in cities:
+        outputPath = os.path.join("media", "city", city + ".mp3")
+        if not os.path.isfile(outputPath):
+            synthesis_input = texttospeech.types.SynthesisInput(text=city)
+            response = client.synthesize_speech(synthesis_input, voice, audio_config)
+
+            with open(outputPath, "wb") as out:
+                out.write(response.audio_content)
+                print('  Audio content written to file "' + outputPath + '"')
+
+            # Insert pause to not reach quota of calls per minute
+            time.sleep(0.15)
+
+
+def generateNameSoundByte(name):
+    print("Generating name sound bytes (skips existing)")
+    outputPath = os.path.join("media", "name", name + ".mp3")
+    if not os.path.isfile(outputPath):
+        synthesis_input = texttospeech.types.SynthesisInput(text=name)
         response = client.synthesize_speech(synthesis_input, voice, audio_config)
 
-        # The response's audio_content is binary.
-        # with open('media/'+key+'.mp3', 'wb') as out:
-        with open(os.path.join(dirname, "media", key + ".mp3"), "wb") as out:
-            # Write the response to the output file.
+        with open(outputPath, "wb") as out:
             out.write(response.audio_content)
-            print(
-                'Audio content written to file "'
-                + os.path.join(dirname, "media", key + ".mp3")
-                + '" (relative to current dir).'
-            )
+            print('  Audio content written to file "' + outputPath + '"')
 
 
 def generateCustomSoundByte(text_string, filename, saveDir="/media"):
@@ -122,8 +153,9 @@ def generateCustomSoundByte(text_string, filename, saveDir="/media"):
     with open(os.path.join(saveDir, filename), "wb") as out:
         # Write the response to the output file.
         out.write(response.audio_content)
-        print("Audio content written to file %s" % os.path.join(saveDir, filename))
+        print("  Audio content written to file %s" % os.path.join(saveDir, filename))
 
 
 if __name__ == "__main__":
     generateSoundBytes()
+    generateCitySoundBytes()
