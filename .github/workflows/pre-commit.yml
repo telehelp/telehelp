@@ -8,9 +8,14 @@ on:
 jobs:
   pre-commit:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: 3.7
     steps:
     - uses: actions/checkout@v1
     - uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
     - name: set PY
       run: echo "::set-env name=PY::$(python -c 'import hashlib, sys;print(hashlib.sha256(sys.version.encode()+sys.executable.encode()).hexdigest())')"
     - uses: actions/cache@v1
