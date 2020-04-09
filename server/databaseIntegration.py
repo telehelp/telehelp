@@ -177,28 +177,21 @@ def fetchHelper(db, key, district, zipcode, location_dict):
 	print(list(sortedNumbers))
 	return list(sortedNumbers)
 
-def addCallHistoryToDB(db, key, callid, columnName, data):
+def writeCallHistory(db, key, callid, columnName, data):
 	print(data)
-	if columnName == 'zipcode':
-		query = ''' UPDATE call_history set zipcode=? where callid=? '''
-	elif columnName == 'helper_number':
-		query = ''' UPDATE call_history set helper_number=? where callid=? '''
+	if columnName == 'hangup':
+		query = ''' UPDATE call_history set hangup=? where callid=? '''
 	elif columnName == 'closest_helpers':
 		query = ''' UPDATE call_history set closest_helpers=? where callid=? '''
-	elif columnName == 'current_customer':
-		query = ''' UPDATE call_history set current_customer=? where callid=? '''
+
 	params = (data, callid)
 	writeToDatabase(db, key, query, params)
 
 def readCallHistory(db, key, callid, columnName):
-	if columnName == 'zipcode':
-		query = ''' SELECT zipcode FROM call_history WHERE callid=? '''
-	elif columnName == 'helper_number':
-		query = ''' SELECT helper_number FROM call_history WHERE callid=? '''
+	if columnName == 'hangup':
+		query = ''' SELECT hangup FROM call_history WHERE callid=? '''
 	elif columnName == 'closest_helpers':
 		query = ''' SELECT closest_helpers FROM call_history WHERE callid=? '''
-	elif columnName == 'current_customer':
-		query = ''' SELECT current_customer FROM call_history WHERE callid=? '''
 	params = [callid]
 	res = readDatabase(db, key, query, params)
 	print('result readCallHistory: ', res)

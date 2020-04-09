@@ -151,6 +151,7 @@ def handleReturningCustomer():
 		return json.dumps(payload)
 
 	if number == 2:
+
 		payload = {"play": MEDIA_URL+"/vi_letar.mp3", "skippable":"true", "next": BASE_URL+"/postcodeInput"}
 		return json.dumps(payload)
 
@@ -177,75 +178,73 @@ def callExistingHelper():
 def postcodeInput():
 	callId = request.form.get("callid")
 	phone = request.form.get("from")
-	# TODO: Add sound if zipcode is invalid (n/a)
 	zipcode = readZipcodeFromDatabase(DATABASE, DATABASE_KEY, phone, 'customer')
+	# TODO: Add sound if zipcode is invalid (n/a)
 	district = getDistrict(int(zipcode), district_dict)
 	print('zipcode: ', zipcode)
 
 	closestHelpers = fetchHelper(DATABASE, DATABASE_KEY, district, zipcode, location_dict)
-	addCallHistoryToDB(DATABASE, DATABASE_KEY, callId, 'closest_helpers', json.dumps(closestHelpers))
-	addCallHistoryToDB(DATABASE, DATABASE_KEY, callId, 'current_customer', phone)
-
+	writeCallHistory(DATABASE, DATABASE_KEY, callId, 'closest_helpers', json.dumps(closestHelpers))
 
 	if closestHelpers is None:
-		# TODO: Fix this sound clip
-
 		payload = {"play": MEDIA_URL+"/finns_ingen.mp3"}
 		return json.dumps(payload)
 	else:
-
+		writeCallHistory(DATABASE, DATABASE_KEY, callId, 'hangup', 'False')
 		payload = {"play": MEDIA_URL+"/ringer_tillbaka.mp3", "skippable":"true", 
 						"next": BASE_URL+"/call/0/%s/%s"%(callId, phone)}
-		helperNumber = 0
-		addCallHistoryToDB(DATABASE, DATABASE_KEY, callId, 'helper_number', helperNumber)
 		return json.dumps(payload)
 
 
 @app.route('/call/<int:helperIndex>/<string:customerCallId>/<string:customerPhone>', methods = ['POST'])
 def call(helperIndex, customerCallId, customerPhone):
-	print('helperIndex:', helperIndex)
-	callId = request.form.get("callid")
+	stopCalling = readCallHistory(DATABASE, DATABASE_KEY, customerCallId, 'hangup')
+	if stopCalling == 'True':
+		return ""
+	else:
+		print('helperIndex:', helperIndex)
+		callId = request.form.get("callid")
 
-	print('Customer callId: ', customerCallId)
+		print('Customer callId: ', customerCallId)
+
+		closestHelpers = json.loads(readCallHistory(DATABASE, DATABASE_KEY, customerCallId, 'closest_helpers'))
+		print('closest helpers: ', closestHelpers)
+
+		auth = (API_USERNAME, API_PASSWORD)
+
+		if helperIndex >= len(closestHelpers):
+			writeCallHistory(DATABASE, DATABASE_KEY, customerCallId, 'hangup', 'True')
+			return redirect('/callBackToCustomer/%s'%customerPhone)
 
 
-	closestHelpers = json.loads(readCallHistory(DATABASE, DATABASE_KEY, customerCallId, 'closest_helpers'))
-	print('closest helpers: ', closestHelpers)
-
-	auth = (API_USERNAME, API_PASSWORD)
-
-	if helperIndex >= len(closestHelpers):
-		return redirect('/callBackToCustomer/%s'%customerPhone)
+		# TODO: Handle if call is not picked up
+		payload = {"ivr": MEDIA_URL+"/hjalte.mp3", "timeout":"30", "whenhangup": BASE_URL+"/call/%s/%s/%s"%(str(helperIndex+1), customerCallId, customerPhone),
+					"1": BASE_URL+"/connectUsers/%s/%s"%(customerPhone, customerCallId), "2":BASE_URL+"/call/%s/%s/%s"%(str(helperIndex+1), customerCallId, customerPhone)}
 
 
-	# TODO: Handle if call is not picked up
-	payload = {"ivr": MEDIA_URL+"/hjalte.mp3", "timeout":"30", "whenhangup": BASE_URL+"/call/%s/%s/%s"%(str(helperIndex+1), customerCallId, customerPhone),
-				"1": BASE_URL+"/connectUsers", "2":BASE_URL+"/call/%s/%s/%s"%(str(helperIndex+1), customerCallId, customerPhone)}
+		print(closestHelpers[helperIndex])
+		print(ELK_NUMBER)
+		
+		print("Calling: ", closestHelpers[helperIndex])
+		fields = {
+			'from': ELK_NUMBER,
+			'to': closestHelpers[helperIndex],
+			'voice_start': json.dumps(payload)}
 
+		response = requests.post(
+			"https://api.46elks.com/a1/calls",
+			data=fields,
+			auth=auth
+			)
 
-	print(closestHelpers[helperIndex])
-	print(ELK_NUMBER)
-	writeActiveCustomer(DATABASE, DATABASE_KEY, closestHelpers[helperIndex], customerPhone)
-	print("Calling: ", closestHelpers[helperIndex])
-	fields = {
-		'from': ELK_NUMBER,
-		'to': closestHelpers[helperIndex],
-		'voice_start': json.dumps(payload)}
+		# print(json.loads(response.text))
+		# state = json.loads(response.text)["state"]
+		# print('state: ', state)
+		# result = request.form.get("result")
+		# print('result', result)
 
-	response = requests.post(
-		"https://api.46elks.com/a1/calls",
-		data=fields,
-		auth=auth
-		)
-
-	# print(json.loads(response.text))
-	# state = json.loads(response.text)["state"]
-	# print('state: ', state)
-	# result = request.form.get("result")
-	# print('result', result)
-
-	print(response.text)
-	return ""
+		print(response.text)
+		return ""
 
 @app.route('/callBackToCustomer/<string:customerPhone>', methods = ['POST', 'GET'])
 def callBackToCustomer(customerPhone):
@@ -263,8 +262,6 @@ def callBackToCustomer(customerPhone):
 		"https://api.46elks.com/a1/calls",
 		data=fields,
 		auth=auth)
-
-
 	return ""
 
 @app.route('/removeCustomer', methods = ['POST'])
@@ -294,7 +291,7 @@ def checkZipcode():
 	callId = request.form.get("callid")
 	print('zipcode: ', zipcode)
 	print('callId: ', callId)
-	addCallHistoryToDB(DATABASE, DATABASE_KEY, callId, 'zipcode', zipcode)
+	writeCallHistory(DATABASE, DATABASE_KEY, callId, 'zipcode', zipcode)
 	print('Added to zipcode to call history database')
 
 	phone = request.form.get("from")
@@ -315,16 +312,18 @@ def checkZipcode():
 
 	return json.dumps(payload)
 
-@app.route('/connectUsers', methods = ['POST'])
-def connectUsers():
+@app.route('/connectUsers/<string:customerPhone>/<string:customerCallId>', methods = ['POST'])
+def connectUsers(customerPhone, customerCallId):
 
 	helperPhone = request.form.get("to")
 	print('helper: ', helperPhone)
 	callId = request.form.get("callid")
-	customerPhone = readActiveCustomer(DATABASE, DATABASE_KEY, helperPhone)
 
 	print('Saving customer -> helper connection to database')
+	# TODO: check current active customer/helper and move to previous
+	writeActiveCustomer(DATABASE, DATABASE_KEY, helperPhone, customerPhone)
 	writeActiveHelper(DATABASE, DATABASE_KEY, customerPhone, helperPhone)
+	writeCallHistory(DATABASE, DATABASE_KEY, customerCallId, 'hangup', 'True')
 	print('Connecting users')
 
 	print('customer:', customerPhone)
