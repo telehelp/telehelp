@@ -1,5 +1,4 @@
 import time
-
 from flask import Flask, request, session, redirect
 from flask_session import Session
 import requests
@@ -48,7 +47,7 @@ VERIFICATION_EXPIRY_TIME = 5 * 60  # 5 minutes
 
 location_dict, district_dict = readZipCodeData(ZIPDATA)
 
-print("Site phone numbr: " + ELK_NUMBER)
+print("Site phone number: " + ELK_NUMBER)
 
 def canonicalize_number(phone_number):
 	if phone_number[0] == '0':
