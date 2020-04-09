@@ -108,6 +108,15 @@ def hangup():
 	print('hangup')
 	return ""
 
+@app.route('/testredirect', methods = ['POST', 'GET'])
+def testredirect():
+	print('Redirect works')
+	return 'Redirect works'
+
+@app.route('/testendpoint', methods = ['GET'])
+def testendpoint():
+	return redirect('/testredirect')
+
 @app.route('/handleReturningHelper', methods = ['POST'])
 def handleReturningHelper():
 	print(request.form.get("result"))
