@@ -1,5 +1,5 @@
 import time
-from flask import Flask, request, session, redirect
+from flask import Flask, request, session, redirect, url_for
 from flask_session import Session
 import requests
 import os
@@ -115,7 +115,7 @@ def testredirect():
 
 @app.route('/testendpoint', methods = ['GET'])
 def testendpoint():
-	return redirect('/testredirect')
+	return redirect(url_for('testredirect'))
 
 @app.route('/handleReturningHelper', methods = ['POST'])
 def handleReturningHelper():
@@ -223,7 +223,7 @@ def call(helperIndex, customerCallId, customerPhone):
 
 		if helperIndex >= len(closestHelpers):
 			writeCallHistory(DATABASE, DATABASE_KEY, customerCallId, 'hangup', 'True')
-			return redirect('/callBackToCustomer/%s'%customerPhone)
+			return redirect(url_for('callBackToCustomer/%s'%customerPhone))
 
 
 		# TODO: Handle if call is not picked up
