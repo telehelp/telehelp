@@ -354,9 +354,7 @@ def register():
 		if userExists(DATABASE, DATABASE_KEY, phone_number, 'helper'):
 			return {'type': 'failure', 'message': 'User already exists'}
 		
-		## ========== TODO SEND THIS BY SMS
 		code = ''.join(secrets.choice(string.digits) for _ in range(6))
-		print(code)
 		auth = (API_USERNAME, API_PASSWORD)
 		fields = {
 			'from': 'Telehelp',
@@ -368,7 +366,6 @@ def register():
 			auth = auth,
 			data = fields
 			)
-		## ==========
 
 		session[phone_number] = {"zipCode": validated['zipCode'], "name": validated['helperName'], 'city': city, 'timestamp': int(time.time()), 'code': code}
 		return {'type': 'success'}
