@@ -96,7 +96,6 @@ def receiveCall():
     createNewCallHistory(DATABASE, DATABASE_KEY, callId)
     from_sender = request.form.get("from")
     print(from_sender)
-    auth = (API_USERNAME, API_PASSWORD)
 
     # For registered helpers
     if userExists(DATABASE, DATABASE_KEY, from_sender, "helper"):
@@ -155,9 +154,6 @@ def handleReturningHelper():
     print(request.form.get("result"))
     number = int(request.form.get("result"))
     if number == 1:
-        helperPhone = request.form.get("from")
-        activeCustomer = readActiveCustomer(DATABASE, DATABASE_KEY, helperPhone)
-
         payload = {
             "ivr": MEDIA_URL + "/du_kopplas.mp3",
             "skippable": "true",
@@ -262,7 +258,6 @@ def postcodeInput():
 )
 def call(helperIndex, customerCallId, customerPhone):
     print("helperIndex:", helperIndex)
-    callId = request.form.get("callid")
 
     print("Customer callId: ", customerCallId)
 
@@ -318,7 +313,7 @@ def callBackToCustomer(customerPhone):
         "voice_start": json.dumps(payload),
     }
 
-    response = requests.post("https://api.46elks.com/a1/calls", data=fields, auth=auth)
+    requests.post("https://api.46elks.com/a1/calls", data=fields, auth=auth)
 
     return ""
 
@@ -356,7 +351,6 @@ def checkZipcode():
     print("Added to zipcode to call history database")
 
     phone = request.form.get("from")
-    currentCustomer = phone
     district = getDistrict(int(zipcode), district_dict)
     # TODO: Add sound if zipcode is invalid (n/a)
     print("zipcode: ", zipcode)
@@ -384,7 +378,6 @@ def connectUsers():
 
     helperPhone = request.form.get("to")
     print("helper: ", helperPhone)
-    callId = request.form.get("callid")
     customerPhone = readActiveCustomer(DATABASE, DATABASE_KEY, helperPhone)
 
     print("Saving customer -> helper connection to database")
