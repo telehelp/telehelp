@@ -201,7 +201,7 @@ def readCallHistory(db, key, callid, columnName):
 	# print(result)
 	return res[0][0]
 
-def callExists(db, key, callid)
+def callExists(db, key, callid):
 	selectQuery = ''' SELECT * FROM call_history WHERE callid=?'''
 	params = [callid]
 	ans = readDatabase(db, key, query, params)
