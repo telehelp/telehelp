@@ -4,6 +4,7 @@ import MapView from '../components/MapView';
 import ThanksTo from '../components/ThanksTo'
 import MainForm from '../components/MainForm';
 import BackgroundInfo from '../components/BackgroundInfo';
+import NumberPresentation from '../components/NumberPresentation';
 
 
 function Home() {
@@ -14,6 +15,7 @@ function Home() {
                 <BackgroundInfo/>
             </div>
             <div className="col-md-4">
+                <NumberPresentation/>
                 <MainForm/>
             </div>
             </div>

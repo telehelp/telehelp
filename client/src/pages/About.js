@@ -36,7 +36,7 @@ const About = () => {
     return (
         <div>
             {people.map((e, i) => {
-                return <div key={i}>
+                return <div key={i} className="about-entry">
                         <h3>{e.name}</h3>
                         <h4>{e.responsibility}</h4>
                         <p>{e.about}</p>
