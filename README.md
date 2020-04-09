@@ -86,6 +86,16 @@ git push production master
 ```
 Your changes should now be deployed on the server.
 
+## Database
+Write this in order to read the database
+```
+sqlcipher database.db
+```
+Then type in your key
+```
+PRAGMA key="x'your_secret_32B_hex_key'"
+```
+
 
 ## Quick Git Guide
 
