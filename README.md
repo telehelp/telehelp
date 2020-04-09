@@ -15,7 +15,7 @@ There are two parts to the project
  - Client &mdash; handles the user interface
 
 ### Dependencies
-The following libs needs to be installed
+The following libs needs to be installed for sqlcipher support.
 ```
 sqlcipher libsqlcipher-dev libpython3.6-dev libsqlite3-dev
 ```
@@ -46,7 +46,15 @@ The project relies on the following APIs:
 ### Server
 
 The server is written in Python (`3.7.5`) and can be installed (from the root directory) with
-## Environmental Varialbles
+```
+cd server && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt
+```
+
+If(when) you install new dependencies, add them with `pip freeze > requirements.txt` and make sure you are running in a virtual environment, otherwise **all** of your installed packages will be added to the release. If anything is missing the deployment will fail.
+
+To run the api simply navigate to the `server` folder and do `flask run`, the server will be available on port 5000 by default.
+
+### Environmental Varialbles
 In order for the server to operate as intended you need to set a few environmental variables before you start. It is recommended to put these in a .env file that Flask can read automatically.
 ```bash
 #.env
@@ -58,13 +66,6 @@ DATABASE=test.db
 BASE_URL=https://mysite.org
 SECRET_KEY=your_secret_key #can be generated with for example: secrets::token_urlsafe
 ```
-
-```
-cd server && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt
-```
-If(when) you install new dependencies, add them with `pip freeze > requirements.txt` and make sure you are running in a virtual environment, otherwise **all** of your installed packages will be added to the release. If anything is missing the deployment will fail.
-
-To run the api simply navigate to the `server` folder and do `flask run`, the server will be available on port 5000 by default.
 
 ### Client
 To be determined, but I think that [create-react-app](https://github.com/facebook/create-react-app) is worth considering.
