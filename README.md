@@ -1,5 +1,5 @@
 # Telehelp - Bridge the Digital Divide
-
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 Call a volunteer nearby if you need help with buying your groceries, or anything else, if you belong to an at-risk group during the coronavirus pandemic.
 
 ## Features
