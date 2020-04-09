@@ -44,8 +44,7 @@ MEDIA_URL = 'https://files.telehelp.se/new'
 
 VERIFICATION_EXPIRY_TIME = 5 * 60  # 5 minutes
 
-
-location_dict, district_dict = readZipCodeData(ZIPDATA)
+location_dict, district_dict, city_dict = readZipCodeData(ZIPDATA)
 
 print("Site phone number: " + ELK_NUMBER)
 
@@ -80,10 +79,10 @@ def receiveCall():
 		activeCustomer = readActiveCustomer(DATABASE, DATABASE_KEY, from_sender)
 		print(activeCustomer)
 		if activeCustomer is None:
-			payload = {"ivr": MEDIA_URL+"/hjalper_ingen.mp3", "skippable":"true", "digits": 1,
-			"1":{"play": MEDIA_URL+"/avreg_confirmed.mp3", "next": BASE_URL+"/removeHelper"}}
+			payload = {"ivr": MEDIA_URL+"/ivr/hjalper_ingen.mp3", "skippable":"true", "digits": 1,
+			"1":{"play": MEDIA_URL+"/ivr/avreg_confirmed.mp3", "next": BASE_URL+"/removeHelper"}}
 		else:
-			payload = {"ivr":MEDIA_URL+"/registrerad_volontar.mp3", "digits": 1, 
+			payload = {"ivr":MEDIA_URL+"/ivr/registrerad_volontar.mp3", "digits": 1,
 						"next":BASE_URL+"/handleReturningHelper"}
 		return json.dumps(payload)
 
@@ -91,13 +90,13 @@ def receiveCall():
 	elif userExists(DATABASE, DATABASE_KEY, from_sender, 'customer'):
 		print("Registered customer")
 		#TODO: Add name.mp3 from generated file
-		payload = {"play":MEDIA_URL+"/behover_hjalp.mp3", 
-			   "next":{"ivr":MEDIA_URL+"/pratade_sist.mp3", 
+		payload = {"play":MEDIA_URL+"/ivr/behover_hjalp.mp3",
+			   "next":{"ivr":MEDIA_URL+"/ivr/pratade_sist.mp3",
 			   "digits": 1,"next":BASE_URL+"/handleReturningCustomer"} }
 		return json.dumps(payload)
 
 	# New customer
-	payload = {"ivr": MEDIA_URL+"/info.mp3", "skippable":"true", 
+	payload = {"ivr": MEDIA_URL+"/ivr/info.mp3", "skippable":"true",
 				"digits": 1, "2":BASE_URL+"/receiveCall", "next": BASE_URL+"/handleNumberInput"}
 	return json.dumps(payload)
 
@@ -116,12 +115,12 @@ def handleReturningHelper():
 		helperPhone = request.form.get("from")
 		activeCustomer = readActiveCustomer(DATABASE, DATABASE_KEY, helperPhone)
 
-		payload = {"ivr": MEDIA_URL+"/du_kopplas.mp3", "skippable":"true",
+		payload = {"ivr": MEDIA_URL+"/ivr/du_kopplas.mp3", "skippable":"true",
 					"next":BASE_URL+"/callExistingCustomer"}
 		return json.dumps(payload)
-	
+
 	elif number == 2:
-		payload = {"play": MEDIA_URL+"/avreg_confirmed.mp3", "next": BASE_URL+"/removeHelper"}
+		payload = {"play": MEDIA_URL+"/ivr/avreg_confirmed.mp3", "next": BASE_URL+"/removeHelper"}
 		return json.dumps(payload)
 
 
@@ -147,16 +146,16 @@ def handleReturningCustomer():
 	number = int(request.form.get("result"))
 	if number == 1:
 
-		payload = {"play": MEDIA_URL+"/du_kopplas.mp3", "skippable":"true", "next": BASE_URL+"/callExistingHelper"}
+		payload = {"play": MEDIA_URL+"/ivr/du_kopplas.mp3", "skippable":"true", "next": BASE_URL+"/callExistingHelper"}
 		return json.dumps(payload)
 
 	if number == 2:
-		payload = {"play": MEDIA_URL+"/vi_letar.mp3", "skippable":"true", "next": BASE_URL+"/postcodeInput"}
+		payload = {"play": MEDIA_URL+"/ivr/vi_letar.mp3", "skippable":"true", "next": BASE_URL+"/postcodeInput"}
 		return json.dumps(payload)
 
 
 	if number == 3:
-		payload = {"play": MEDIA_URL+"/avreg_confirmed.mp3", "next": BASE_URL+"/removeCustomer"}
+		payload = {"play": MEDIA_URL+"/ivr/avreg_confirmed.mp3", "next": BASE_URL+"/removeCustomer"}
 		return json.dumps(payload)
 
 	return ""
@@ -190,11 +189,11 @@ def postcodeInput():
 	if closestHelpers is None:
 		# TODO: Fix this sound clip
 
-		payload = {"play": MEDIA_URL+"/finns_ingen.mp3"}
+		payload = {"play": MEDIA_URL+"/ivr/finns_ingen.mp3"}
 		return json.dumps(payload)
 	else:
 
-		payload = {"play": MEDIA_URL+"/ringer_tillbaka.mp3", "skippable":"true", 
+		payload = {"play": MEDIA_URL+"/ivr/ringer_tillbaka.mp3", "skippable":"true",
 						"next": BASE_URL+"/call/0/%s/%s"%(callId, phone)}
 		helperNumber = 0
 		addCallHistoryToDB(DATABASE, DATABASE_KEY, callId, 'helper_number', helperNumber)
@@ -219,7 +218,7 @@ def call(helperIndex, customerCallId, customerPhone):
 
 
 	# TODO: Handle if call is not picked up
-	payload = {"ivr": MEDIA_URL+"/hjalte.mp3", "timeout":"30", "whenhangup": BASE_URL+"/call/%s/%s/%s"%(str(helperIndex+1), customerCallId, customerPhone),
+	payload = {"ivr": MEDIA_URL+"ivr/hjalte.mp3", "timeout":"30", "whenhangup": BASE_URL+"/call/%s/%s/%s"%(str(helperIndex+1), customerCallId, customerPhone),
 				"1": BASE_URL+"/connectUsers", "2":BASE_URL+"/call/%s/%s/%s"%(str(helperIndex+1), customerCallId, customerPhone)}
 
 
@@ -252,7 +251,7 @@ def callBackToCustomer(customerPhone):
 
 	print('No one found')
 	auth = (API_USERNAME, API_PASSWORD)
-	payload = {"play": MEDIA_URL+"/ingen_hittad.mp3"}
+	payload = {"play": MEDIA_URL+"/ivr/ingen_hittad.mp3"}
 
 	fields = {
 		'from': ELK_NUMBER,
@@ -281,8 +280,8 @@ def handleNumberInput():
 	if number == 1:
 		print('Write your zipcode')
 
-		payload = {"play": MEDIA_URL+"/post_nr.mp3", 
-					"next": {"ivr": MEDIA_URL+"/bep.mp3", "digits": 5, 
+		payload = {"play": MEDIA_URL+"/ivr/post_nr.mp3",
+					"next": {"ivr": MEDIA_URL+"/ivr/bep.mp3", "digits": 5,
 					"next": BASE_URL+"/checkZipcode"}}
 
 		return json.dumps(payload)
@@ -300,17 +299,17 @@ def checkZipcode():
 	phone = request.form.get("from")
 	currentCustomer = phone
 	district = getDistrict(int(zipcode), district_dict)
-	# TODO: Add sound if zipcode is invalid (n/a)
+	citySoundByte = getCity(int(zipcode), city_dict).replace(' ', '_')
+
 	print('zipcode: ', zipcode)
 	saveCustomerToDatabase(DATABASE, DATABASE_KEY, phone, str(zipcode), district)
 
-
-	# TODO: add district file
-	payload = {"play": MEDIA_URL+"/du_befinner.mp3",
-				"next": {"ivr": MEDIA_URL+"/stammer_det.mp3",
-				"1": BASE_URL+'/postcodeInput', 
-				"2": {"play": MEDIA_URL+"/post_nr.mp3", "skippable":"true", 
-					"next": {"ivr": MEDIA_URL+"/bep.mp3", "digits": 5, 
+	payload = {"play": MEDIA_URL+"/ivr/du_befinner.mp3",
+				"play": MEDIA_URL+"city/"+city+".mp3",
+				"next": {"ivr": MEDIA_URL+"/ivr/stammer_det.mp3",
+				"1": BASE_URL+'/postcodeInput',
+				"2": {"play": MEDIA_URL+"/ivr/post_nr.mp3", "skippable":"true",
+					"next": {"ivr": MEDIA_URL+"/ivr/bep.mp3", "digits": 5,
 					"next": BASE_URL+"/checkZipcode"} }}}
 
 	return json.dumps(payload)
@@ -353,7 +352,7 @@ def register():
 			return {'type': 'failure', 'message': 'Invalid zip'}
 		if userExists(DATABASE, DATABASE_KEY, phone_number, 'helper'):
 			return {'type': 'failure', 'message': 'User already exists'}
-		
+
 		code = ''.join(secrets.choice(string.digits) for _ in range(6))
 		auth = (API_USERNAME, API_PASSWORD)
 		fields = {
@@ -408,4 +407,3 @@ def getVolunteerLocations():
 		latlongs.append(getLatLong(zip[0], location_dict))
 
 	return {'coordinates' : latlongs }
-

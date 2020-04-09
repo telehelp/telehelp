@@ -2,6 +2,7 @@ from pysqlcipher3 import dbapi2 as sqlite3
 import pandas as pd
 from .zipcode_utils import *
 import os
+import random
 
 def create_connection(db_file, key):
 	""" create a database connection to the SQLite database
@@ -39,7 +40,7 @@ def writeToDatabase(db, key, query, params):
 	return 'Success'
 	# except Exception as err:
 	# 	print(err)
-	# 	return 'Failure'  
+	# 	return 'Failure'
 
 def readDatabase(db, key, query, params):
 	#try:
@@ -50,7 +51,7 @@ def readDatabase(db, key, query, params):
 	return res
 	# except Exception as err:
 	# 	print(Exception, err)
-	# 	return 'Failure'  
+	# 	return 'Failure'
 
 def readZipcodeFromDatabase(db, key, phone, userType):
 	if userType == 'customer':
@@ -66,8 +67,8 @@ def saveHelperToDatabase(db, key, name, phone, zipcode, district):
 	print("Writing phone and postcode to database")
 	print('\nname: ', name, '\nzipcode:', zipcode, '\nphone: ', phone, '\ndistrict:', district)
 
-	query = ''' INSERT INTO user_helpers (phone, name, zipcode, district) 
-									values(?, ?, ?, ?) '''		
+	query = ''' INSERT INTO user_helpers (phone, name, zipcode, district)
+									values(?, ?, ?, ?) '''
 	params = (phone, name, zipcode, district)
 	flag = writeToDatabase(db, key, query, params)
 	print(flag)
@@ -105,8 +106,8 @@ def saveCustomerToDatabase(db, key, phone, zipcode, district):
 		query = ''' UPDATE user_customers set district=? where phone=? '''
 		params = (district, phone)
 	else:
-		query = ''' INSERT INTO user_customers (phone, zipcode, district) 
-											values(?, ?, ?) '''		
+		query = ''' INSERT INTO user_customers (phone, zipcode, district)
+											values(?, ?, ?) '''
 		params = (phone, zipcode, district)
 	flag = writeToDatabase(db, key, query, params)
 
@@ -114,7 +115,7 @@ def saveCustomerToDatabase(db, key, phone, zipcode, district):
 	return flag
 
 def userExists(db, key, phone, userType):
-	
+
 	if userType == 'customer':
 		query = '''SELECT * FROM user_customers WHERE phone = ?'''
 	elif userType == 'helper':
@@ -130,8 +131,8 @@ def userExists(db, key, phone, userType):
 		return False
 	else:
 		return True
-	return 
-	
+	return
+
 def deleteFromDatabase(db, key, phone, userType):
 	if userType == 'customer':
 		userQuery = '''DELETE FROM user_customers WHERE phone = ?'''
@@ -149,19 +150,22 @@ def deleteFromDatabase(db, key, phone, userType):
 	return flag1, flag2
 
 def getHelpers(db, key):
-	query = "SELECT * FROM user_helpers" 
+	query = "SELECT * FROM user_helpers"
 	return fetchData(db, key, query)
 
 def getCustomers(db, key):
-	query = "SELECT * FROM user_customers"   
+	query = "SELECT * FROM user_customers"
 	return fetchData(db, key, query)
 
+'''
+Fetch a list of helpers based on a given district, and selecting the
+closest helpers (with some noise to randomize order within zipcodes).
+The output list is limited to maxDist km and maxQueue numbers.
+'''
 def fetchHelper(db, key, district, zipcode, location_dict):
-	# TODO: Filter by distance
 	query = '''SELECT * FROM user_helpers where district=?'''
 	params = [district]
 	helperData = fetchData(db, key, query, params)
-	minDist = None
 	distances = []
 	phoneNumbers = []
 	if helperData.empty:
@@ -169,13 +173,28 @@ def fetchHelper(db, key, district, zipcode, location_dict):
 		return None
 	for i in range(len(helperData)):
 		phoneNumbers.append(helperData.loc[i, 'phone'])
-		distances.append(getDistanceApart(zipcode, helperData.loc[i, 'zipcode'], location_dict))
+		# In the case that multiple helpers live in the same postal code, add noise to randomize calling order
+		noisyDistance = getDistanceApart(zipcode, helperData.loc[i, 'zipcode'], location_dict)+random.random()
+		distances.append(noisyDistance)
 	zipped = list(zip(phoneNumbers, distances))
 	zipped.sort(key = lambda t: t[1])
-	sortedNumbers, sortedDistances = zip(*zipped)
-	print(list(sortedDistances))
-	print(list(sortedNumbers))
-	return list(sortedNumbers)
+
+	# Filter out numbers that are less than maxDist km from caller, and call up to maxQueue numbers
+	maxDist = 20.0
+	maxQueue = 10
+	sortedNumbersFinal = []
+	sortedDistancesFinal = []
+
+	for number, distance in zipped:
+		if distance <= maxDist:
+			sortedNumbersFinal.append(number)
+			sortedDistancesFinal.append(distance)
+
+	sortedDistancesFinal = sortedDistancesFinal[:maxQueue]
+	sortedNumbersFinal = sortedNumbersFinal[:maxQueue]
+	print(list(sortedDistancesFinal))
+	print(list(sortedNumbersFinal))
+	return list(sortedNumbersFinal)
 
 def addCallHistoryToDB(db, key, callid, columnName, data):
 	print(data)
@@ -208,7 +227,7 @@ def readCallHistory(db, key, callid, columnName):
 	return res[0][0]
 
 def createNewCallHistory(db, key, callid):
-	query = ''' INSERT INTO call_history (callid) values(?) '''	
+	query = ''' INSERT INTO call_history (callid) values(?) '''
 	params = [callid]
 	writeToDatabase(db, key, query, params)
 
