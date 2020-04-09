@@ -201,10 +201,22 @@ def readCallHistory(db, key, callid, columnName):
 	# print(result)
 	return res[0][0]
 
-def createNewCallHistory(db, key, callid):
-	query = ''' INSERT INTO call_history (callid) values(?) '''	
+def callExists(db, key, callid)
+	selectQuery = ''' SELECT * FROM call_history WHERE callid=?'''
 	params = [callid]
-	writeToDatabase(db, key, query, params)
+	ans = readDatabase(db, key, query, params)
+	print(ans)
+	if ans == []:
+		return False
+	else:
+		return True
+	return 
+
+def createNewCallHistory(db, key, callid):
+	if not callExists(db, key, callid):
+		query = ''' INSERT INTO call_history (callid) values(?) '''	
+		params = [callid]
+		writeToDatabase(db, key, query, params)
 
 if __name__ == '__main__':
 	DATABASE_KEY = os.environ.get('DATABASE_KEY')
