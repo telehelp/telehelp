@@ -30,7 +30,6 @@ repos:
         name: snaketests
         entry: python -m unittest discover
         language: python
-        #args: ["-s 'tests'"]
         types: [python]
         pass_filenames: false
         stages: [commit]
@@ -38,3 +37,11 @@ repos:
     rev: "61ca50df6787386ac981866005e4cfed6ce5e79c"
     hooks:
       - id: prettier
+  - repo: local
+    hooks:
+      - id: jests
+        name: reacttests
+        entry: yarn --cwd client ci-test
+        #args: ["--watchAll=false --passWithNoTests"]
+        language: node
+        stages: [commit]
