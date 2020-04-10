@@ -424,7 +424,7 @@ def checkZipcode():
             "play": MEDIA_URL + "/city/" + cityEncoded + ".mp3",
             "next": {
                 "ivr": MEDIA_URL + "/ivr/stammer_det.mp3",
-                "1": BASE_URL + "/postcodeInput",
+                "1": BASE_URL + f"/postcodeInput/{zipcode}",
                 "2": {
                     "play": MEDIA_URL + "/ivr/post_nr.mp3",
                     "skippable": "true",
