@@ -15,7 +15,6 @@ from flask import request
 from flask import session
 from flask import url_for
 from flask_session import Session
-from varname import varname
 
 from .databaseIntegration import createNewCallHistory
 from .databaseIntegration import deleteFromDatabase
