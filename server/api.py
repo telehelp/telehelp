@@ -7,26 +7,13 @@ import time
 
 import pandas as pd
 import requests
-from flask import Flask
+from flask import Flask, request, session, redirect, url_for
 from flask import redirect
 from flask import request
 from flask import session
 from flask_session import Session
 
-from .databaseIntegration import addCallHistoryToDB
-from .databaseIntegration import createNewCallHistory
-from .databaseIntegration import deleteFromDatabase
-from .databaseIntegration import fetchData
-from .databaseIntegration import fetchHelper
-from .databaseIntegration import readActiveCustomer
-from .databaseIntegration import readActiveHelper
-from .databaseIntegration import readCallHistory
-from .databaseIntegration import readZipcodeFromDatabase
-from .databaseIntegration import saveCustomerToDatabase
-from .databaseIntegration import saveHelperToDatabase
-from .databaseIntegration import userExists
-from .databaseIntegration import writeActiveCustomer
-from .databaseIntegration import writeActiveHelper
+from .databaseIntegration import *
 from .middlewares import login_required
 from .schemas import REGISTRATION_SCHEMA
 from .schemas import VERIFICATION_SCHEMA
@@ -149,6 +136,15 @@ def hangup():
     return ""
 
 
+@app.route('/testredirect', methods = ['POST', 'GET'])
+def testredirect():
+	print('Redirect works')
+	return 'Redirect works'
+
+@app.route('/testendpoint', methods = ['GET'])
+def testendpoint():
+	return redirect(url_for('testredirect'))
+
 @app.route("/handleReturningHelper", methods=["POST"])
 def handleReturningHelper():
     print(request.form.get("result"))
@@ -175,6 +171,7 @@ def callExistingCustomer():
     customerPhone = readActiveCustomer(DATABASE, DATABASE_KEY, helperPhone)
     payload = {"connect": customerPhone, "callerid": ELK_NUMBER}
     return json.dumps(payload)
+
 
 
 @app.route("/removeHelper", methods=["POST"])
@@ -225,82 +222,78 @@ def callExistingHelper():
 
 @app.route("/postcodeInput", methods=["POST"])
 def postcodeInput():
-    callId = request.form.get("callid")
-    phone = request.form.get("from")
-    # TODO: Add sound if zipcode is invalid (n/a)
-    zipcode = readZipcodeFromDatabase(DATABASE, DATABASE_KEY, phone, "customer")
-    district = getDistrict(int(zipcode), district_dict)
-    print("zipcode: ", zipcode)
+	callId = request.form.get("callid")
+	phone = request.form.get("from")
+	zipcode = readZipcodeFromDatabase(DATABASE, DATABASE_KEY, phone, 'customer')
+	# TODO: Add sound if zipcode is invalid (n/a)
+	district = getDistrict(int(zipcode), district_dict)
+	print('zipcode: ', zipcode)
 
-    closestHelpers = fetchHelper(DATABASE, DATABASE_KEY, district, zipcode, location_dict)
-    addCallHistoryToDB(DATABASE, DATABASE_KEY, callId, "closest_helpers", json.dumps(closestHelpers))
-    addCallHistoryToDB(DATABASE, DATABASE_KEY, callId, "current_customer", phone)
+	closestHelpers = fetchHelper(DATABASE, DATABASE_KEY, district, zipcode, location_dict)
+	writeCallHistory(DATABASE, DATABASE_KEY, callId, 'closest_helpers', json.dumps(closestHelpers))
 
-    if closestHelpers is None:
-        # TODO: Fix this sound clip
-
-        payload = {"play": MEDIA_URL + "/finns_ingen.mp3"}
-        return json.dumps(payload)
-    else:
-
-        payload = {
-            "play": MEDIA_URL + "/ringer_tillbaka.mp3",
-            "skippable": "true",
-            "next": BASE_URL + "/call/0/%s/%s" % (callId, phone),
-        }
-        helperNumber = 0
-        addCallHistoryToDB(DATABASE, DATABASE_KEY, callId, "helper_number", helperNumber)
-        return json.dumps(payload)
+	if closestHelpers is None:
+		payload = {"play": MEDIA_URL+"/finns_ingen.mp3"}
+		return json.dumps(payload)
+	else:
+		writeCallHistory(DATABASE, DATABASE_KEY, callId, 'hangup', 'False')
+		payload = {"play": MEDIA_URL+"/ringer_tillbaka.mp3", "skippable":"true", 
+						"next": BASE_URL+"/call/0/%s/%s"%(callId, phone)}
+		return json.dumps(payload)
 
 
-@app.route(
-    "/call/<int:helperIndex>/<string:customerCallId>/<string:customerPhone>", methods=["POST"],
-)
+@app.route('/call/<int:helperIndex>/<string:customerCallId>/<string:customerPhone>', methods = ['POST'])
 def call(helperIndex, customerCallId, customerPhone):
-    print("helperIndex:", helperIndex)
+	stopCalling = readCallHistory(DATABASE, DATABASE_KEY, customerCallId, 'hangup')
+	if stopCalling == 'True':
+		return ""
+	else:
+		print('helperIndex:', helperIndex)
+		callId = request.form.get("callid")
 
-    print("Customer callId: ", customerCallId)
+		print('Customer callId: ', customerCallId)
 
-    closestHelpers = json.loads(readCallHistory(DATABASE, DATABASE_KEY, customerCallId, "closest_helpers"))
-    print("closest helpers: ", closestHelpers)
+		closestHelpers = json.loads(readCallHistory(DATABASE, DATABASE_KEY, customerCallId, 'closest_helpers'))
+		print('closest helpers: ', closestHelpers)
 
-    auth = (API_USERNAME, API_PASSWORD)
+		auth = (API_USERNAME, API_PASSWORD)
 
-    if helperIndex >= len(closestHelpers):
-        return redirect("/callBackToCustomer/%s" % customerPhone)
+		if helperIndex >= len(closestHelpers):
+			writeCallHistory(DATABASE, DATABASE_KEY, customerCallId, 'hangup', 'True')
+			return redirect(url_for('callBackToCustomer/%s'%customerPhone))
 
-    # TODO: Handle if call is not picked up
-    payload = {
-        "ivr": MEDIA_URL + "/hjalte.mp3",
-        "timeout": "30",
-        "whenhangup": BASE_URL + "/call/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone),
-        "1": BASE_URL + "/connectUsers",
-        "2": BASE_URL + "/call/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone),
-    }
 
-    print(closestHelpers[helperIndex])
-    print(ELK_NUMBER)
-    writeActiveCustomer(DATABASE, DATABASE_KEY, closestHelpers[helperIndex], customerPhone)
-    print("Calling: ", closestHelpers[helperIndex])
-    fields = {
-        "from": ELK_NUMBER,
-        "to": closestHelpers[helperIndex],
-        "voice_start": json.dumps(payload),
-    }
+		# TODO: Handle if call is not picked up
+		payload = {"ivr": MEDIA_URL+"/hjalte.mp3", "timeout":"30", "whenhangup": BASE_URL+"/call/%s/%s/%s"%(str(helperIndex+1), customerCallId, customerPhone),
+					"1": BASE_URL+"/connectUsers/%s/%s"%(customerPhone, customerCallId), "2":BASE_URL+"/call/%s/%s/%s"%(str(helperIndex+1), customerCallId, customerPhone)}
 
     response = requests.post("https://api.46elks.com/a1/calls", data=fields, auth=auth)
 
-    # print(json.loads(response.text))
-    # state = json.loads(response.text)["state"]
-    # print('state: ', state)
-    # result = request.form.get("result")
-    # print('result', result)
+		print(closestHelpers[helperIndex])
+		print(ELK_NUMBER)
+		
+		print("Calling: ", closestHelpers[helperIndex])
+		fields = {
+			'from': ELK_NUMBER,
+			'to': closestHelpers[helperIndex],
+			'voice_start': json.dumps(payload)}
 
-    print(response.text)
-    return ""
+		response = requests.post(
+			"https://api.46elks.com/a1/calls",
+			data=fields,
+			auth=auth
+			)
 
+		# print(json.loads(response.text))
+		# state = json.loads(response.text)["state"]
+		# print('state: ', state)
+		# result = request.form.get("result")
+		# print('result', result)
 
-@app.route("/callBackToCustomer/<string:customerPhone>", methods=["POST", "GET"])
+		print(response.text)
+		return ""
+
+@app.route('/callBackToCustomer/<string:customerPhone>', methods = ['POST', 'GET'])
 def callBackToCustomer(customerPhone):
 
     print("No one found")
@@ -314,7 +307,6 @@ def callBackToCustomer(customerPhone):
     }
 
     requests.post("https://api.46elks.com/a1/calls", data=fields, auth=auth)
-
     return ""
 
 
@@ -343,50 +335,47 @@ def handleNumberInput():
 
 @app.route("/checkZipcode", methods=["POST"])
 def checkZipcode():
-    zipcode = request.form.get("result")
-    callId = request.form.get("callid")
-    print("zipcode: ", zipcode)
-    print("callId: ", callId)
-    addCallHistoryToDB(DATABASE, DATABASE_KEY, callId, "zipcode", zipcode)
-    print("Added to zipcode to call history database")
+	zipcode = request.form.get("result")
+	callId = request.form.get("callid")
+	print('zipcode: ', zipcode)
+	print('callId: ', callId)
+	#writeCallHistory(DATABASE, DATABASE_KEY, callId, 'zipcode', zipcode)
+	print('Added to zipcode to call history database')
 
-    phone = request.form.get("from")
-    district = getDistrict(int(zipcode), district_dict)
-    # TODO: Add sound if zipcode is invalid (n/a)
-    print("zipcode: ", zipcode)
-    saveCustomerToDatabase(DATABASE, DATABASE_KEY, phone, str(zipcode), district)
-
-    # TODO: add district file
-    payload = {
-        "play": MEDIA_URL + "/du_befinner.mp3",
-        "next": {
-            "ivr": MEDIA_URL + "/stammer_det.mp3",
-            "1": BASE_URL + "/postcodeInput",
-            "2": {
-                "play": MEDIA_URL + "/post_nr.mp3",
-                "skippable": "true",
-                "next": {"ivr": MEDIA_URL + "/bep.mp3", "digits": 5, "next": BASE_URL + "/checkZipcode",},
-            },
-        },
-    }
-
-    return json.dumps(payload)
+	phone = request.form.get("from")
+	currentCustomer = phone
+	district = getDistrict(int(zipcode), district_dict)
+	# TODO: Add sound if zipcode is invalid (n/a)
+	print('zipcode: ', zipcode)
+	saveCustomerToDatabase(DATABASE, DATABASE_KEY, phone, str(zipcode), district)
 
 
-@app.route("/connectUsers", methods=["POST"])
-def connectUsers():
+	# TODO: add district file
+	payload = {"play": MEDIA_URL+"/du_befinner.mp3",
+				"next": {"ivr": MEDIA_URL+"/stammer_det.mp3",
+				"1": BASE_URL+'/postcodeInput', 
+				"2": {"play": MEDIA_URL+"/post_nr.mp3", "skippable":"true", 
+					"next": {"ivr": MEDIA_URL+"/bep.mp3", "digits": 5, 
+					"next": BASE_URL+"/checkZipcode"} }}}
 
-    helperPhone = request.form.get("to")
-    print("helper: ", helperPhone)
-    customerPhone = readActiveCustomer(DATABASE, DATABASE_KEY, helperPhone)
+	return json.dumps(payload)
 
-    print("Saving customer -> helper connection to database")
-    writeActiveHelper(DATABASE, DATABASE_KEY, customerPhone, helperPhone)
-    print("Connecting users")
+@app.route('/connectUsers/<string:customerPhone>/<string:customerCallId>', methods = ['POST'])
+def connectUsers(customerPhone, customerCallId):
 
-    print("customer:", customerPhone)
-    payload = {"connect": customerPhone, "callerid": ELK_NUMBER, "timeout": "15"}
-    return json.dumps(payload)
+	helperPhone = request.form.get("to")
+	print('helper: ', helperPhone)
+	callId = request.form.get("callid")
+
+	print('Saving customer -> helper connection to database')
+	# TODO: check current active customer/helper and move to previous
+	writeActiveCustomer(DATABASE, DATABASE_KEY, helperPhone, customerPhone)
+	writeActiveHelper(DATABASE, DATABASE_KEY, customerPhone, helperPhone)
+	writeCallHistory(DATABASE, DATABASE_KEY, customerCallId, 'hangup', 'True')
+	print('Connecting users')
+  print("customer:", customerPhone)
+  payload = {"connect": customerPhone, "callerid": ELK_NUMBER, "timeout": "15"}
+  return json.dumps(payload)
 
 
 # -----------------------------------------------------------------------------------------------
