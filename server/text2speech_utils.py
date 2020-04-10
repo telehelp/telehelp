@@ -46,7 +46,8 @@ text_input[
 text_input[
     "ensam_gamling"
 ] = "Välkommen till Telehelp. \
-    Vi ser att du redan använt vår tjänst. Behöver du hjälp med en vardagssyssla? Tryck 1"
+    Vi ser att du redan använt vår tjänst. Behöver du hjälp med en vardagssyssla? Tryck 1\
+    Vill du avregistrera dig från tjänsten? Tryck 2."
 
 
 text_input[
