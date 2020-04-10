@@ -371,6 +371,7 @@ def checkZipcode():
 
 @app.route("/connectUsers/<string:customerPhone>/<string:customerCallId>", methods=["POST"])
 def connectUsers(customerPhone, customerCallId):
+    print("Connecting users")
     remote = request.remote_addr
     route = list(request.access_route)
     if remote in TRUSTED_PROXY:
