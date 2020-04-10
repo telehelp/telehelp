@@ -377,7 +377,7 @@ def connectUsers(customerPhone, customerCallId):
     if remote in TRUSTED_PROXY:
         remote = route.pop()
     print(request.remote_addr)
-    if request.remote_addr != ELK_SOURCE:
+    if request.remote_addr not in ELK_SOURCE:
         abort(403)
 
     helperPhone = request.form.get("to")
