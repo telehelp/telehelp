@@ -19,7 +19,7 @@ import { batchActions } from "redux-batched-actions";
 function RegistrationForm(props) {
   const dispatch = useDispatch();
 
-  const { register, handleSubmit, errors, reset } = useForm(); // initialise the hook
+  const { register, handleSubmit, errors } = useForm();
   const onSubmit = (data) => {
     console.log(data);
     if (!data) {

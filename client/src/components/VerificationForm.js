@@ -15,7 +15,7 @@ function VerificationForm() {
   const dispatch = useDispatch();
   const phoneNumber = useSelector((state) => state.registration.number);
 
-  const { register, handleSubmit, errors, reset } = useForm(); // initialise the hook
+  const { register, handleSubmit, errors } = useForm();
   const onSubmit = (data) => {
     console.log(data);
     if (!data) {
