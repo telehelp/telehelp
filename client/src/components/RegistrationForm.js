@@ -94,7 +94,7 @@ function RegistrationForm(props) {
           placeholder="0701234567"
           invalid={"phoneNumber" in errors}
           innerRef={register({
-            pattern: /^[0]\d{9}$|^[+46]\d{11}$/,
+            pattern: /^[0]{1}\d{7,9}$|^[\+46]{3}\d{9}$/,
             required: true,
           })}
         />
