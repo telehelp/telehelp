@@ -40,8 +40,8 @@ repos:
   - repo: local
     hooks:
       - id: jests
+        additional_dependencies: [react-scripts]
         name: reacttests
-        entry: yarn --cwd client ci-test
-        #args: ["--watchAll=false --passWithNoTests"]
+        entry: "yarn --cwd client ci-test"
         language: node
         stages: [commit]
