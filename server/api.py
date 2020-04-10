@@ -53,6 +53,8 @@ handler.setLevel(logging.INFO)
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 handler.setFormatter(formatter)
 log.addHandler(handler)
+startTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
+log.info(f"New log entry {startTime}")
 
 BASE_URL = os.getenv("BASE_URL")
 ELK_NUMBER = os.getenv("ELK_NUMBER")
