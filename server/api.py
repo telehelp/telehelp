@@ -81,6 +81,20 @@ def canonicalize_number(phone_number):
     return phone_number
 
 
+def checkUsrAgent(request, agent):
+    if "X-Forwarded-For" in request.headers:
+        remote_addr = request.headers.getlist("X-Forwarded-For")[0]
+    else:
+        remote_addr = request.remote_addr or "untrackable"
+    print(request.headers)
+    if "User-Agent" in request.headers:
+        userAgent = request.headers.getlist("User-Agent")[0]
+        print("Parsed User agent: " + userAgent)
+        if userAgent != agent:
+            log.info(f"Invalid user agent connecting to 46 ELK endpoint {userAgent} from ip: {remote_addr}")
+            abort(403)
+
+
 @app.route("/")
 def index():
     return app.send_static_file("index.html")
@@ -373,25 +387,7 @@ def checkZipcode():
 @app.route("/connectUsers/<string:customerPhone>/<string:customerCallId>", methods=["POST"])
 def connectUsers(customerPhone, customerCallId):
     print("Connecting users")
-    if "X-Forwarded-For" in request.headers:
-        remote_addr = request.headers.getlist("X-Forwarded-For")[0]
-    else:
-        remote_addr = request.remote_addr or "untrackable"
-    print(request.headers)
-    if "User-Agent" in request.headers:
-        userAgent = request.headers.getlist("User-Agent")[0]
-        print("Parsed User agent: " + userAgent)
-        if userAgent != ELK_USER_AGENT:
-            log.info(f"Invalid user agent connecting to 46 ELK endpoint {userAgent} from ip: {remote_addr}")
-            abort(403)
-
-    # remote = request.remote_addr
-    # route = list(request.access_route)
-    # if remote in TRUSTED_PROXY:
-    #    remote = route.pop()
-    # print(remote)
-    # if remote not in ELK_SOURCE:
-    #     abort(403)
+    checkUsrAgent(request, ELK_USER_AGENT)
 
     helperPhone = request.form.get("to")
     print("helper: ", helperPhone)
