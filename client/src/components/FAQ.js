@@ -16,7 +16,9 @@ class FAQ extends React.Component {
             hantera ärendet - Telehelp står bara för att etablera kontakten. Om
             du eller pensionären själv ringer upp det nummer du blivit uppringd
             ifrån, kommer ni automatiskt att bli ihopkopplade - på så vis måste
-            ni inte skriva ner några telefonnummer till varandra.
+            ni inte skriva ner några telefonnummer till varandra.{" "}
+            <a href="https://www.youtube.com/watch?v=4dXq6gTrPCQ">Här</a> finns
+            en länk till en kort informationsvideo på engelska.
           </p>
         ),
       },
