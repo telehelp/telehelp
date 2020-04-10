@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import secrets
+import socket
 import string
 import time
 
@@ -63,7 +64,7 @@ DATABASE_KEY = os.getenv("DATABASE_KEY")
 ZIPDATA = "SE.txt"
 MEDIA_FOLDER = "media"
 MEDIA_URL = "https://files.telehelp.se/new"
-ELK_SOURCE = "https://api.46elks.com"
+ELK_BASE = "https://api.46elks.com"
 TRUSTED_PROXY = ["127.0.0.1"]
 ELK_USER_AGENT = "46elks/0.2"
 
@@ -81,17 +82,20 @@ def canonicalize_number(phone_number):
     return phone_number
 
 
+# Checks that header field User Agent is 46elks.
 def checkUsrAgent(request, agent):
+    elk_ip = socket.getaddrinfo("api.46elks.com", 443)[0][-1][0]
     if "X-Forwarded-For" in request.headers:
         remote_addr = request.headers.getlist("X-Forwarded-For")[0]
     else:
         remote_addr = request.remote_addr or "untrackable"
-    print(request.headers)
-    if "User-Agent" in request.headers:
+    if "User-Agent" in request.headers and remote_addr != elk_ip:
         userAgent = request.headers.getlist("User-Agent")[0]
-        print("Parsed User agent: " + userAgent)
         if userAgent != agent:
-            log.info(f"Invalid user agent connecting to 46 ELK endpoint {userAgent} from ip: {remote_addr}")
+            print("Invalid user agent" + userAgent)
+            log.info(
+                f"Invalid user connecting to 46 ELK endpoint with User-Agent: {userAgent} from ip: {remote_addr}"
+            )
             abort(403)
 
 
@@ -110,6 +114,7 @@ def current_time():
 
 @app.route("/receiveCall", methods=["POST"])
 def receiveCall():
+    checkUsrAgent(request, ELK_USER_AGENT)
     callId = request.form.get("callid")
     createNewCallHistory(DATABASE, DATABASE_KEY, callId)
     from_sender = request.form.get("from")
@@ -300,7 +305,7 @@ def call(helperIndex, customerCallId, customerPhone):
         print("Calling: ", closestHelpers[helperIndex])
         fields = {"from": ELK_NUMBER, "to": closestHelpers[helperIndex], "voice_start": json.dumps(payload)}
 
-        response = requests.post(ELK_SOURCE + "/a1/calls", data=fields, auth=auth)
+        response = requests.post(ELK_BASE + "/a1/calls", data=fields, auth=auth)
 
         # print(json.loads(response.text))
         # state = json.loads(response.text)["state"]
@@ -325,7 +330,7 @@ def callBackToCustomer(customerPhone):
         "voice_start": json.dumps(payload),
     }
 
-    requests.post(ELK_SOURCE + "/a1/calls", data=fields, auth=auth)
+    requests.post(ELK_BASE + "/a1/calls", data=fields, auth=auth)
     return ""
 
 
@@ -423,7 +428,7 @@ def register():
         code = "".join(secrets.choice(string.digits) for _ in range(6))
         auth = (API_USERNAME, API_PASSWORD)
         fields = {"from": "Telehelp", "to": phone_number, "message": code}
-        requests.post(ELK_SOURCE + "/a1/sms", auth=auth, data=fields)
+        requests.post(ELK_BASE + "/a1/sms", auth=auth, data=fields)
 
         session[phone_number] = {
             "zipCode": validated["zipCode"],
