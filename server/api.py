@@ -376,13 +376,13 @@ def connectUsers(customerPhone, customerCallId):
         remote = request.headers.getlist("X-Forwarded-For")[0].rpartition(" ")[-1]
     else:
         remote = request.remote_addr or "untrackable"
-
+    print(request.headers)
     # remote = request.remote_addr
     # route = list(request.access_route)
     # if remote in TRUSTED_PROXY:
     #    remote = route.pop()
     print(remote)
-    if request.remote_addr not in ELK_SOURCE:
+    if remote not in ELK_SOURCE:
         abort(403)
 
     helperPhone = request.form.get("to")
