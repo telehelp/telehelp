@@ -202,8 +202,7 @@ def handleReturningHelper():
     number = int(request.form.get("result"))
     if number == 1:
         payload = {
-            "ivr": MEDIA_URL + "/du_kopplas.mp3",
-            "skippable": "true",
+            "play": MEDIA_URL + "/du_kopplas.mp3",
             "next": BASE_URL + "/callExistingCustomer",
         }
         return json.dumps(payload)
@@ -238,6 +237,7 @@ def handleReturningCustomer():
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     print(request.form.get("result"))
     number = int(request.form.get("result"))
+    phone = request.form.get("from")
     if number == 1:
 
         payload = {
@@ -248,10 +248,11 @@ def handleReturningCustomer():
         return json.dumps(payload)
 
     if number == 2:
+        zipcode = readZipcodeFromDatabase(DATABASE, DATABASE_KEY, phone, "customer")
         payload = {
             "play": MEDIA_URL + "/vi_letar.mp3",
             "skippable": "true",
-            "next": BASE_URL + "/postcodeInput",
+            "next": BASE_URL + "/postcodeInput/%s" % zipcode,
         }
         return json.dumps(payload)
 
@@ -274,14 +275,15 @@ def callExistingHelper():
     return json.dumps(payload)
 
 
-@app.route("/postcodeInput", methods=["POST"])
-def postcodeInput():
+@app.route("/postcodeInput/<string:zipcode>", methods=["POST"])
+def postcodeInput(zipcode):
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     callId = request.form.get("callid")
     phone = request.form.get("from")
-    zipcode = readZipcodeFromDatabase(DATABASE, DATABASE_KEY, phone, "customer")
+
     # TODO: Add sound if zipcode is invalid (n/a)
     district = getDistrict(int(zipcode), district_dict)
+    saveCustomerToDatabase(DATABASE, DATABASE_KEY, phone, str(zipcode), district)
     print("zipcode: ", zipcode)
 
     closestHelpers = fetchHelper(DATABASE, DATABASE_KEY, district, zipcode, location_dict)
@@ -337,11 +339,15 @@ def call(helperIndex, customerCallId, customerPhone):
 
         response = requests.post(ELK_BASE + "/a1/calls", data=fields, auth=auth)
 
-        # print(json.loads(response.text))
-        # state = json.loads(response.text)["state"]
-        # print('state: ', state)
-        # result = request.form.get("result")
-        # print('result', result)
+        print(json.loads(response.text)["state"])
+        print(json.loads(response.text)["state"] == "ongoing")
+        # while json.loads(response.text)["state"] == 'ongoing':
+        #     pass
+        print(json.loads(response.text))
+        state = json.loads(response.text)["state"]
+        print("state: ", state)
+        result = request.form.get("result")
+        print("result", result)
 
         print(response.text)
         return ""
@@ -399,18 +405,17 @@ def checkZipcode():
     # writeCallHistory(DATABASE, DATABASE_KEY, callId, 'zipcode', zipcode)
     print("Added to zipcode to call history database")
 
-    phone = request.form.get("from")
-    district = getDistrict(int(zipcode), district_dict)
+    # phone = request.form.get("from")
+    # district = getDistrict(int(zipcode), district_dict)
     # TODO: Add sound if zipcode is invalid (n/a)
     print("zipcode: ", zipcode)
-    saveCustomerToDatabase(DATABASE, DATABASE_KEY, phone, str(zipcode), district)
 
     # TODO: add district file
     payload = {
         "play": MEDIA_URL + "/du_befinner.mp3",
         "next": {
             "ivr": MEDIA_URL + "/stammer_det.mp3",
-            "1": BASE_URL + "/postcodeInput",
+            "1": BASE_URL + "/postcodeInput/%s" % zipcode,
             "2": {
                 "play": MEDIA_URL + "/post_nr.mp3",
                 "skippable": "true",
