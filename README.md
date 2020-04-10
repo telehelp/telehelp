@@ -15,8 +15,6 @@ Call a volunteer nearby if you need help with buying your groceries, or anything
 - Minimal user data collected
 - Uses ZIP codes to match you with local users
 
-A preview of the current master branch is available [here](https://dekvall.github.io/matkrasslig)
-
 ## Installation
 
 There are two parts to the project
