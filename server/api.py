@@ -89,9 +89,9 @@ def checkUsrAgent(request, agent):
         remote_addr = request.headers.getlist("X-Forwarded-For")[0]
     else:
         remote_addr = request.remote_addr or "untrackable"
-    if "User-Agent" in request.headers and remote_addr != elk_ip:
+    if "User-Agent" in request.headers:
         userAgent = request.headers.getlist("User-Agent")[0]
-        if userAgent != agent:
+        if userAgent != agent or remote_addr != elk_ip:
             print("Invalid user agent" + userAgent)
             log.info(
                 f"Invalid user connecting to 46 ELK endpoint with User-Agent: {userAgent} from ip: {remote_addr}"
