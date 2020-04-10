@@ -46,7 +46,7 @@ function RegistrationForm(props) {
     <h4>{message}</h4>
     <FormGroup>
         <Label for="helperName">Tilltalsnamn</Label>
-        <Input 
+        <Input
             name="helperName"
             id="helperName"
             placeholder="Bengan"
@@ -56,7 +56,7 @@ function RegistrationForm(props) {
     </FormGroup>
      <FormGroup>
      <Label for="zipCode">Postnummer</Label>
-        <Input 
+        <Input
             name="zipCode"
             id="zipCode"
             placeholder="12345"
@@ -66,7 +66,7 @@ function RegistrationForm(props) {
       </FormGroup>
       <FormGroup>
      <Label for="phoneNumber">Telefonnummer</Label>
-        <Input 
+        <Input
             name="phoneNumber"
             id="phoneNumber"
             placeholder="0701234567"
@@ -75,7 +75,7 @@ function RegistrationForm(props) {
         <FormFeedback invalid>Det telefonnummer som du skrev in är ogilitigt</FormFeedback>
       </FormGroup>
       <FormGroup>
-      <Input 
+      <Input
             type="checkbox"
             name="terms"
             id="terms"

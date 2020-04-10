@@ -7,7 +7,7 @@ import { FormStatus } from '../actions';
 
 function MainForm() {
   const progress = useSelector(state => state.registration.progress);
-  
+
   let form;
 
   switch(progress)

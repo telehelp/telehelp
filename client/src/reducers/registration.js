@@ -8,7 +8,7 @@ const initialState = {
 const registration = (state = initialState, action) => {
     switch (action.type) {
         case 'SET_REGISTRATION_PROGRESS':
-            // For reasons unknown, this fails with ++ 
+            // For reasons unknown, this fails with ++
             return Object.assign({}, state, {
                 progress: action.state
             })
@@ -20,5 +20,5 @@ const registration = (state = initialState, action) => {
             return state
     }
 }
-  
+
 export default registration

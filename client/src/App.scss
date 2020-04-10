@@ -4,8 +4,8 @@ $font-stack:    'Open Sans', sans-serif;
 $primary-color: #333;
 $old-background: #b6f0e3;
 
-@keyframes blink { 
-  50% { border-color: #ff0000; } 
+@keyframes blink {
+  50% { border-color: #ff0000; }
 }
 
 .App {
@@ -64,5 +64,7 @@ $old-background: #b6f0e3;
       margin: 1em;
     }
   }
+  .about-entry {
+    padding-top: 1em;
+  }
 }
-

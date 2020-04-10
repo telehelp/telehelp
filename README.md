@@ -1,5 +1,7 @@
+<a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
+[![Actions Status](https://github.com/dekvall/matkrasslig/workflows/pre-commit/badge.svg)](https://github.com/dekvall/matkrasslig/actions)
 # Telehelp - Bridge the Digital Divide
-
 Call a volunteer nearby if you need help with buying your groceries, or anything else, if you belong to an at-risk group during the coronavirus pandemic.
 
 ## Features
@@ -85,6 +87,16 @@ Then push the changes to  the deployment server
 git push production master
 ```
 Your changes should now be deployed on the server.
+
+## Database
+Write this in order to read the database
+```
+sqlcipher database.db
+```
+Then type in your key
+```
+PRAGMA key="x'your_secret_32B_hex_key'"
+```
 
 
 ## Quick Git Guide
