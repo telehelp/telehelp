@@ -23,16 +23,17 @@ repos:
     rev: 3.7.9
     hooks:
       - id: flake8
-  # Figure out how to run unittests with relative imports and relative filepaths
-  #-   repo: local
-  #       hooks:
-  #    -   id: tests
-  #  entry: python -m unittest discover
-  #  language: python
-  #  args: ["-s 'server' -p '*.tests.py'"]
-  #  'types': [python]
-  #  pass_filenames: false
-  #  stages: [commit]
+  - repo: local
+    hooks:
+      - id: tests
+        additional_dependencies: [geopy==1.21.0]
+        name: snaketests
+        entry: python -m unittest discover
+        language: python
+        #args: ["-s 'tests'"]
+        types: [python]
+        pass_filenames: false
+        stages: [commit]
   - repo: https://github.com/prettier/prettier
     rev: "61ca50df6787386ac981866005e4cfed6ce5e79c"
     hooks:

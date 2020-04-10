@@ -1,12 +1,13 @@
 import math
+import os
 import unittest
 
-from .zipcode_utils import getDistanceApart
-from .zipcode_utils import getDistrict
-from .zipcode_utils import getLatLong
-from .zipcode_utils import readZipCodeData
+from server.zipcode_utils import getDistanceApart
+from server.zipcode_utils import getDistrict
+from server.zipcode_utils import getLatLong
+from server.zipcode_utils import readZipCodeData
 
-loc_d, dis_d = readZipCodeData("SE.txt")
+loc_d, dis_d = readZipCodeData(os.path.join("server", "SE.txt"))
 
 
 class TestZipcodeUtils(unittest.TestCase):
