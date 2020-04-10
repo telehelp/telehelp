@@ -44,6 +44,12 @@ text_input[
 ] = "Välkommen till Telehelp! \
     Vi ser att du redan använt vår tjänst. Vill du att vi kontaktar"
 text_input[
+    "ensam_gamling"
+] = "Välkommen till Telehelp. \
+    Vi ser att du redan använt vår tjänst. Behöver du hjälp med en vardagssyssla? Tryck 1"
+
+
+text_input[
     "pratade_sist"
 ] = "som du pratade med sist? Tryck 1. Vill du byta till en ny volontär? \
     Tryck 2. Vill du avregistrera dig från tjänsten? Tryck 3."

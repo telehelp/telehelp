@@ -171,24 +171,34 @@ def receiveCall():
         # Get name of person to suggest call to from DB
         helperNumber = readActiveHelper(DATABASE, DATABASE_KEY, from_sender)
         name = readNameByNumber(DATABASE, DATABASE_KEY, helperNumber)
-        nameEncoded = urllib.parse.quote(name)  # åäö etc not handled well as URL -> crash
 
-        # Make sure name already exists (generate if somehow missing, for example early volunteers)
-        if not os.path.isfile("/media/name/" + nameEncoded + ".mp3"):
-            generateNameSoundByte(name)
+        if name is None:
+            payload = {
+                "ivr": MEDIA_URL + "/ivr/ensam_gamling.mp3",
+                "digits": 1,
+                "next": BASE_URL + "/handleLonelyCustomer",
+            }
+            return json.dumps(payload)
 
-        payload = {
-            "play": MEDIA_URL + "/ivr/behover_hjalp.mp3",
-            "next": {
-                "play": MEDIA_URL + "/name/" + nameEncoded + ".mp3",
+        else:
+            nameEncoded = urllib.parse.quote(name)  # åäö etc not handled well as URL -> crash
+
+            # Make sure name already exists (generate if somehow missing, for example early volunteers)
+            if not os.path.isfile("/media/name/" + nameEncoded + ".mp3"):
+                generateNameSoundByte(name)
+
+            payload = {
+                "play": MEDIA_URL + "/ivr/behover_hjalp.mp3",
                 "next": {
-                    "ivr": MEDIA_URL + "/ivr/pratade_sist.mp3",
-                    "digits": 1,
-                    "next": BASE_URL + "/handleReturningCustomer",
+                    "play": MEDIA_URL + "/name/" + nameEncoded + ".mp3",
+                    "next": {
+                        "ivr": MEDIA_URL + "/ivr/pratade_sist.mp3",
+                        "digits": 1,
+                        "next": BASE_URL + "/handleReturningCustomer",
+                    },
                 },
-            },
-        }
-        return json.dumps(payload)
+            }
+            return json.dumps(payload)
 
     # New customer
     payload = {
@@ -270,6 +280,32 @@ def handleReturningCustomer():
         return json.dumps(payload)
 
     if number == 3:
+        payload = {
+            "play": MEDIA_URL + "/ivr/avreg_confirmed.mp3",
+            "next": BASE_URL + "/removeCustomer",
+        }
+        return json.dumps(payload)
+
+    return ""
+
+
+@app.route("/handleLonelyCustomer", methods=["POST"])
+def handleLonelyCustomer():
+    checkRequest(request, ELK_USER_AGENT, ELK_URL)
+    print(request.form.get("result"))
+    number = int(request.form.get("result"))
+    phone = request.form.get("from")
+
+    if number == 1:
+        zipcode = readZipcodeFromDatabase(DATABASE, DATABASE_KEY, phone, "customer")
+        payload = {
+            "play": MEDIA_URL + "/ivr/vi_letar.mp3",
+            "skippable": "true",
+            "next": BASE_URL + "/postcodeInput/%s" % zipcode,
+        }
+        return json.dumps(payload)
+
+    if number == 2:
         payload = {
             "play": MEDIA_URL + "/ivr/avreg_confirmed.mp3",
             "next": BASE_URL + "/removeCustomer",
@@ -415,7 +451,6 @@ def checkZipcode():
     cityEncoded = urllib.parse.quote(city)
     print("zipcode: ", zipcode)
     print("callId: ", callId)
-    print("zipcode: ", zipcode)
     print("city: ", city)
     print("cityEnc: ", cityEncoded)
 

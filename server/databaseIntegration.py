@@ -113,9 +113,12 @@ def readActiveHelper(db, key, customerPhone):
     res = readDatabase(db, key, query, params)
     return res[0][0]
 
+
 def readNameByNumber(db, key, helperPhone):
     query = """ SELECT name FROM user_helpers WHERE phone=? """
     res = readDatabase(db, key, query, [helperPhone])
+    if res == []:
+        return None
     return res[0][0]
 
 
