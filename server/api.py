@@ -267,7 +267,7 @@ def call(helperIndex, customerCallId, customerPhone):
         payload = {"ivr": MEDIA_URL+"/hjalte.mp3", "timeout":"30", "whenhangup": BASE_URL+"/call/%s/%s/%s"%(str(helperIndex+1), customerCallId, customerPhone),
                     "1": BASE_URL+"/connectUsers/%s/%s"%(customerPhone, customerCallId), "2":BASE_URL+"/call/%s/%s/%s"%(str(helperIndex+1), customerCallId, customerPhone)}
 
-    response = requests.post("https://api.46elks.com/a1/calls", data=fields, auth=auth)
+        response = requests.post("https://api.46elks.com/a1/calls", data=fields, auth=auth)
 
         print(closestHelpers[helperIndex])
         print(ELK_NUMBER)
