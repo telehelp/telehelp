@@ -67,7 +67,7 @@ DATABASE_KEY = os.getenv("DATABASE_KEY")
 def checkEnv(envVar, envStr):
     if envVar is None:
         print(f"Warning! An environmental variable is not set {envStr}")
-        log.info("Warning! An environmental variable is not set")
+        log.info(f"Warning! An environmental variable is not set {envStr}")
 
 
 # Checks if the environmental variables are set
