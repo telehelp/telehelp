@@ -1,11 +1,13 @@
-@import './variables.scss';
+@import "./variables.scss";
 
-$font-stack:    'Open Sans', sans-serif;
+$font-stack: "Open Sans", sans-serif;
 $primary-color: #333;
 $old-background: #b6f0e3;
 
 @keyframes blink {
-  50% { border-color: #ff0000; }
+  50% {
+    border-color: #ff0000;
+  }
 }
 
 .App {
@@ -50,8 +52,8 @@ $old-background: #b6f0e3;
     //animation: blink .5s step-end infinite alternate;
   }
 
-  #mapid, .leaflet-container
-  {
+  #mapid,
+  .leaflet-container {
     height: 400px;
     //width: 100%;
   }

@@ -1,88 +1,115 @@
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import { Form, FormFeedback, FormGroup, Label, Input, Button } from 'reactstrap';
-import { setRegistrationProgress, FormStatus, setPhoneNumber } from '../actions';
-import { useDispatch } from 'react-redux';
-import { batchActions } from 'redux-batched-actions';
+import React from "react";
+import { useForm } from "react-hook-form";
+import {
+  Form,
+  FormFeedback,
+  FormGroup,
+  Label,
+  Input,
+  Button,
+} from "reactstrap";
+import {
+  setRegistrationProgress,
+  FormStatus,
+  setPhoneNumber,
+} from "../actions";
+import { useDispatch } from "react-redux";
+import { batchActions } from "redux-batched-actions";
 
 function RegistrationForm(props) {
   const dispatch = useDispatch();
 
   const { register, handleSubmit, errors, reset } = useForm(); // initialise the hook
-  const onSubmit = data => {
+  const onSubmit = (data) => {
     console.log(data);
-    if (!data)
-    {
-        console.log("Failed submitting, reason: no data")
-        return;
+    if (!data) {
+      console.log("Failed submitting, reason: no data");
+      return;
     }
-    fetch('/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+    fetch("/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
     })
-    .then(res => res.json())
-    .then(respData => {
-
-      if (respData.type === "success")
-      {
-        //Same here i am not sure redux allows this
-        dispatch(batchActions([setRegistrationProgress(FormStatus.VERIFY_NUMBER), setPhoneNumber(data.phoneNumber)]));
-      }
-      else
-      {
-        dispatch(setRegistrationProgress(FormStatus.BAD_DETAILS));
-      }
-    });
+      .then((res) => res.json())
+      .then((respData) => {
+        if (respData.type === "success") {
+          //Same here i am not sure redux allows this
+          dispatch(
+            batchActions([
+              setRegistrationProgress(FormStatus.VERIFY_NUMBER),
+              setPhoneNumber(data.phoneNumber),
+            ])
+          );
+        } else {
+          dispatch(setRegistrationProgress(FormStatus.BAD_DETAILS));
+        }
+      });
   };
 
   //if progress ngt
   //use a main form to do this
   // The main form should have all three steps
-  const message = "Registrera dig som volontär!"
+  const message = "Registrera dig som volontär!";
 
   return (
-    <Form onSubmit={handleSubmit(onSubmit)} >
-    <h4>{message}</h4>
-    <FormGroup>
+    <Form onSubmit={handleSubmit(onSubmit)}>
+      <h4>{message}</h4>
+      <FormGroup>
         <Label for="helperName">Tilltalsnamn</Label>
         <Input
-            name="helperName"
-            id="helperName"
-            placeholder="Bengan"
-            invalid={'helperName' in errors}
-            innerRef={register({pattern: /^[a-z ,.'-]+$/i, required: true })}/>
+          name="helperName"
+          id="helperName"
+          placeholder="Bengan"
+          invalid={"helperName" in errors}
+          innerRef={register({ pattern: /^[a-z ,.'-]+$/i, required: true })}
+        />
         <FormFeedback invalid>Skriv in ett ordentligt namn</FormFeedback>
-    </FormGroup>
-     <FormGroup>
-     <Label for="zipCode">Postnummer</Label>
-        <Input
-            name="zipCode"
-            id="zipCode"
-            placeholder="12345"
-            invalid={'zipCode' in errors}
-            innerRef={register({pattern: /^[0-9]{5}$/, required: true })}/>
-        <FormFeedback invalid>Det postnummer som du skrev in är ogilitigt, måste vara 5 siffror</FormFeedback>
       </FormGroup>
       <FormGroup>
-     <Label for="phoneNumber">Telefonnummer</Label>
+        <Label for="zipCode">Postnummer</Label>
         <Input
-            name="phoneNumber"
-            id="phoneNumber"
-            placeholder="0701234567"
-            invalid={'phoneNumber' in errors}
-            innerRef={register({pattern: /^(\d|\+){1}\d{9,12}$/, required: true })}/>
-        <FormFeedback invalid>Det telefonnummer som du skrev in är ogilitigt</FormFeedback>
+          name="zipCode"
+          id="zipCode"
+          placeholder="12345"
+          invalid={"zipCode" in errors}
+          innerRef={register({ pattern: /^[0-9]{5}$/, required: true })}
+        />
+        <FormFeedback invalid>
+          Det postnummer som du skrev in är ogilitigt, måste vara 5 siffror
+        </FormFeedback>
       </FormGroup>
       <FormGroup>
-      <Input
-            type="checkbox"
-            name="terms"
-            id="terms"
-            invalid={'terms' in errors}
-            innerRef={register({required: true })}/>
-        <Label for="terms">Jag accepterar <a href="/static/terms-and-conditions.pdf">användarvillkoren</a></Label>
-        <FormFeedback invalid>Du måste acceptera användarvillkoren</FormFeedback>
+        <Label for="phoneNumber">Telefonnummer</Label>
+        <Input
+          name="phoneNumber"
+          id="phoneNumber"
+          placeholder="0701234567"
+          invalid={"phoneNumber" in errors}
+          innerRef={register({
+            pattern: /^(\d|\+){1}\d{9,12}$/,
+            required: true,
+          })}
+        />
+        <FormFeedback invalid>
+          Det telefonnummer som du skrev in är ogilitigt
+        </FormFeedback>
+      </FormGroup>
+      <FormGroup>
+        <Input
+          type="checkbox"
+          name="terms"
+          id="terms"
+          invalid={"terms" in errors}
+          innerRef={register({ required: true })}
+        />
+        <Label for="terms">
+          Jag accepterar{" "}
+          <a href="/static/terms-and-conditions.pdf">användarvillkoren</a>
+        </Label>
+        <FormFeedback invalid>
+          Du måste acceptera användarvillkoren
+        </FormFeedback>
       </FormGroup>
       <Button color="info">Registrera</Button>
     </Form>

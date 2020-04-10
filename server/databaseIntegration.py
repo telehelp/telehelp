@@ -1,4 +1,5 @@
 import os
+
 import pandas as pd
 from pysqlcipher3 import dbapi2 as sqlite3
 
@@ -177,44 +178,48 @@ def getCustomers(db, key):
 
 
 def writeCallHistory(db, key, callid, columnName, data):
-	print(data)
-	if columnName == 'hangup':
-		query = ''' UPDATE call_history set hangup=? where callid=? '''
-	elif columnName == 'closest_helpers':
-		query = ''' UPDATE call_history set closest_helpers=? where callid=? '''
+    print(data)
+    if columnName == "hangup":
+        query = """ UPDATE call_history set hangup=? where callid=? """
+    elif columnName == "closest_helpers":
+        query = """ UPDATE call_history set closest_helpers=? where callid=? """
 
-	params = (data, callid)
-	writeToDatabase(db, key, query, params)
+    params = (data, callid)
+    writeToDatabase(db, key, query, params)
+
 
 def readCallHistory(db, key, callid, columnName):
-	if columnName == 'hangup':
-		query = ''' SELECT hangup FROM call_history WHERE callid=? '''
-	elif columnName == 'closest_helpers':
-		query = ''' SELECT closest_helpers FROM call_history WHERE callid=? '''
-	params = [callid]
-	res = readDatabase(db, key, query, params)
-	print('result readCallHistory: ', res)
-	# print(res[columnName])
-	# result = res[columnName].to_string()
-	# print(result)
-	return res[0][0]
+    if columnName == "hangup":
+        query = """ SELECT hangup FROM call_history WHERE callid=? """
+    elif columnName == "closest_helpers":
+        query = """ SELECT closest_helpers FROM call_history WHERE callid=? """
+    params = [callid]
+    res = readDatabase(db, key, query, params)
+    print("result readCallHistory: ", res)
+    # print(res[columnName])
+    # result = res[columnName].to_string()
+    # print(result)
+    return res[0][0]
+
 
 def callExists(db, key, callid):
-	query = ''' SELECT * FROM call_history WHERE callid=?'''
-	params = [callid]
-	ans = readDatabase(db, key, query, params)
-	print(ans)
-	if ans == []:
-		return False
-	else:
-		return True
-	return 
+    query = """ SELECT * FROM call_history WHERE callid=?"""
+    params = [callid]
+    ans = readDatabase(db, key, query, params)
+    print(ans)
+    if ans == []:
+        return False
+    else:
+        return True
+    return
+
 
 def createNewCallHistory(db, key, callid):
-	if not callExists(db, key, callid):
-		query = ''' INSERT INTO call_history (callid) values(?) '''	
-		params = [callid]
-		writeToDatabase(db, key, query, params)
+    if not callExists(db, key, callid):
+        query = """ INSERT INTO call_history (callid) values(?) """
+        params = [callid]
+        writeToDatabase(db, key, query, params)
+
 
 def fetchHelper(db, key, district, zipcode, location_dict):
     # TODO: Filter by distance

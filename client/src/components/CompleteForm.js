@@ -1,9 +1,7 @@
-import React from 'react'
+import React from "react";
 
 const CompleteForm = (props) => {
-    return (
-        <h3>{props.message}</h3>
-    )
-}
+  return <h3>{props.message}</h3>;
+};
 
-export default CompleteForm
+export default CompleteForm;
