@@ -8,10 +8,10 @@ REGISTRATION_SCHEMA = Schema(
     {
         "helperName": str,
         "zipCode": And(str, Regex(r"^[0-9]{5}$"), Use(int)),
-        "phoneNumber": Regex(r"^(\d|\+){1}\d{9,12}$"),
+        "phoneNumber": Regex(r"^[0]\d{9}$|^[\+46]\d{11}$"),
         "terms": bool,
     }
 )
 VERIFICATION_SCHEMA = Schema(
-    {"verificationCode": Regex(r"^[0-9]{6}$"), "number": Regex(r"^(\d|\+){1}\d{9,12}$")}
+    {"verificationCode": Regex(r"^[0-9]{6}$"), "number": Regex(r"^[0]\d{9}$|^[\+46]\d{11}$")}
 )
