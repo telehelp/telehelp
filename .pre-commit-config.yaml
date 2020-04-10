@@ -1,26 +1,39 @@
 repos:
--   repo: https://github.com/pre-commit/pre-commit-hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v2.3.0
     hooks:
-    -   id: check-yaml
-    -   id: end-of-file-fixer
-    -   id: trailing-whitespace
--   repo: https://github.com/asottile/reorder_python_imports
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+  - repo: https://github.com/asottile/reorder_python_imports
     rev: v2.1.0
     hooks:
-    -   id: reorder-python-imports
--   repo: https://github.com/psf/black
+      - id: reorder-python-imports
+  - repo: https://github.com/psf/black
     rev: 19.10b0
     hooks:
-    - id: black
-      language_version: python3.7
--   repo: https://github.com/asottile/blacken-docs
+      - id: black
+        language_version: python3.7
+  - repo: https://github.com/asottile/blacken-docs
     rev: v1.6.0
     hooks:
-    -   id: blacken-docs
+      - id: blacken-docs
         additional_dependencies: [black==19.10b0]
-
--   repo: https://gitlab.com/pycqa/flake8
+  - repo: https://gitlab.com/pycqa/flake8
     rev: 3.7.9
     hooks:
-    - id: flake8
+      - id: flake8
+  # Figure out how to run unittests with relative imports and relative filepaths
+  #-   repo: local
+  #       hooks:
+  #    -   id: tests
+  #  entry: python -m unittest discover
+  #  language: python
+  #  args: ["-s 'server' -p '*.tests.py'"]
+  #  'types': [python]
+  #  pass_filenames: false
+  #  stages: [commit]
+  - repo: https://github.com/prettier/prettier
+    rev: "61ca50df6787386ac981866005e4cfed6ce5e79c"
+    hooks:
+      - id: prettier
