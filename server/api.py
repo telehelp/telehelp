@@ -149,18 +149,6 @@ def hangup():
     print("hangup")
     return ""
 
-
-@app.route("/testredirect", methods=["POST", "GET"])
-def testredirect():
-    print("Redirect works")
-    return "Redirect works"
-
-
-@app.route("/testendpoint", methods=["GET"])
-def testendpoint():
-    return redirect(url_for("testredirect"))
-
-
 @app.route("/handleReturningHelper", methods=["POST"])
 def handleReturningHelper():
     print(request.form.get("result"))
@@ -468,3 +456,14 @@ def getVolunteerLocations():
         latlongs.append(getLatLong(zip[0], location_dict))
 
     return {"coordinates": latlongs}
+
+
+@app.route("/testredirect", methods=["POST", "GET"])
+def testredirect():
+    print("Redirect works")
+    return "Redirect works"
+
+
+@app.route("/testendpoint", methods=["GET"])
+def testendpoint():
+    return redirect(url_for("testredirect"))
