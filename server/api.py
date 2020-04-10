@@ -77,6 +77,7 @@ checkEnv(API_USERNAME, "API_USERNAME")
 checkEnv(API_PASSWORD, "API_PASSWORD")
 checkEnv(DATABASE, "DATABASE")
 checkEnv(DATABASE_KEY, "DATABASE_KEY")
+checkEnv(SECRET_KEY, "SECRET_KEY")
 
 ZIPDATA = "SE.txt"
 MEDIA_FOLDER = "media"
@@ -439,7 +440,7 @@ def connectUsers(customerPhone, customerCallId):
     return json.dumps(payload)
 
 
-# -----------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
 
 @app.route("/register", methods=["POST"])
@@ -514,6 +515,7 @@ def getVolunteerLocations():
     return {"coordinates": latlongs}
 
 
+# -----------------------------------Test Functions-------------------------------------------------
 @app.route("/testredirect", methods=["POST", "GET"])
 def testredirect():
     print("Redirect works")
@@ -523,3 +525,6 @@ def testredirect():
 @app.route("/testendpoint", methods=["GET"])
 def testendpoint():
     return redirect(url_for("testredirect"))
+
+
+# --------------------------------------------------------------------------------------------------
