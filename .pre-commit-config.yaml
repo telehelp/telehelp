@@ -40,7 +40,7 @@ repos:
   - repo: local
     hooks:
       - id: jests
-        additional_dependencies: [react-scripts]
+        additional_dependencies: [react-scripts, testing-library/jest-dom]
         name: reacttests
         entry: "yarn --cwd client ci-test"
         language: node
