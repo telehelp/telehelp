@@ -15,6 +15,7 @@ from flask import request
 from flask import session
 from flask import url_for
 from flask_session import Session
+from varname import varname
 
 from .databaseIntegration import createNewCallHistory
 from .databaseIntegration import deleteFromDatabase
@@ -61,8 +62,23 @@ ELK_NUMBER = os.getenv("ELK_NUMBER")
 API_USERNAME = os.getenv("API_USERNAME")
 API_PASSWORD = os.getenv("API_PASSWORD")
 DATABASE = os.getenv("DATABASE")
-
 DATABASE_KEY = os.getenv("DATABASE_KEY")
+
+
+def checkEnv(envVar, envStr):
+    if envVar is None:
+        print(f"Warning! An environmental variable is not set {envStr}")
+        log.info("Warning! An environmental variable is not set")
+
+
+# Checks if the environmental variables are set
+checkEnv(BASE_URL, "BASE_URL")
+checkEnv(ELK_NUMBER, "ELK_NUMBER")
+checkEnv(API_USERNAME, "API_USERNAME")
+checkEnv(API_PASSWORD, "API_PASSWORD")
+checkEnv(DATABASE, "DATABASE")
+checkEnv(DATABASE_KEY, "DATABASE_KEY")
+
 ZIPDATA = "SE.txt"
 MEDIA_FOLDER = "media"
 MEDIA_URL = "https://files.telehelp.se/new"
