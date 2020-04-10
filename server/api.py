@@ -408,8 +408,6 @@ def checkZipcode():
 @app.route("/connectUsers/<string:customerPhone>/<string:customerCallId>", methods=["POST"])
 def connectUsers(customerPhone, customerCallId):
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
-    print("Connecting users")
-    checkRequest(request, ELK_USER_AGENT, ELK_URL)
 
     helperPhone = request.form.get("to")
     print("helper: ", helperPhone)
