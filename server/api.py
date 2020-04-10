@@ -62,6 +62,7 @@ DATABASE_KEY = os.getenv("DATABASE_KEY")
 ZIPDATA = "SE.txt"
 MEDIA_FOLDER = "media"
 MEDIA_URL = "https://files.telehelp.se/new"
+ELK_SOURCE = "https://api.46elks.com"
 
 VERIFICATION_EXPIRY_TIME = 5 * 60  # 5 minutes
 
@@ -293,7 +294,7 @@ def call(helperIndex, customerCallId, customerPhone):
         print("Calling: ", closestHelpers[helperIndex])
         fields = {"from": ELK_NUMBER, "to": closestHelpers[helperIndex], "voice_start": json.dumps(payload)}
 
-        response = requests.post("https://api.46elks.com/a1/calls", data=fields, auth=auth)
+        response = requests.post(ELK_SOURCE+"/a1/calls", data=fields, auth=auth)
 
         # print(json.loads(response.text))
         # state = json.loads(response.text)["state"]
@@ -318,7 +319,7 @@ def callBackToCustomer(customerPhone):
         "voice_start": json.dumps(payload),
     }
 
-    requests.post("https://api.46elks.com/a1/calls", data=fields, auth=auth)
+    requests.post(ELK_SOURCE+"/a1/calls", data=fields, auth=auth)
     return ""
 
 
@@ -414,7 +415,7 @@ def register():
         code = "".join(secrets.choice(string.digits) for _ in range(6))
         auth = (API_USERNAME, API_PASSWORD)
         fields = {"from": "Telehelp", "to": phone_number, "message": code}
-        requests.post("https://api.46elks.com/a1/sms", auth=auth, data=fields)
+        requests.post(ELK_SOURCE+"/a1/sms", auth=auth, data=fields)
 
         session[phone_number] = {
             "zipCode": validated["zipCode"],
