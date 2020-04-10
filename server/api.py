@@ -65,6 +65,7 @@ MEDIA_FOLDER = "media"
 MEDIA_URL = "https://files.telehelp.se/new"
 ELK_SOURCE = "https://api.46elks.com"
 TRUSTED_PROXY = ["127.0.0.1"]
+ELK_USER_AGENT = "46elks/0.2"
 
 VERIFICATION_EXPIRY_TIME = 5 * 60  # 5 minutes
 
@@ -373,17 +374,24 @@ def checkZipcode():
 def connectUsers(customerPhone, customerCallId):
     print("Connecting users")
     if "X-Forwarded-For" in request.headers:
-        remote = request.headers.getlist("X-Forwarded-For")[0].rpartition(" ")[-1]
+        remote_addr = request.headers.getlist("X-Forwarded-For")[0]
     else:
-        remote = request.remote_addr or "untrackable"
+        remote_addr = request.remote_addr or "untrackable"
     print(request.headers)
+    if "User-Agent" in request.headers:
+        userAgent = request.headers.getlist("User-Agent")[0]
+        print("Parsed User agent: " + userAgent)
+        if userAgent != ELK_USER_AGENT:
+            log.info(f"Invalid user agent connecting to 46 ELK endpoint {userAgent} from ip: {remote_addr}")
+            abort(403)
+
     # remote = request.remote_addr
     # route = list(request.access_route)
     # if remote in TRUSTED_PROXY:
     #    remote = route.pop()
-    print(remote)
-    if remote not in ELK_SOURCE:
-        abort(403)
+    # print(remote)
+    # if remote not in ELK_SOURCE:
+    #     abort(403)
 
     helperPhone = request.form.get("to")
     print("helper: ", helperPhone)
