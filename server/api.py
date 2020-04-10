@@ -180,6 +180,7 @@ def hangup():
 
 @app.route("/handleReturningHelper", methods=["POST"])
 def handleReturningHelper():
+    checkRequest(request, ELK_USER_AGENT, ELK_URL)
     print(request.form.get("result"))
     number = int(request.form.get("result"))
     if number == 1:
@@ -200,6 +201,7 @@ def handleReturningHelper():
 
 @app.route("/callExistingCustomer", methods=["POST"])
 def callExistingCustomer():
+    checkRequest(request, ELK_USER_AGENT, ELK_URL)
     helperPhone = request.form.get("from")
     customerPhone = readActiveCustomer(DATABASE, DATABASE_KEY, helperPhone)
     payload = {"connect": customerPhone, "callerid": ELK_NUMBER}
@@ -208,6 +210,7 @@ def callExistingCustomer():
 
 @app.route("/removeHelper", methods=["POST"])
 def removeHelper():
+    checkRequest(request, ELK_USER_AGENT, ELK_URL)
     from_sender = request.form.get("from")
     deleteFromDatabase(DATABASE, DATABASE_KEY, from_sender, "helper")
     return ""
@@ -215,6 +218,7 @@ def removeHelper():
 
 @app.route("/handleReturningCustomer", methods=["POST"])
 def handleReturningCustomer():
+    checkRequest(request, ELK_USER_AGENT, ELK_URL)
     print(request.form.get("result"))
     number = int(request.form.get("result"))
     if number == 1:
@@ -246,6 +250,7 @@ def handleReturningCustomer():
 
 @app.route("/callExistingHelper", methods=["POST"])
 def callExistingHelper():
+    checkRequest(request, ELK_USER_AGENT, ELK_URL)
     customerPhone = request.form.get("from")
     helperPhone = readActiveHelper(DATABASE, DATABASE_KEY, customerPhone)
     payload = {"connect": helperPhone, "callerid": ELK_NUMBER}
@@ -254,6 +259,7 @@ def callExistingHelper():
 
 @app.route("/postcodeInput", methods=["POST"])
 def postcodeInput():
+    checkRequest(request, ELK_USER_AGENT, ELK_URL)
     callId = request.form.get("callid")
     phone = request.form.get("from")
     zipcode = readZipcodeFromDatabase(DATABASE, DATABASE_KEY, phone, "customer")
@@ -279,6 +285,7 @@ def postcodeInput():
 
 @app.route("/call/<int:helperIndex>/<string:customerCallId>/<string:customerPhone>", methods=["POST"])
 def call(helperIndex, customerCallId, customerPhone):
+    checkRequest(request, ELK_USER_AGENT, ELK_URL)
     stopCalling = readCallHistory(DATABASE, DATABASE_KEY, customerCallId, "hangup")
     if stopCalling == "True":
         return ""
@@ -325,7 +332,7 @@ def call(helperIndex, customerCallId, customerPhone):
 
 @app.route("/callBackToCustomer/<string:customerPhone>", methods=["POST", "GET"])
 def callBackToCustomer(customerPhone):
-
+    checkRequest(request, ELK_USER_AGENT, ELK_URL)
     print("No one found")
     auth = (API_USERNAME, API_PASSWORD)
     payload = {"play": MEDIA_URL + "/ingen_hittad.mp3"}
@@ -342,6 +349,7 @@ def callBackToCustomer(customerPhone):
 
 @app.route("/removeCustomer", methods=["POST"])
 def removeCustomer():
+    checkRequest(request, ELK_USER_AGENT, ELK_URL)
     from_sender = request.form.get("from")
     deleteFromDatabase(DATABASE, DATABASE_KEY, from_sender, "customer")
     return ""
@@ -349,6 +357,7 @@ def removeCustomer():
 
 @app.route("/handleNumberInput", methods=["POST"])
 def handleNumberInput():
+    checkRequest(request, ELK_USER_AGENT, ELK_URL)
     print(request.form.get("result"))
     number = int(request.form.get("result"))
     print("number: ", number)
@@ -365,6 +374,7 @@ def handleNumberInput():
 
 @app.route("/checkZipcode", methods=["POST"])
 def checkZipcode():
+    checkRequest(request, ELK_USER_AGENT, ELK_URL)
     zipcode = request.form.get("result")
     callId = request.form.get("callid")
     print("zipcode: ", zipcode)
@@ -397,6 +407,7 @@ def checkZipcode():
 
 @app.route("/connectUsers/<string:customerPhone>/<string:customerCallId>", methods=["POST"])
 def connectUsers(customerPhone, customerCallId):
+    checkRequest(request, ELK_USER_AGENT, ELK_URL)
     print("Connecting users")
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
 
