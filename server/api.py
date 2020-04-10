@@ -7,6 +7,7 @@ import time
 
 import pandas as pd
 import requests
+from flask import abort
 from flask import Flask
 from flask import redirect
 from flask import request
@@ -63,6 +64,7 @@ ZIPDATA = "SE.txt"
 MEDIA_FOLDER = "media"
 MEDIA_URL = "https://files.telehelp.se/new"
 ELK_SOURCE = "https://api.46elks.com"
+TRUSTED_PROXY = ["127.0.0.1"]
 
 VERIFICATION_EXPIRY_TIME = 5 * 60  # 5 minutes
 
@@ -148,6 +150,7 @@ def hangup():
 
     print("hangup")
     return ""
+
 
 @app.route("/handleReturningHelper", methods=["POST"])
 def handleReturningHelper():
@@ -282,7 +285,7 @@ def call(helperIndex, customerCallId, customerPhone):
         print("Calling: ", closestHelpers[helperIndex])
         fields = {"from": ELK_NUMBER, "to": closestHelpers[helperIndex], "voice_start": json.dumps(payload)}
 
-        response = requests.post(ELK_SOURCE+"/a1/calls", data=fields, auth=auth)
+        response = requests.post(ELK_SOURCE + "/a1/calls", data=fields, auth=auth)
 
         # print(json.loads(response.text))
         # state = json.loads(response.text)["state"]
@@ -307,7 +310,7 @@ def callBackToCustomer(customerPhone):
         "voice_start": json.dumps(payload),
     }
 
-    requests.post(ELK_SOURCE+"/a1/calls", data=fields, auth=auth)
+    requests.post(ELK_SOURCE + "/a1/calls", data=fields, auth=auth)
     return ""
 
 
@@ -368,6 +371,13 @@ def checkZipcode():
 
 @app.route("/connectUsers/<string:customerPhone>/<string:customerCallId>", methods=["POST"])
 def connectUsers(customerPhone, customerCallId):
+    remote = request.remote_addr
+    route = list(request.access_route)
+    if remote in TRUSTED_PROXY:
+        remote = route.pop()
+    print(request.remote_addr)
+    if request.remote_addr != ELK_SOURCE:
+        abort(403)
 
     helperPhone = request.form.get("to")
     print("helper: ", helperPhone)
@@ -403,7 +413,7 @@ def register():
         code = "".join(secrets.choice(string.digits) for _ in range(6))
         auth = (API_USERNAME, API_PASSWORD)
         fields = {"from": "Telehelp", "to": phone_number, "message": code}
-        requests.post(ELK_SOURCE+"/a1/sms", auth=auth, data=fields)
+        requests.post(ELK_SOURCE + "/a1/sms", auth=auth, data=fields)
 
         session[phone_number] = {
             "zipCode": validated["zipCode"],
