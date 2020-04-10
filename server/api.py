@@ -372,11 +372,16 @@ def checkZipcode():
 @app.route("/connectUsers/<string:customerPhone>/<string:customerCallId>", methods=["POST"])
 def connectUsers(customerPhone, customerCallId):
     print("Connecting users")
-    remote = request.remote_addr
-    route = list(request.access_route)
-    if remote in TRUSTED_PROXY:
-        remote = route.pop()
-    print(request.remote_addr)
+    if "X-Forwarded-For" in request.headers:
+        remote = request.headers.getlist("X-Forwarded-For")[0].rpartition(" ")[-1]
+    else:
+        remote = request.remote_addr or "untrackable"
+
+    # remote = request.remote_addr
+    # route = list(request.access_route)
+    # if remote in TRUSTED_PROXY:
+    #    remote = route.pop()
+    print(remote)
     if request.remote_addr not in ELK_SOURCE:
         abort(403)
 
