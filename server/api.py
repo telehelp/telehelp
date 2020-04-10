@@ -14,7 +14,6 @@ from flask import session
 from flask_session import Session
 
 from .databaseIntegration import *
-from .middlewares import login_required
 from .schemas import REGISTRATION_SCHEMA
 from .schemas import VERIFICATION_SCHEMA
 from .zipcode_utils import getDistanceApart
@@ -371,19 +370,12 @@ def connectUsers(customerPhone, customerCallId):
     writeActiveHelper(DATABASE, DATABASE_KEY, customerPhone, helperPhone)
     writeCallHistory(DATABASE, DATABASE_KEY, customerCallId, 'hangup', 'True')
     print('Connecting users')
-  print("customer:", customerPhone)
-  payload = {"connect": customerPhone, "callerid": ELK_NUMBER, "timeout": "15"}
-  return json.dumps(payload)
+    print("customer:", customerPhone)
+    payload = {"connect": customerPhone, "callerid": ELK_NUMBER, "timeout": "15"}
+    return json.dumps(payload)
 
 
 # -----------------------------------------------------------------------------------------------
-
-
-@app.route("/test", methods=["GET"])
-@login_required
-def test():
-    return {"entry": "test"}
-
 
 @app.route("/register", methods=["POST"])
 def register():
