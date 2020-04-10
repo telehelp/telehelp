@@ -74,5 +74,5 @@ def getCity(zipcode, city_dictionary):
     try:
         city = city_dictionary[int(zipcode)]
     except KeyError:
-        return "Okänd ort"
+        return "Okänd ort"  # TODO: Localize
     return city

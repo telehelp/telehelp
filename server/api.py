@@ -81,7 +81,14 @@ checkEnv(DATABASE, "DATABASE")
 checkEnv(DATABASE_KEY, "DATABASE_KEY")
 checkEnv(SECRET_KEY, "SECRET_KEY")
 
-ZIPDATA = "SE.txt"
+LANGUAGE_CODE = os.getenv("TELEHELP_LANG")
+if LANGUAGE_CODE == "SE":
+    ZIPDATA = "SE.txt"
+    print("Using Swedish localization")
+else:
+    ZIPDATA = "DE.txt"
+    print("Using German localization")
+
 MEDIA_FOLDER = "media"
 MEDIA_URL = "https://media.telehelp.se/media"
 ELK_BASE = "https://api.46elks.com"

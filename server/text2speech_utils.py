@@ -15,34 +15,39 @@ from zipcode_utils import readZipCodeData
 
 load_dotenv()
 
+LANGUAGE_CODE = os.getenv("TELEHELP_LANG")
+if LANGUAGE_CODE == "SE":
+    ZIPDATA = "SE.txt"
+else:
+    ZIPDATA = "DE.txt"
+
+
 text_input = dict()  # contains key as filename and string for tts
 
 """
 Common sound bytes (both customer and volunteer)
 """
-text_input["avreg_confirmed"] = "Du är nu avregistrerad. Din data kommer att raderas."
-text_input["du_kopplas"] = "Du kopplas nu till personen som du senast pratade med."
+text_input["avreg_confirmed"] = "You are now unregistered. Your personal data has been removed."
+text_input["du_kopplas"] = "You will now be connected to the last person you talked to."
 
 """
 Sound bytes played to customer only
 """
 text_input[
     "info"
-] = "Hej och välkommen till Telehelp. Här kan du bli tilldelad en volontär \
-    som kan hjälpa dig med en vardagssyssla. Det kan exempelvis vara att handla mat eller hämta \
-    ut medicin. Nästa gång du ringer kan du välja att bli tilldelad samma person. \
-    Behöver du hjälp med en vardagssyssla? Tryck 1. Vill du höra informationen igen? Tryck 2"
+] = "Hi and welcome to Telehelp. Here you can be assigned a volunteer that can help\
+ you handle self-isolation during the COVID-19 crisis. Examples of tasks are to go \
+ grocery shopping or visiting a pharmacy. The next time you call this number, you can choose to \
+ reach the same volunteer again. If you require assistance from a volunteer, press 1. \
+ If you want to hear this information again, press 2."
 
-text_input[
-    "post_nr"
-] = "Knappa vänligen in ditt postnummer, 5 siffror, efter tonen. Din postkod kommer att lagras."
-text_input["du_befinner"] = "Du befinner dig i närheten av "
-text_input["stammer_det"] = "Stämmer det? För att fortsätta, tryck 1. Vill du ändra ditt postnummer? Tryck 2."
+text_input["post_nr"] = "Enter your postal code, 5 digits, after the beep. Your postal code will be stored."
+text_input["du_befinner"] = "We think you are in the vicinity of"
+text_input["stammer_det"] = "If this is correct, press 1. To change your postal code, press 2."
 
 text_input[
     "behover_hjalp"
-] = "Välkommen till Telehelp! \
-    Vi ser att du redan använt vår tjänst. Vill du att vi kontaktar"
+] = "Welcome to Telehelp! We can see that you've already used our service. Do you want to get in touch with"
 text_input[
     "ensam_gamling"
 ] = "Välkommen till Telehelp. \
@@ -52,41 +57,47 @@ text_input[
 
 text_input[
     "pratade_sist"
-] = "som du pratade med sist? Tryck 1. Vill du byta till en ny volontär? \
-    Tryck 2. Vill du avregistrera dig från tjänsten? Tryck 3."
-text_input["info_igen"] = "Vill du höra informationen igen?"
+] = "who you talked to last? Press 1. If you want to switch to another volunteer, press 2. If you want to unregister from the service, press 3."
 
-text_input["vi_letar"] = "Vi letar efter någon som kan hjälpa dig i närområdet."
-text_input["finns_ingen"] = "Ingen volontär är registrerad i ditt närområde. Vänligen försök igen senare."
+text_input["info_igen"] = "Do you want to hear the information again?"
+
+text_input["vi_letar"] = "We are finding someone from your area who can assist you."
+
+text_input["finns_ingen"] = "No volunteers are registered in your area. Please try again later."
+
 text_input[
     "ringer_tillbaka"
-] = "Samtalet kommer nu att avslutas, men du kommer snart att ringas upp av en volontär. Då är det upp till dig att berätta vad du behöver hjälp med. Hejdå!"
+] = "The call will now end, but you will soon get called up by a volunteer. It is up to you to share what you need help with. Bye!"
 
 """
 Sound bytes played to volunteer only
 """
 text_input[
     "hjalte"
-] = "Hej! En användare av Telehelp behöver en hjälte. Vill du ta detta samtal? Tryck 1. Om inte tryck 2."
+] = "Hi! Somebody has called in to Telehelp and is in need of a hero! Can you take this call? Press 1. Otherwise, press 2."
+
 text_input[
     "registrerad_volontar"
-] = "Välkommen till Telehelp. Vi ser att du är registrerad som volontär. Vill du nå den person du hjälpte sist? Tryck 1. Vill du avregistrera dig från tjänsten? Tryck 2."
+] = "Welcome to Telehelp! We see that you are registered as a volunteer. Do you want to reach the person you last helped? Press 1. If you want to unregister from the service, press 2."
+
 text_input[
     "hjalper_ingen"
-] = "Välkommen till Telehelp. Vi ser att du är registrerad som volontär. \
-                                Du hjälper för närvarande ingen i riskgruppen. Förhoppningsvis ringer vi upp dig snart, \
-                                när någon ber om hjälp! Tack för din insats. Vill du avregistrera dig från tjänsten? Tryck 1, \
-                                annars kan du lägga på nu."
+] = "Welcome to Telehelp! We see that you are registered as a volunteer. \
+        You are currently not helping anyone from an at-risk group. Hopefully, we will call you up soon, \
+        when someone is in need of assistance. Thank you for your solidarity. If you want to unregister from the service, press 1. Otherwise, please hang up."
+
 text_input[
     "ingen_hittad"
-] = "Vi hittade tyvärr ingen ledig volontär i ditt område. Vänligen försök att ringa tillbaka senare. Hejdå"
+] = "Unfortunately, we did not find any available volunteers in your area. Please try calling back later."
+
 
 """
 Input parameters for text-to-speech model
 """
 voice = texttospeech.types.VoiceSelectionParams(
-    language_code="sv-SE", name="sv-SE-Wavenet-A", ssml_gender=texttospeech.enums.SsmlVoiceGender.NEUTRAL,
+    language_code="en-GB", name="en-GB-Wavenet-D", ssml_gender=texttospeech.enums.SsmlVoiceGender.MALE
 )
+
 
 # Select the type of audio file you want returned
 audio_config = texttospeech.types.AudioConfig(
@@ -121,7 +132,7 @@ def generateSoundBytes():
 # Generate sound bytes for all cities in SE.txt, without overwriting existing ones
 def generateCitySoundBytes():
     print("Generating city sound bytes (skips existing)")
-    cities = getListOfCities("SE.txt")
+    cities = getListOfCities(ZIPDATA)
     for city in cities:
         outputPath = os.path.join("media", "city", city + ".mp3")
         if not os.path.isfile(outputPath):
