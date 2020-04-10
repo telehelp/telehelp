@@ -93,7 +93,9 @@ def checkRequest(request, agent, white_url):
     if "User-Agent" in request.headers:
         userAgent = request.headers.getlist("User-Agent")[0]
         if userAgent != agent or remote_addr != white_ip:
-            print("Invalid user agent" + userAgent)
+            print(
+                f"Invalid user connecting to 46 ELK endpoint with User-Agent: {userAgent} from ip: {remote_addr}"
+            )
             log.info(
                 f"Invalid user connecting to 46 ELK endpoint with User-Agent: {userAgent} from ip: {remote_addr}"
             )
