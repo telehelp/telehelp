@@ -265,7 +265,8 @@ def postcodeInput(zipcode):
 
     # TODO: Add sound if zipcode is invalid (n/a)
     district = getDistrict(int(zipcode), district_dict)
-    saveCustomerToDatabase(DATABASE, DATABASE_KEY, phone, str(zipcode), district)
+    timestr = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
+    saveCustomerToDatabase(DATABASE, DATABASE_KEY, phone, str(zipcode), district, timestr)
     print("zipcode: ", zipcode)
 
     closestHelpers = fetchHelper(DATABASE, DATABASE_KEY, district, zipcode, location_dict)
@@ -480,7 +481,8 @@ def verify():
             city = sess["city"]
 
             log.info(f"Saving helper to database {name}, {phone_number}, {zipcode}, {city}")
-            saveHelperToDatabase(DATABASE, DATABASE_KEY, name, phone_number, zipcode, city)
+            timestr = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
+            saveHelperToDatabase(DATABASE, DATABASE_KEY, name, phone_number, zipcode, city, timestr)
             return {"type": "success"}
     return {"type": "failure"}
 

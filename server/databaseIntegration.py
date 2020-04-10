@@ -71,15 +71,15 @@ def readZipcodeFromDatabase(db, key, phone, userType):
     return res[0][0]
 
 
-def saveHelperToDatabase(db, key, name, phone, zipcode, district):
+def saveHelperToDatabase(db, key, name, phone, zipcode, district, timestr):
     print("Writing phone and postcode to database")
     print(
         "\nname: ", name, "\nzipcode:", zipcode, "\nphone: ", phone, "\ndistrict:", district,
     )
 
-    query = """ INSERT INTO user_helpers (phone, name, zipcode, district)
-                                    values(?, ?, ?, ?) """
-    params = (phone, name, zipcode, district)
+    query = """ INSERT INTO user_helpers (phone, name, zipcode, district, signup_time)
+                                    values(?, ?, ?, ?, ?) """
+    params = (phone, name, zipcode, district, timestr)
     flag = writeToDatabase(db, key, query, params)
     print(flag)
     return flag
@@ -113,7 +113,7 @@ def readActiveHelper(db, key, customerPhone):
     return res[0][0]
 
 
-def saveCustomerToDatabase(db, key, phone, zipcode, district):
+def saveCustomerToDatabase(db, key, phone, zipcode, district, timestr):
     print("Writing phone and postcode to database")
     print("zipcode:", zipcode, "\nphone: ", phone)
 
@@ -121,9 +121,9 @@ def saveCustomerToDatabase(db, key, phone, zipcode, district):
         query = """ UPDATE user_customers set district=? where phone=? """
         params = (district, phone)
     else:
-        query = """ INSERT INTO user_customers (phone, zipcode, district)
-                                            values(?, ?, ?) """
-        params = (phone, zipcode, district)
+        query = """ INSERT INTO user_customers (phone, zipcode, district, signup_time)
+                                            values(?, ?, ?, ?) """
+        params = (phone, zipcode, district, timestr)
     flag = writeToDatabase(db, key, query, params)
 
     print(flag)
@@ -180,9 +180,9 @@ def getCustomers(db, key):
 def writeCallHistory(db, key, callid, columnName, data):
     print(data)
     if columnName == "hangup":
-        query = """ UPDATE call_history set hangup=? where callid=? """
+        query = """ UPDATE call_variables set hangup=? where callid=? """
     elif columnName == "closest_helpers":
-        query = """ UPDATE call_history set closest_helpers=? where callid=? """
+        query = """ UPDATE call_variables set closest_helpers=? where callid=? """
 
     params = (data, callid)
     writeToDatabase(db, key, query, params)
@@ -190,9 +190,9 @@ def writeCallHistory(db, key, callid, columnName, data):
 
 def readCallHistory(db, key, callid, columnName):
     if columnName == "hangup":
-        query = """ SELECT hangup FROM call_history WHERE callid=? """
+        query = """ SELECT hangup FROM call_variables WHERE callid=? """
     elif columnName == "closest_helpers":
-        query = """ SELECT closest_helpers FROM call_history WHERE callid=? """
+        query = """ SELECT closest_helpers FROM call_variables WHERE callid=? """
     params = [callid]
     res = readDatabase(db, key, query, params)
     print("result readCallHistory: ", res)
@@ -203,7 +203,7 @@ def readCallHistory(db, key, callid, columnName):
 
 
 def callExists(db, key, callid):
-    query = """ SELECT * FROM call_history WHERE callid=?"""
+    query = """ SELECT * FROM call_variables WHERE callid=?"""
     params = [callid]
     ans = readDatabase(db, key, query, params)
     print(ans)
@@ -216,7 +216,7 @@ def callExists(db, key, callid):
 
 def createNewCallHistory(db, key, callid):
     if not callExists(db, key, callid):
-        query = """ INSERT INTO call_history (callid) values(?) """
+        query = """ INSERT INTO call_variables (callid) values(?) """
         params = [callid]
         writeToDatabase(db, key, query, params)
 
