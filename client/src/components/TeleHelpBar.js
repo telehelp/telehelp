@@ -37,12 +37,12 @@ const TeleHelpBar = (props) => {
                 </NavLink>
               </NavItem>
               <NavItem>
-                <Link to="/about">
+                <Link to="/about" style={{ textDecoration: "none" }}>
                   <NavLink>Om oss</NavLink>
                 </Link>
               </NavItem>
               <NavItem>
-                <Link to="/press">
+                <Link to="/press" style={{ textDecoration: "none" }}>
                   <NavLink>I media</NavLink>
                 </Link>
               </NavItem>
