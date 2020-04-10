@@ -67,6 +67,7 @@ MEDIA_URL = "https://files.telehelp.se/new"
 ELK_BASE = "https://api.46elks.com"
 TRUSTED_PROXY = ["127.0.0.1"]
 ELK_USER_AGENT = "46elks/0.2"
+ELK_URL = "api.46elks.com"
 
 VERIFICATION_EXPIRY_TIME = 5 * 60  # 5 minutes
 
@@ -82,16 +83,16 @@ def canonicalize_number(phone_number):
     return phone_number
 
 
-# Checks that header field User Agent is 46elks.
-def checkUsrAgent(request, agent):
-    elk_ip = socket.getaddrinfo("api.46elks.com", 443)[0][-1][0]
+# Checks that header field User Agent and ip address.
+def checkRequest(request, agent, white_url):
+    white_ip = socket.getaddrinfo(white_url, 443)[0][-1][0]
     if "X-Forwarded-For" in request.headers:
         remote_addr = request.headers.getlist("X-Forwarded-For")[0]
     else:
         remote_addr = request.remote_addr or "untrackable"
     if "User-Agent" in request.headers:
         userAgent = request.headers.getlist("User-Agent")[0]
-        if userAgent != agent or remote_addr != elk_ip:
+        if userAgent != agent or remote_addr != white_ip:
             print("Invalid user agent" + userAgent)
             log.info(
                 f"Invalid user connecting to 46 ELK endpoint with User-Agent: {userAgent} from ip: {remote_addr}"
@@ -114,7 +115,7 @@ def current_time():
 
 @app.route("/receiveCall", methods=["POST"])
 def receiveCall():
-    checkUsrAgent(request, ELK_USER_AGENT)
+    checkRequest(request, ELK_USER_AGENT, ELK_URL)
     callId = request.form.get("callid")
     createNewCallHistory(DATABASE, DATABASE_KEY, callId)
     from_sender = request.form.get("from")
@@ -392,7 +393,7 @@ def checkZipcode():
 @app.route("/connectUsers/<string:customerPhone>/<string:customerCallId>", methods=["POST"])
 def connectUsers(customerPhone, customerCallId):
     print("Connecting users")
-    checkUsrAgent(request, ELK_USER_AGENT)
+    checkRequest(request, ELK_USER_AGENT, ELK_URL)
 
     helperPhone = request.form.get("to")
     print("helper: ", helperPhone)
