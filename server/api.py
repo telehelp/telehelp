@@ -85,9 +85,12 @@ def canonicalize_number(phone_number):
 
 # Checks that header field User Agent and ip address.
 def checkRequest(request, agent, white_url):
+    print(request.headers)
     white_ip = socket.getaddrinfo(white_url, 443)[0][-1][0]
-    if "X-Real-IP" in request.headers:
+    if "X-Forwarded-For" in request.headers:
         remote_addr = request.headers.getlist("X-Forwarded-For")[0]
+        if "," in remote_addr:
+            remote_addr = remote_addr.split(",")[0]
     else:
         remote_addr = request.remote_addr or "untrackable"
     if "User-Agent" in request.headers:
