@@ -34,7 +34,13 @@ function VerificationForm() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newData),
     })
-      .then((res) => res.json())
+      .then((res) => {
+        if (res.ok) {
+          return res.json();
+        }
+        dispatch(setRegistrationProgress(FormStatus.CANNOT_CONNECT));
+        return Promise.reject("No response from server");
+      })
       .then((respData) => {
         // Not sure if redux allows this, should probably be done in a reducer
         if (respData.type === "success") {

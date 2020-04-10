@@ -31,7 +31,13 @@ function RegistrationForm(props) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     })
-      .then((res) => res.json())
+      .then((res) => {
+        if (res.ok) {
+          return res.json();
+        }
+        dispatch(setRegistrationProgress(FormStatus.CANNOT_CONNECT));
+        return Promise.reject("No response from server");
+      })
       .then((respData) => {
         if (respData.type === "success") {
           //Same here i am not sure redux allows this
@@ -42,6 +48,7 @@ function RegistrationForm(props) {
             ])
           );
         } else {
+          console.log("Bad details");
           dispatch(setRegistrationProgress(FormStatus.BAD_DETAILS));
         }
       });
@@ -87,7 +94,7 @@ function RegistrationForm(props) {
           placeholder="0701234567"
           invalid={"phoneNumber" in errors}
           innerRef={register({
-            pattern: /^[0]\d{9}$|^[\+46]\d{11}$/,
+            pattern: /^[0]\d{9}$|^[+46]\d{11}$/,
             required: true,
           })}
         />

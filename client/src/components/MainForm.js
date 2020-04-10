@@ -11,6 +11,15 @@ function MainForm() {
   let form;
 
   switch (progress) {
+    case FormStatus.CANNOT_CONNECT:
+      form = (
+        <CompleteForm
+          message={
+            "Kan inte kommunicera med servern! Försök gärna igen lite senare."
+          }
+        />
+      );
+      break;
     case FormStatus.REGISTRATION_COMPLETE:
       form = <CompleteForm message={"Tack för din registrering!"} />;
       break;

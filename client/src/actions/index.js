@@ -10,6 +10,7 @@ export const setPhoneNumber = (phoneNumber) => ({
 });
 
 export const FormStatus = {
+  CANNOT_CONNECT: "CANNOT_CONNECT",
   REGISTER_DETAILS: "REGISTER_DETAILS",
   BAD_DETAILS: "BAD_DETAILS",
   VERIFY_NUMBER: "VERIFY_NUMBER",

@@ -30,15 +30,16 @@ class MapView extends React.Component {
     ];
 
     fetch("/getVolunteerLocations")
-      .then((res) => res.json())
+      .then((res) => {
+        if (res.ok) {
+          return res.json();
+        }
+        this.setState({ addressPoints: coords });
+        return Promise.reject("No response from server");
+      })
       .then((data) => {
         this.setState({ addressPoints: data.coordinates });
-      })
-      .catch(console.log("error fetching coords, using defaults"));
-
-    if (this.state.addressPoints.length === 0) {
-      this.setState({ addressPoints: coords });
-    }
+      });
   }
 
   render() {
