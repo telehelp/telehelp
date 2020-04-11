@@ -377,7 +377,7 @@ def call(helperIndex, customerCallId, customerPhone):
 
         if helperIndex >= len(closestHelpers):
             writeCallHistory(DATABASE, DATABASE_KEY, customerCallId, "hangup", "True")
-            return redirect(url_for("callBackToCustomer/%s" % customerPhone))
+            return redirect(url_for("callBackToCustomer", customerPhone=customerPhone))
 
         print(closestHelpers[helperIndex])
         print(ELK_NUMBER)
