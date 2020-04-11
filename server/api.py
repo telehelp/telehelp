@@ -30,6 +30,7 @@ from .databaseIntegration import userExists
 from .databaseIntegration import writeActiveCustomer
 from .databaseIntegration import writeActiveHelper
 from .databaseIntegration import writeCallHistory
+from .databaseIntegration import writeNewCustomerAnalytics
 from .schemas import REGISTRATION_SCHEMA
 from .schemas import VERIFICATION_SCHEMA
 from .zipcode_utils import getDistanceApart
@@ -121,7 +122,9 @@ def current_time():
 def receiveCall():
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     callId = request.form.get("callid")
+    startTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
     createNewCallHistory(DATABASE, DATABASE_KEY, callId)
+
     from_sender = request.form.get("from")
     print(from_sender)
 
@@ -160,6 +163,8 @@ def receiveCall():
         return json.dumps(payload)
 
     # New customer
+    writeNewCustomerAnalytics(callId, fields=["call_start_time"], data=[startTime])
+
     payload = {
         "ivr": MEDIA_URL + "/info.mp3",
         "skippable": "true",
@@ -273,6 +278,7 @@ def postcodeInput(zipcode):
     writeCallHistory(DATABASE, DATABASE_KEY, callId, "closest_helpers", json.dumps(closestHelpers))
 
     if closestHelpers is None:
+        writeNewCustomerAnalytics(callId, fields=["n_helpers_contacted"], data=[0])
         payload = {"play": MEDIA_URL + "/finns_ingen.mp3"}
         return json.dumps(payload)
     else:
@@ -290,6 +296,11 @@ def call(helperIndex, customerCallId, customerPhone):
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     stopCalling = readCallHistory(DATABASE, DATABASE_KEY, customerCallId, "hangup")
     if stopCalling == "True":
+        # TODO: diff between existing and new customer
+        endTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
+        writeNewCustomerAnalytics(
+            customerCallId, fields=["n_helpers_contacted", "call_end_time"], data=[helperIndex, endTime]
+        )
         return ""
     else:
         print("helperIndex:", helperIndex)
@@ -377,6 +388,9 @@ def handleNumberInput():
 
         return json.dumps(payload)
 
+    # TODO: Add else to catch if user presses wrong number
+    return ""
+
 
 @app.route("/checkZipcode", methods=["POST"])
 def checkZipcode():
@@ -419,6 +433,7 @@ def connectUsers(customerPhone, customerCallId):
 
     print("Saving customer -> helper connection to database")
     # TODO: check current active customer/helper and move to previous
+    writeNewCustomerAnalytics(customerCallId, fields=["match_found"], data=["True"])
     writeActiveCustomer(DATABASE, DATABASE_KEY, helperPhone, customerPhone)
     writeActiveHelper(DATABASE, DATABASE_KEY, customerPhone, helperPhone)
     writeCallHistory(DATABASE, DATABASE_KEY, customerCallId, "hangup", "True")

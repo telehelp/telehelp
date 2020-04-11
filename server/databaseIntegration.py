@@ -242,6 +242,10 @@ def fetchHelper(db, key, district, zipcode, location_dict):
     return list(sortedNumbers)
 
 
+def writeNewCustomerAnalytics(callId, fields, data):
+    pass
+
+
 if __name__ == "__main__":
     DATABASE_KEY = os.environ.get("DATABASE_KEY")
     result = readCallHistory(
