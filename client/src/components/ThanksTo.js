@@ -9,7 +9,7 @@ class ThanksTo extends React.Component {
 
     return (
       <div className="thanks-to">
-        <h2>Tack för att ni gör Telehelp möjligt</h2>
+        <h2>Thanks for making Telehelp possible</h2>
         <div className="row">
           {sponsors.map((e, i) => {
             return (

@@ -54,13 +54,13 @@ function VerificationForm() {
   //if progress ngt
   //use a main form to do this
   // The main form should have all three steps
-  const message = "Skriv in koden som vi skickade dig";
+  const message = "Enter the code we sent you by SMS";
 
   return (
     <Form onSubmit={handleSubmit(onSubmit)}>
       <h4>{message}</h4>
       <FormGroup>
-        <Label for="Verifieringskod">Verifieringkod</Label>
+        <Label for="Verifieringskod">Verification</Label>
         <Input
           name="verificationCode"
           id="verificationCode"
@@ -68,9 +68,9 @@ function VerificationForm() {
           invalid={"verificationCode" in errors}
           innerRef={register({ pattern: /^[0-9]{6}$/, required: true })}
         />
-        <FormFeedback invalid>Skriv in en sexsiffrig kod</FormFeedback>
+        <FormFeedback invalid>Enter a 6 digit code</FormFeedback>
       </FormGroup>
-      <Button color="info">Registrera</Button>
+      <Button color="info">Sign up</Button>
     </Form>
   );
 }

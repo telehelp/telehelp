@@ -26,24 +26,24 @@ const TeleHelpBar = (props) => {
           <Collapse isOpen={!collapsed} navbar>
             <Nav navbar>
               <NavItem>
-                <NavLink href="/#register">Registrera dig som volontär</NavLink>
+                <NavLink href="/#register">Register as a volunteer</NavLink>
               </NavItem>
               <NavItem>
-                <NavLink href="/#faq">Vanliga frågor</NavLink>
+                <NavLink href="/#faq">Frequently asked questions</NavLink>
               </NavItem>
               <NavItem>
                 <NavLink href="/static/terms-and-conditions.pdf">
-                  Användarvillkor
+                  Terms of Service
                 </NavLink>
               </NavItem>
               <NavItem>
                 <Link to="/about" style={{ textDecoration: "none" }}>
-                  <NavLink>Om oss</NavLink>
+                  <NavLink>About us</NavLink>
                 </Link>
               </NavItem>
               <NavItem>
                 <Link to="/press" style={{ textDecoration: "none" }}>
-                  <NavLink>I media</NavLink>
+                  <NavLink>In media</NavLink>
                 </Link>
               </NavItem>
             </Nav>

@@ -23,7 +23,7 @@ test("renders header", () => {
       </BrowserRouter>
     </Provider>
   );
-  const linkElement = getByText(/Hjälp dina grannar att klara vardagen!/i);
+  const linkElement = getByText(/Help your neighbors handle daily chores!/i);
   expect(linkElement).toBeInTheDocument();
 });
 
@@ -41,6 +41,6 @@ test("test registration regex", () => {
       </BrowserRouter>
     </Provider>
   );
-  const linkElement = getByText(/Hjälp dina grannar att klara vardagen!/i);
+  const linkElement = getByText(/Help your neighbors handle daily chores!/i);
   expect(linkElement).toBeInTheDocument();
 });

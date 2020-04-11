@@ -3,10 +3,11 @@ import React from "react";
 const BackgroundInfo = () => {
   return (
     <div className="introduction">
-      <h2>Hjälp dina grannar att klara vardagen!</h2>
+      <h2>Help your neighbors handle daily chores!</h2>
       <p>
-        Som riskgrupp kan du ringa Telehelps nummer för att enkelt få hjälp med
-        dina vardagsbestyr av en volontär i närheten.
+        If you belong to an at-risk group, or are currently infected by the
+        coronavirus, you can call Telehelp's phone number to quickly get in
+        touch with a local volunteer who can help you out.
       </p>
       <div className="row">
         <div className="col-md-12 text-center">
@@ -18,11 +19,12 @@ const BackgroundInfo = () => {
         </div>
       </div>
       <p>
-        Genom att skriva upp dig som volontär kan personer som ingår i
-        riskgrupper eller som redan är smittade av corona i ditt närområde ringa
-        till dig för att få hjälp med sysslor som plötsligt blivit svåra på
-        grund av coronakrisen, exempelvis att handla mat eller hämta ut
-        mediciner.
+        By registering as a volunteer, local people in need of assistance during
+        the COVID-19 crisis can get in touch. Examples of tasks that may be
+        unsafe for these people to do normally during these times include
+        shopping for groceries or picking up medicine at the pharmacy. Telehelp
+        especially focuses on being accessible to anyone, even those without
+        access to the internet.
       </p>
     </div>
   );

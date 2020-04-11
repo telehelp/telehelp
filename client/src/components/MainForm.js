@@ -14,17 +14,15 @@ function MainForm() {
     case FormStatus.CANNOT_CONNECT:
       form = (
         <CompleteForm
-          message={
-            "Kan inte kommunicera med servern! Försök gärna igen lite senare."
-          }
+          message={"Could not communicate with the server. Try again later."}
         />
       );
       break;
     case FormStatus.REGISTRATION_COMPLETE:
-      form = <CompleteForm message={"Tack för din registrering!"} />;
+      form = <CompleteForm message={"Thanks for your solidarity!"} />;
       break;
     case FormStatus.VERIFICATION_FAILED:
-      form = <CompleteForm message={"Verifiering misslyckades!"} />;
+      form = <CompleteForm message={"Verification failed!"} />;
       break;
     case FormStatus.VERIFY_NUMBER:
       form = <VerificationForm />;
@@ -33,7 +31,7 @@ function MainForm() {
       form = (
         <CompleteForm
           message={
-            "Kunde inte genomföra registrering, du kanske redan har registrerat dig?"
+            "The registration could not be completed, maybe you are already registered?"
           }
         />
       );

@@ -5,31 +5,31 @@ const About = () => {
     {
       name: "David",
       responsibility: "Webmaster",
-      about: "Studerar elektroteknik och robotik vid KTH",
+      about: "Studies electrical engineering and robotics at KTH",
       email: "david@telehelp.se",
     },
     {
       name: "Daniel Eriksson",
       responsibility: "System administrator",
-      about: "Elektroingenjör på SAAB",
+      about: "Electrical engineer at SAAB",
       email: "daniel@telehelp.se",
     },
     {
       name: "Johan Ehrenfors",
       responsibility: "Backend developer",
-      about: "Konsult åt Ericsson hos Cybercom",
+      about: "Consultant for Ericsson through Cybercom",
       email: "johan@telehelp.se",
     },
     {
       name: "Therese Persson",
       responsibility: "Backend developer",
-      about: "Data engineer hos Sellpy",
+      about: "Data engineer at Sellpy",
       email: "therese@telehelp.se",
     },
     {
       name: "Dennis Lioubartsev",
       responsibility: "Chief Creative Designer",
-      about: "Civilingenjör i mekatronik",
+      about: "BSc Product Realization, MSc Mechatronics",
       email: "dennis@telehelp.se",
     },
   ];

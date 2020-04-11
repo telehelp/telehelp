@@ -23,7 +23,7 @@ const NumberPresentation = () => {
             clipRule="evenodd"
           />
         </svg>
-        <a href="tel:+46766861551">0766861551</a>
+        <a href="tel:+46766861115">+46766861115</a>
       </h1>
     </div>
   );

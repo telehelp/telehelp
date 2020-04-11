@@ -57,7 +57,7 @@ function RegistrationForm(props) {
   //if progress ngt
   //use a main form to do this
   // The main form should have all three steps
-  const message = "Registrera dig som volontär!";
+  const message = "Register as a volunteer!";
 
   return (
     <Form onSubmit={handleSubmit(onSubmit)}>
@@ -67,7 +67,7 @@ function RegistrationForm(props) {
         <Input
           name="helperName"
           id="helperName"
-          placeholder="Bengan"
+          placeholder="Johnny"
           invalid={"helperName" in errors}
           innerRef={register({ pattern: /^[a-z ,.'-]+$/i, required: true })}
         />
@@ -99,7 +99,7 @@ function RegistrationForm(props) {
           })}
         />
         <FormFeedback invalid>
-          Det telefonnummer som du skrev in är ogilitigt
+          The phone number you entered is invalid.
         </FormFeedback>
       </FormGroup>
       <FormGroup>
@@ -111,14 +111,14 @@ function RegistrationForm(props) {
           innerRef={register({ required: true })}
         />
         <Label for="terms">
-          Jag accepterar{" "}
-          <a href="/static/terms-and-conditions.pdf">användarvillkoren</a>
+          I accept{" "}
+          <a href="/static/terms-and-conditions.pdf">Terms of Service</a>
         </Label>
         <FormFeedback invalid>
-          Du måste acceptera användarvillkoren
+          You must accept the Terms of Service
         </FormFeedback>
       </FormGroup>
-      <Button color="info">Registrera</Button>
+      <Button color="info">Sign up</Button>
     </Form>
   );
 }
