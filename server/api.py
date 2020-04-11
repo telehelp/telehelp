@@ -370,7 +370,7 @@ def call(helperIndex, customerCallId, customerPhone):
 
         if helperIndex >= len(closestHelpers):
             writeCallHistory(DATABASE, DATABASE_KEY, customerCallId, "hangup", "True")
-            return redirect(url_for("callBackToCustomer/%s" % customerPhone))
+            return redirect(url_for("callBackToCustomer", customerPhone=customerPhone))
 
         print(closestHelpers[helperIndex])
         print(ELK_NUMBER)
@@ -578,15 +578,15 @@ def getVolunteerLocations():
 
 
 # -----------------------------------Test Functions-------------------------------------------------
-@app.route("/testredirect", methods=["POST", "GET"])
-def testredirect():
-    print("Redirect works")
+@app.route("/testredirect/<int:numb>", methods=["POST", "GET"])
+def testredirect(numb):
+    print(f"Redirect works:{numb}")
     return "Redirect works"
 
 
 @app.route("/testendpoint", methods=["GET"])
 def testendpoint():
-    return redirect(url_for("testredirect"))
+    return redirect(url_for("testredirect", numb=1))
 
 
 # --------------------------------------------------------------------------------------------------
