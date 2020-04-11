@@ -104,7 +104,7 @@ def generateSoundBytes():
     print("Generating IVR sound bytes (skips existing)")
     for key in text_input:
         # The response's audio_content is binary.
-        outputPath = os.path.join("media", "ivr", key + ".mp3")
+        outputPath = os.path.join("media/sv", "ivr", key + ".mp3")
         if not os.path.isfile(outputPath):
             synthesis_input = texttospeech.types.SynthesisInput(text=text_input[key])
             response = client.synthesize_speech(synthesis_input, voice, audio_config)
@@ -123,7 +123,7 @@ def generateCitySoundBytes():
     print("Generating city sound bytes (skips existing)")
     cities = getListOfCities("SE.txt")
     for city in cities:
-        outputPath = os.path.join("media", "city", city + ".mp3")
+        outputPath = os.path.join("media/sv", "city", city + ".mp3")
         if not os.path.isfile(outputPath):
             synthesis_input = texttospeech.types.SynthesisInput(text=city)
             response = client.synthesize_speech(synthesis_input, voice, audio_config)
@@ -138,7 +138,7 @@ def generateCitySoundBytes():
 
 def generateNameSoundByte(name):
     print("Generating name sound bytes (skips existing)")
-    outputPath = os.path.join("media", "name", name + ".mp3")
+    outputPath = os.path.join("media/sv", "name", name + ".mp3")
     if not os.path.isfile(outputPath):
         synthesis_input = texttospeech.types.SynthesisInput(text=name)
         response = client.synthesize_speech(synthesis_input, voice, audio_config)
@@ -148,7 +148,7 @@ def generateNameSoundByte(name):
             print('  Audio content written to file "' + outputPath + '"')
 
 
-def generateCustomSoundByte(text_string, filename, saveDir="/media"):
+def generateCustomSoundByte(text_string, filename, saveDir="/media/sv"):
     # Set the text input to be synthesized
     synthesis_input = texttospeech.types.SynthesisInput(text=text_string)
 
