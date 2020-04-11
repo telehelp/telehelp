@@ -83,7 +83,7 @@ checkEnv(SECRET_KEY, "SECRET_KEY")
 
 ZIPDATA = "SE.txt"
 MEDIA_FOLDER = "media"
-MEDIA_URL = "https://media.telehelp.se/media/sv"
+MEDIA_URL = "https://media.telehelp.se/sv"
 ELK_BASE = "https://api.46elks.com"
 TRUSTED_PROXY = ["127.0.0.1"]
 ELK_USER_AGENT = "46elks/0.2"
