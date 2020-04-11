@@ -5,6 +5,7 @@ import secrets
 import socket
 import string
 import time
+import urllib.parse
 
 import pandas as pd
 import requests
@@ -23,6 +24,7 @@ from .databaseIntegration import fetchHelper
 from .databaseIntegration import readActiveCustomer
 from .databaseIntegration import readActiveHelper
 from .databaseIntegration import readCallHistory
+from .databaseIntegration import readNameByNumber
 from .databaseIntegration import readZipcodeFromDatabase
 from .databaseIntegration import saveCustomerToDatabase
 from .databaseIntegration import saveHelperToDatabase
@@ -33,12 +35,12 @@ from .databaseIntegration import writeCallHistory
 from .databaseIntegration import writeNewCustomerAnalytics
 from .schemas import REGISTRATION_SCHEMA
 from .schemas import VERIFICATION_SCHEMA
+from .text2speech_utils import generateNameSoundByte
+from .zipcode_utils import getCity
 from .zipcode_utils import getDistanceApart
 from .zipcode_utils import getDistrict
 from .zipcode_utils import getLatLong
 from .zipcode_utils import readZipCodeData
-
-# from text2speech_utils import generateCustomSoundByte
 
 app = Flask(__name__, static_folder="../client/build", static_url_path="/")
 
@@ -54,17 +56,35 @@ handler.setLevel(logging.INFO)
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 handler.setFormatter(formatter)
 log.addHandler(handler)
+startTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
+log.info(f"New log entry {startTime}")
 
 BASE_URL = os.getenv("BASE_URL")
 ELK_NUMBER = os.getenv("ELK_NUMBER")
 API_USERNAME = os.getenv("API_USERNAME")
 API_PASSWORD = os.getenv("API_PASSWORD")
 DATABASE = os.getenv("DATABASE")
-
 DATABASE_KEY = os.getenv("DATABASE_KEY")
+
+
+def checkEnv(envVar, envStr):
+    if envVar is None:
+        print(f"Warning! An environmental variable is not set {envStr}")
+        log.info(f"Warning! An environmental variable is not set {envStr}")
+
+
+# Checks if the environmental variables are set
+checkEnv(BASE_URL, "BASE_URL")
+checkEnv(ELK_NUMBER, "ELK_NUMBER")
+checkEnv(API_USERNAME, "API_USERNAME")
+checkEnv(API_PASSWORD, "API_PASSWORD")
+checkEnv(DATABASE, "DATABASE")
+checkEnv(DATABASE_KEY, "DATABASE_KEY")
+checkEnv(SECRET_KEY, "SECRET_KEY")
+
 ZIPDATA = "SE.txt"
 MEDIA_FOLDER = "media"
-MEDIA_URL = "https://files.telehelp.se/new"
+MEDIA_URL = "https://media.telehelp.se/media"
 ELK_BASE = "https://api.46elks.com"
 TRUSTED_PROXY = ["127.0.0.1"]
 ELK_USER_AGENT = "46elks/0.2"
@@ -72,8 +92,7 @@ ELK_URL = "api.46elks.com"
 
 VERIFICATION_EXPIRY_TIME = 5 * 60  # 5 minutes
 
-
-location_dict, district_dict = readZipCodeData(ZIPDATA)
+location_dict, district_dict, city_dict = readZipCodeData(ZIPDATA)
 
 print("Site phone number: " + ELK_NUMBER)
 
@@ -135,14 +154,14 @@ def receiveCall():
         print(activeCustomer)
         if activeCustomer is None:
             payload = {
-                "ivr": MEDIA_URL + "/hjalper_ingen.mp3",
+                "ivr": MEDIA_URL + "/ivr/hjalper_ingen.mp3",
                 "skippable": "true",
                 "digits": 1,
-                "1": {"play": MEDIA_URL + "/avreg_confirmed.mp3", "next": BASE_URL + "/removeHelper",},
+                "1": {"play": MEDIA_URL + "/ivr/avreg_confirmed.mp3", "next": BASE_URL + "/removeHelper",},
             }
         else:
             payload = {
-                "ivr": MEDIA_URL + "/registrerad_volontar.mp3",
+                "ivr": MEDIA_URL + "/ivr/registrerad_volontar.mp3",
                 "digits": 1,
                 "next": BASE_URL + "/handleReturningHelper",
             }
@@ -151,13 +170,25 @@ def receiveCall():
     # For registered customers
     elif userExists(DATABASE, DATABASE_KEY, from_sender, "customer"):
         print("Registered customer")
-        # TODO: Add name.mp3 from generated file
+
+        # Get name of person to suggest call to from DB
+        helperNumber = readActiveHelper(DATABASE, DATABASE_KEY, from_sender)
+        name = readNameByNumber(DATABASE, DATABASE_KEY, helperNumber)
+        nameEncoded = urllib.parse.quote(name)  # åäö etc not handled well as URL -> crash
+
+        # Make sure name already exists (generate if somehow missing, for example early volunteers)
+        if not os.path.isfile("/media/name/" + nameEncoded + ".mp3"):
+            generateNameSoundByte(name)
+
         payload = {
-            "play": MEDIA_URL + "/behover_hjalp.mp3",
+            "play": MEDIA_URL + "/ivr/behover_hjalp.mp3",
             "next": {
-                "ivr": MEDIA_URL + "/pratade_sist.mp3",
-                "digits": 1,
-                "next": BASE_URL + "/handleReturningCustomer",
+                "play": MEDIA_URL + "/name/" + nameEncoded + ".mp3",
+                "next": {
+                    "ivr": MEDIA_URL + "/ivr/pratade_sist.mp3",
+                    "digits": 1,
+                    "next": BASE_URL + "/handleReturningCustomer",
+                },
             },
         }
         return json.dumps(payload)
@@ -166,7 +197,7 @@ def receiveCall():
     writeNewCustomerAnalytics(callId, fields=["call_start_time"], data=[startTime])
 
     payload = {
-        "ivr": MEDIA_URL + "/info.mp3",
+        "ivr": MEDIA_URL + "/ivr/info.mp3",
         "skippable": "true",
         "digits": 1,
         "2": BASE_URL + "/receiveCall",
@@ -189,14 +220,14 @@ def handleReturningHelper():
     number = int(request.form.get("result"))
     if number == 1:
         payload = {
-            "play": MEDIA_URL + "/du_kopplas.mp3",
+            "play": MEDIA_URL + "/ivr/du_kopplas.mp3",
             "next": BASE_URL + "/callExistingCustomer",
         }
         return json.dumps(payload)
 
     elif number == 2:
         payload = {
-            "play": MEDIA_URL + "/avreg_confirmed.mp3",
+            "play": MEDIA_URL + "/ivr/avreg_confirmed.mp3",
             "next": BASE_URL + "/removeHelper",
         }
         return json.dumps(payload)
@@ -228,7 +259,7 @@ def handleReturningCustomer():
     if number == 1:
 
         payload = {
-            "play": MEDIA_URL + "/du_kopplas.mp3",
+            "play": MEDIA_URL + "/ivr/du_kopplas.mp3",
             "skippable": "true",
             "next": BASE_URL + "/callExistingHelper",
         }
@@ -237,7 +268,7 @@ def handleReturningCustomer():
     if number == 2:
         zipcode = readZipcodeFromDatabase(DATABASE, DATABASE_KEY, phone, "customer")
         payload = {
-            "play": MEDIA_URL + "/vi_letar.mp3",
+            "play": MEDIA_URL + "/ivr/vi_letar.mp3",
             "skippable": "true",
             "next": BASE_URL + "/postcodeInput/%s" % zipcode,
         }
@@ -245,7 +276,7 @@ def handleReturningCustomer():
 
     if number == 3:
         payload = {
-            "play": MEDIA_URL + "/avreg_confirmed.mp3",
+            "play": MEDIA_URL + "/ivr/avreg_confirmed.mp3",
             "next": BASE_URL + "/removeCustomer",
         }
         return json.dumps(payload)
@@ -279,12 +310,13 @@ def postcodeInput(zipcode):
 
     if closestHelpers is None:
         writeNewCustomerAnalytics(callId, fields=["n_helpers_contacted"], data=[0])
-        payload = {"play": MEDIA_URL + "/finns_ingen.mp3"}
+        payload = {"play": MEDIA_URL + "/ivr/finns_ingen.mp3"}
+
         return json.dumps(payload)
     else:
         writeCallHistory(DATABASE, DATABASE_KEY, callId, "hangup", "False")
         payload = {
-            "play": MEDIA_URL + "/ringer_tillbaka.mp3",
+            "play": MEDIA_URL + "/ivr/ringer_tillbaka.mp3",
             "skippable": "true",
             "next": BASE_URL + "/call/0/%s/%s" % (callId, phone),
         }
@@ -316,17 +348,17 @@ def call(helperIndex, customerCallId, customerPhone):
             writeCallHistory(DATABASE, DATABASE_KEY, customerCallId, "hangup", "True")
             return redirect(url_for("callBackToCustomer/%s" % customerPhone))
 
+        print(closestHelpers[helperIndex])
+        print(ELK_NUMBER)
+
         # TODO: Handle if call is not picked up
         payload = {
-            "ivr": MEDIA_URL + "/hjalte.mp3",
+            "ivr": MEDIA_URL + "/ivr/hjalte.mp3",
             "timeout": "30",
             "whenhangup": BASE_URL + "/call/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone),
             "1": BASE_URL + "/connectUsers/%s/%s" % (customerPhone, customerCallId),
             "2": BASE_URL + "/call/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone),
         }
-
-        print(closestHelpers[helperIndex])
-        print(ELK_NUMBER)
 
         print("Calling: ", closestHelpers[helperIndex])
         fields = {"from": ELK_NUMBER, "to": closestHelpers[helperIndex], "voice_start": json.dumps(payload)}
@@ -352,13 +384,9 @@ def callBackToCustomer(customerPhone):
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     print("No one found")
     auth = (API_USERNAME, API_PASSWORD)
-    payload = {"play": MEDIA_URL + "/ingen_hittad.mp3"}
+    payload = {"play": MEDIA_URL + "/ivr/ingen_hittad.mp3"}
 
-    fields = {
-        "from": ELK_NUMBER,
-        "to": customerPhone,
-        "voice_start": json.dumps(payload),
-    }
+    fields = {"from": ELK_NUMBER, "to": customerPhone, "voice_start": json.dumps(payload)}
 
     requests.post(ELK_BASE + "/a1/calls", data=fields, auth=auth)
     return ""
@@ -382,11 +410,12 @@ def handleNumberInput():
         print("Write your zipcode")
 
         payload = {
-            "play": MEDIA_URL + "/post_nr.mp3",
-            "next": {"ivr": MEDIA_URL + "/bep.mp3", "digits": 5, "next": BASE_URL + "/checkZipcode",},
+            "play": MEDIA_URL + "/ivr/post_nr.mp3",
+            "next": {"ivr": MEDIA_URL + "/ivr/bep.mp3", "digits": 5, "next": BASE_URL + "/checkZipcode"},
         }
 
         return json.dumps(payload)
+    return ""
 
     # TODO: Add else to catch if user presses wrong number
     return ""
@@ -397,26 +426,30 @@ def checkZipcode():
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     zipcode = request.form.get("result")
     callId = request.form.get("callid")
+    city = getCity(int(zipcode), city_dict)
+    cityEncoded = urllib.parse.quote(city)
     print("zipcode: ", zipcode)
     print("callId: ", callId)
-    # writeCallHistory(DATABASE, DATABASE_KEY, callId, 'zipcode', zipcode)
-    print("Added to zipcode to call history database")
-
-    # phone = request.form.get("from")
-    # district = getDistrict(int(zipcode), district_dict)
-    # TODO: Add sound if zipcode is invalid (n/a)
     print("zipcode: ", zipcode)
+    print("city: ", city)
+    print("cityEnc: ", cityEncoded)
 
-    # TODO: add district file
     payload = {
-        "play": MEDIA_URL + "/du_befinner.mp3",
+        "play": MEDIA_URL + "/ivr/du_befinner.mp3",
         "next": {
-            "ivr": MEDIA_URL + "/stammer_det.mp3",
-            "1": BASE_URL + "/postcodeInput/%s" % zipcode,
-            "2": {
-                "play": MEDIA_URL + "/post_nr.mp3",
-                "skippable": "true",
-                "next": {"ivr": MEDIA_URL + "/bep.mp3", "digits": 5, "next": BASE_URL + "/checkZipcode"},
+            "play": MEDIA_URL + "/city/" + cityEncoded + ".mp3",
+            "next": {
+                "ivr": MEDIA_URL + "/ivr/stammer_det.mp3",
+                "1": BASE_URL + f"/postcodeInput/{zipcode}",
+                "2": {
+                    "play": MEDIA_URL + "/ivr/post_nr.mp3",
+                    "skippable": "true",
+                    "next": {
+                        "ivr": MEDIA_URL + "/ivr/bep.mp3",
+                        "digits": 5,
+                        "next": BASE_URL + "/checkZipcode",
+                    },
+                },
             },
         },
     }
@@ -443,7 +476,7 @@ def connectUsers(customerPhone, customerCallId):
     return json.dumps(payload)
 
 
-# -----------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
 
 
 @app.route("/register", methods=["POST"])
@@ -472,6 +505,12 @@ def register():
             "timestamp": int(time.time()),
             "code": code,
         }
+
+        # Generate sound byte of name: (TODO: Remove if user quits?)
+        nameEncoded = urllib.parse.quote(validated["helperName"])  # åäö etc not handled well as URL -> crash
+        if not os.path.isfile("/media/name/" + nameEncoded + ".mp3"):
+            generateNameSoundByte(validated["helperName"])
+
         return {"type": "success"}
     return {"type": "failure"}
 
@@ -513,12 +552,13 @@ def getVolunteerLocations():
     latlongs = []
 
     print(zip_list)
-    for zip in zip_list:
-        latlongs.append(getLatLong(zip[0], location_dict))
+    for zipcode in zip_list:
+        latlongs.append(getLatLong(zipcode[0], location_dict))
 
     return {"coordinates": latlongs}
 
 
+# -----------------------------------Test Functions-------------------------------------------------
 @app.route("/testredirect", methods=["POST", "GET"])
 def testredirect():
     print("Redirect works")
@@ -528,3 +568,6 @@ def testredirect():
 @app.route("/testendpoint", methods=["GET"])
 def testendpoint():
     return redirect(url_for("testredirect"))
+
+
+# --------------------------------------------------------------------------------------------------
