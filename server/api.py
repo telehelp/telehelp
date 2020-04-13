@@ -477,6 +477,7 @@ def checkZipcode():
                         "next": BASE_URL + "/checkZipcode",
                     },
                 },
+                "next": BASE_URL + "/checkZipcode",
             },
         },
     }
