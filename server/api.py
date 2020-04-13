@@ -135,11 +135,6 @@ def index():
     return app.send_static_file("index.html")
 
 
-@app.route("/time")
-def current_time():
-    return {"time": time.time()}
-
-
 # ------------------------------ PHONE API ----------------------------------------------------
 
 
