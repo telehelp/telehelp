@@ -1,4 +1,14 @@
 import os
+import urllib.request
+
+
+def checkURL(url):
+    try:
+        code = urllib.request.urlopen(url).getcode()
+        return code
+    except urllib.error.HTTPError as e:
+        print(f"Warning can't find path: {url}. Status {e.code} {e.reason}")
+        return e.code
 
 
 def checkMedia(python_file, key_word):
@@ -9,4 +19,5 @@ def checkMedia(python_file, key_word):
 
 
 if __name__ == "__main__":
-    pass
+    print(checkURL("https://media.telehelp.se/sv/ivr/info.mp3"))
+    checkMedia("api.py", "MEDIA_URL")
