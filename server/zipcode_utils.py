@@ -58,16 +58,6 @@ def getDistrict(zipcode, district_dict):
 
 
 # Input: zip code to look up
-# Output: zip code's location, as latlong. (0, 0) returned if position is unknown
-def getLatLong(zipcode, location_dictionary):
-    try:
-        latlong = location_dictionary[int(zipcode)]
-    except KeyError:
-        return (0, 0)
-    return latlong
-
-
-# Input: zip code to look up
 # Output: zip code's city, as string. "Okänd ort" returned if unknown zip
 # TODO: city_dictionary.get(int(zipcode), "Okänd ort") ska göra samma sak snyggare
 def getCity(zipcode, city_dictionary):

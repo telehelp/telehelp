@@ -9,6 +9,8 @@ import threading
 import time
 import urllib.parse
 import uuid
+from collections import Counter
+from pprint import pprint
 
 import pandas as pd
 import requests
@@ -45,7 +47,6 @@ from .text2speech_utils import generateNameSoundByte
 from .zipcode_utils import getCity
 from .zipcode_utils import getDistanceApart
 from .zipcode_utils import getDistrict
-from .zipcode_utils import getLatLong
 from .zipcode_utils import readZipCodeData
 
 app = Flask(__name__, static_folder="../client/build", static_url_path="/")
@@ -98,7 +99,7 @@ ELK_URL = "api.46elks.com"
 
 VERIFICATION_EXPIRY_TIME = 5 * 60  # 5 minutes
 
-location_dict, district_dict, city_dict = readZipCodeData(ZIPDATA)
+LOCATION_DICT, DISTRICT_DICT, CITY_DICT = readZipCodeData(ZIPDATA)
 
 print("Site phone number: " + ELK_NUMBER)
 
@@ -446,12 +447,12 @@ def postcodeInput(zipcode, telehelpCallId):
     phone = request.form.get("from")
 
     # TODO: Add sound if zipcode is invalid (n/a)
-    district = getDistrict(int(zipcode), district_dict)
+    district = getDistrict(int(zipcode), DISTRICT_DICT)
     timestr = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
     saveCustomerToDatabase(DATABASE, DATABASE_KEY, phone, str(zipcode), district, timestr)
     print("zipcode: ", zipcode)
 
-    closestHelpers = fetchHelper(DATABASE, DATABASE_KEY, district, zipcode, location_dict)
+    closestHelpers = fetchHelper(DATABASE, DATABASE_KEY, district, zipcode, LOCATION_DICT)
 
     # Reads if the customer has a current helper and if so it will delete the current helper from closestHelpers
     # since the customer have choosen a new helper.
@@ -616,7 +617,7 @@ def checkZipcode(telehelpCallId):
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     zipcode = request.form.get("result")
     callId = request.form.get("callid")
-    city = getCity(int(zipcode), city_dict)
+    city = getCity(int(zipcode), CITY_DICT)
     cityEncoded = urllib.parse.quote(city)
     print("zipcode: ", zipcode)
     print("callId: ", callId)
@@ -705,7 +706,7 @@ def register():
     if REGISTRATION_SCHEMA.is_valid(data):
         validated = REGISTRATION_SCHEMA.validate(data)
 
-        city = getDistrict(validated["zipCode"], district_dict)
+        city = getDistrict(validated["zipCode"], DISTRICT_DICT)
         phone_number = canonicalize_number(validated["phoneNumber"])
 
         if city == "n/a":
@@ -763,19 +764,23 @@ def verify():
 
 @app.route("/getVolunteerLocations", methods=["GET"])
 def getVolunteerLocations():
-    # Fetch all ZIP codes for volunteer users:
     query = "SELECT zipcode FROM user_helpers"
-    zip_pd_dict = fetchData(DATABASE, DATABASE_KEY, query, params=None)
-    zip_list = zip_pd_dict.values.tolist()
+    volunteer_zipcodes_df = fetchData(DATABASE, DATABASE_KEY, query, params=None)["zipcode"]
 
-    # Use ZIPs to get GPS coordinates (lat, long):
-    latlongs = []
+    c = Counter(volunteer_zipcodes_df)
+    response = {"total": sum(c.values()), "locations": []}
 
-    print(zip_list)
-    for zipcode in zip_list:
-        latlongs.append(getLatLong(zipcode[0], location_dict))
+    for zipCode, count in c.most_common():
+        z = int(zipCode)  # Should change this to use string we have time
+        entry = {
+            "coordinates": LOCATION_DICT.get(z),
+            "district": DISTRICT_DICT.get(z),
+            "city": CITY_DICT.get(z),
+            "count": count,
+        }
+        response["locations"].append(entry)
 
-    return {"coordinates": latlongs}
+    return response
 
 
 #################### TELEHELP SUPPORT FUNCTIONS ###########################

@@ -5,7 +5,6 @@ import unittest
 from server.zipcode_utils import getCity
 from server.zipcode_utils import getDistanceApart
 from server.zipcode_utils import getDistrict
-from server.zipcode_utils import getLatLong
 from server.zipcode_utils import readZipCodeData
 
 loc_d, dis_d, cit_d = readZipCodeData(os.path.join("server", "SE.txt"))
