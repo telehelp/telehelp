@@ -357,8 +357,10 @@ def postcodeInput(zipcode):
     helperPhone = readActiveHelper(DATABASE, DATABASE_KEY, phone)
     print(f"Helperphone: {helperPhone}")
     print(f"closestHelpers: {closestHelpers}")
-    if closestHelpers is not None and helperPhone in closestHelpers:
-        closestHelpers.remove(helperPhone)
+    if helperPhone is not None:
+        if closestHelpers is not None and helperPhone in closestHelpers:
+            closestHelpers.remove(helperPhone)
+        writeActiveHelper(DATABASE, DATABASE_KEY, None, helperPhone)
 
     writeCallHistory(DATABASE, DATABASE_KEY, callId, "closest_helpers", json.dumps(closestHelpers))
 
