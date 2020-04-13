@@ -124,10 +124,6 @@ def checkRequest(request, agent, white_url):
             abort(403)
 
 
-def mediaExists():
-    pass
-
-
 @app.route("/")
 def index():
     return app.send_static_file("index.html")
