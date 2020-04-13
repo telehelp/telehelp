@@ -246,6 +246,7 @@ def handleReturningHelper():
             "play": MEDIA_URL + "/ivr/du_kopplas.mp3",
             "next": BASE_URL + "/callExistingCustomer",
         }
+        checkPayload(payload, MEDIA_URL, log=log)
         return json.dumps(payload)
 
     elif number == 2:
@@ -253,6 +254,7 @@ def handleReturningHelper():
             "play": MEDIA_URL + "/ivr/avreg_confirmed.mp3",
             "next": BASE_URL + "/removeHelper",
         }
+        checkPayload(payload, MEDIA_URL, log=log)
         return json.dumps(payload)
 
 
@@ -286,6 +288,7 @@ def handleReturningCustomer():
             "skippable": "true",
             "next": BASE_URL + "/callExistingHelper",
         }
+        checkPayload(payload, MEDIA_URL, log=log)
         return json.dumps(payload)
 
     if number == 2:
@@ -295,6 +298,7 @@ def handleReturningCustomer():
             "skippable": "true",
             "next": BASE_URL + "/postcodeInput/%s" % zipcode,
         }
+        checkPayload(payload, MEDIA_URL, log=log)
         return json.dumps(payload)
 
     if number == 3:
@@ -302,6 +306,7 @@ def handleReturningCustomer():
             "play": MEDIA_URL + "/ivr/avreg_confirmed.mp3",
             "next": BASE_URL + "/removeCustomer",
         }
+        checkPayload(payload, MEDIA_URL, log=log)
         return json.dumps(payload)
 
     return ""
@@ -321,6 +326,7 @@ def handleLonelyCustomer():
             "skippable": "true",
             "next": BASE_URL + "/postcodeInput/%s" % zipcode,
         }
+        checkPayload(payload, MEDIA_URL, log=log)
         return json.dumps(payload)
 
     if number == 2:
@@ -328,6 +334,7 @@ def handleLonelyCustomer():
             "play": MEDIA_URL + "/ivr/avreg_confirmed.mp3",
             "next": BASE_URL + "/removeCustomer",
         }
+        checkPayload(payload, MEDIA_URL, log=log)
         return json.dumps(payload)
 
     return ""
@@ -371,6 +378,7 @@ def postcodeInput(zipcode):
 
     if closestHelpers is None:
         payload = {"play": MEDIA_URL + "/ivr/finns_ingen.mp3"}
+        checkPayload(payload, MEDIA_URL, log=log)
         return json.dumps(payload)
     else:
         writeCallHistory(DATABASE, DATABASE_KEY, callId, "hangup", "False")
@@ -379,6 +387,7 @@ def postcodeInput(zipcode):
             "skippable": "true",
             "next": BASE_URL + "/call/0/%s/%s" % (callId, phone),
         }
+        checkPayload(payload, MEDIA_URL, log=log)
         return json.dumps(payload)
 
 
@@ -414,6 +423,7 @@ def call(helperIndex, customerCallId, customerPhone):
             "1": BASE_URL + "/connectUsers/%s/%s" % (customerPhone, customerCallId),
             "2": BASE_URL + "/call/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone),
         }
+        checkPayload(payload, MEDIA_URL, log=log)
 
         print("Calling: ", closestHelpers[helperIndex])
         fields = {"from": ELK_NUMBER, "to": closestHelpers[helperIndex], "voice_start": json.dumps(payload)}
@@ -467,7 +477,7 @@ def handleNumberInput():
         "play": MEDIA_URL + "/ivr/post_nr.mp3",
         "next": {"ivr": MEDIA_URL + "/ivr/bep.mp3", "digits": 5, "next": BASE_URL + "/checkZipcode"},
     }
-
+    checkPayload(payload, MEDIA_URL, log=log)
     return json.dumps(payload)
 
 
@@ -495,7 +505,7 @@ def checkZipcode():
             },
         },
     }
-
+    checkPayload(payload, MEDIA_URL, log=log)
     return json.dumps(payload)
 
 
