@@ -108,10 +108,13 @@ audio_config = texttospeech.types.AudioConfig(
 )
 
 # Instantiates a client
-dirname = os.path.dirname(__file__)
-filepath_json = os.path.join(dirname, "..", "..", "GoogleTextToSpeech.json")
-cred = service_account.Credentials.from_service_account_file(filepath_json)
-client = texttospeech.TextToSpeechClient(credentials=cred)
+if os.getenv("GOOGLE_APPLICATION_CREDENTIALS") is not None:
+    dirname = os.path.dirname(__file__)
+    filepath_json = os.path.join(dirname, "..", "..", "GoogleTextToSpeech.json")
+    cred = service_account.Credentials.from_service_account_file(filepath_json)
+    client = texttospeech.TextToSpeechClient(credentials=cred)
+else:
+    print("Environment variable GOOGLE_APPLICATION_CREDENTIALS is not present, text to speech unavailable")
 
 
 def generateSoundBytes():
