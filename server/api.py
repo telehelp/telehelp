@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import random
 import secrets
 import socket
 import string
@@ -154,6 +155,7 @@ def receiveCall():
                 "ivr": MEDIA_URL + "/ivr/hjalper_ingen.mp3",
                 "skippable": "true",
                 "digits": 1,
+                "2": BASE_URL + "/support",
                 "1": {"play": MEDIA_URL + "/ivr/avreg_confirmed.mp3", "next": BASE_URL + "/removeHelper",},
                 "next": BASE_URL + "/receiveCall",
             }
@@ -162,6 +164,7 @@ def receiveCall():
                 "ivr": MEDIA_URL + "/ivr/registrerad_volontar.mp3",
                 "digits": 1,
                 "1": BASE_URL + "/handleReturningHelper",
+                "3": BASE_URL + "/support",
                 "next": BASE_URL + "/receiveCall",
             }
         return json.dumps(payload)
@@ -179,6 +182,7 @@ def receiveCall():
                 "ivr": MEDIA_URL + "/ivr/ensam_gamling.mp3",
                 "digits": 1,
                 "1": BASE_URL + "/handleLonelyCustomer",
+                "3": BASE_URL + "/support",
                 "next": BASE_URL + "/receiveCall",
             }
             return json.dumps(payload)
@@ -200,6 +204,7 @@ def receiveCall():
                         "1": BASE_URL + "/handleReturningCustomer",
                         "2": BASE_URL + "/handleReturningCustomer",
                         "3": BASE_URL + "/handleReturningCustomer",
+                        "4": BASE_URL + "/support",
                         "next": BASE_URL + "/receiveCall",
                     },
                 },
@@ -213,6 +218,7 @@ def receiveCall():
         "digits": 1,
         "1": BASE_URL + "/handleNumberInput",
         "2": BASE_URL + "/receiveCall",
+        "3": BASE_URL + "/support",
         "next": BASE_URL + "/receiveCall",
     }
     return json.dumps(payload)
@@ -361,6 +367,7 @@ def postcodeInput(zipcode):
 
 @app.route("/call/<int:helperIndex>/<string:customerCallId>/<string:customerPhone>", methods=["POST"])
 def call(helperIndex, customerCallId, customerPhone):
+    # NOTE: When making changes here, also update /callSupport :)
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     stopCalling = readCallHistory(DATABASE, DATABASE_KEY, customerCallId, "hangup")
     if stopCalling == "True":
@@ -573,6 +580,98 @@ def getVolunteerLocations():
         latlongs.append(getLatLong(zipcode[0], location_dict))
 
     return {"coordinates": latlongs}
+
+
+#################### TELEHELP SUPPORT FUNCTIONS ###########################
+
+
+@app.route("/support", methods=["POST"])
+def support():
+    # Call the Telehelp team in randomized order
+
+    checkRequest(request, ELK_USER_AGENT, ELK_URL)
+    callId = request.form.get("callid")
+    phone = request.form.get("from")
+
+    # J, T, DEr
+    supportTeam = ["+46737600282", "+46707812741", "+46761423456"]
+    random.shuffle(supportTeam)  # Randomize order to spread load
+    writeCallHistory(DATABASE, DATABASE_KEY, callId, "closest_helpers", json.dumps(supportTeam))
+    writeCallHistory(DATABASE, DATABASE_KEY, callId, "hangup", "False")
+    payload = {
+        "play": MEDIA_URL + "/ivr/ringer_tillbaka_support.mp3",
+        "skippable": "true",
+        "next": BASE_URL + "/callSupport/0/%s/%s" % (callId, phone),
+    }
+    return json.dumps(payload)
+
+
+@app.route("/callSupport/<int:helperIndex>/<string:supportCallId>/<string:supportPhone>", methods=["POST"])
+def callSupport(helperIndex, supportCallId, supportPhone):
+    checkRequest(request, ELK_USER_AGENT, ELK_URL)
+    stopCalling = readCallHistory(DATABASE, DATABASE_KEY, supportCallId, "hangup")
+    if stopCalling == "True":
+        return ""
+    else:
+        print("supportTeamIndex:", helperIndex)
+
+        print("Support customer callId: ", supportCallId)
+
+        supportTeamList = json.loads(readCallHistory(DATABASE, DATABASE_KEY, supportCallId, "closest_helpers"))
+        print("closest helpers: ", supportTeamList)
+
+        auth = (API_USERNAME, API_PASSWORD)
+
+        if helperIndex >= len(supportTeamList):
+            writeCallHistory(DATABASE, DATABASE_KEY, supportCallId, "hangup", "True")
+            return redirect(url_for("callBackToSupportCustomer", supportPhone=supportPhone))
+
+        print(supportTeamList[helperIndex])
+        print(ELK_NUMBER)
+
+        # TODO: Handle if call is not picked up
+        payload = {
+            "ivr": MEDIA_URL + "/ivr/hjalte_support.mp3",
+            "timeout": "30",
+            "whenhangup": BASE_URL + "/call/%s/%s/%s" % (str(helperIndex + 1), supportCallId, supportPhone),
+            "1": BASE_URL + "/connectUsersSupport/%s/%s" % (supportPhone, supportCallId),
+            "2": BASE_URL + "/callSupport/%s/%s/%s" % (str(helperIndex + 1), supportCallId, supportPhone),
+        }
+
+        print("Calling: ", supportTeamList[helperIndex])
+        fields = {"from": ELK_NUMBER, "to": supportTeamList[helperIndex], "voice_start": json.dumps(payload)}
+
+        response = requests.post(ELK_BASE + "/a1/calls", data=fields, auth=auth)
+
+        print(response.text)
+        return ""
+
+
+@app.route("/callBackToSupportCustomer/<string:customerPhone>", methods=["POST", "GET"])
+def callBackToSupportCustomer(customerPhone):
+    checkRequest(request, ELK_USER_AGENT, ELK_URL)
+    print("No support team person found")
+    auth = (API_USERNAME, API_PASSWORD)
+    payload = {"play": MEDIA_URL + "/ivr/ingen_hittad_support.mp3"}
+
+    fields = {"from": ELK_NUMBER, "to": customerPhone, "voice_start": json.dumps(payload)}
+
+    requests.post(ELK_BASE + "/a1/calls", data=fields, auth=auth)
+    return ""
+
+
+@app.route("/connectUsersSupport/<string:customerPhone>/<string:customerCallId>", methods=["POST"])
+def connectUsersSupport(customerPhone, customerCallId):
+    checkRequest(request, ELK_USER_AGENT, ELK_URL)
+
+    helperPhone = request.form.get("to")
+    print("support from: ", helperPhone)
+
+    writeCallHistory(DATABASE, DATABASE_KEY, customerCallId, "hangup", "True")
+    print("Connecting users")
+    print("customer:", customerPhone)
+    payload = {"connect": customerPhone, "callerid": ELK_NUMBER, "timeout": "15"}
+    return json.dumps(payload)
 
 
 # -----------------------------------Test Functions-------------------------------------------------
