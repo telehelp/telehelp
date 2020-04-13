@@ -23,6 +23,15 @@ Common sound bytes (both customer and volunteer)
 """
 text_input["avreg_confirmed"] = "Du är nu avregistrerad. Din data kommer att raderas."
 text_input["du_kopplas"] = "Du kopplas nu till personen som du senast pratade med."
+text_input[
+    "ringer_tillbaka_support"
+] = "Samtalet kommer nu att avslutas, men du kommer snart att ringas upp av en i supporten om vi är tillgängliga."
+text_input[
+    "ingen_hittad_support"
+] = "Ingen i support teamet kan ta ditt samtal för närvarande. Vänligen försök att ringa tillbaka senare eller mejla till info at telehelp punkt S E. Hejdå"
+text_input[
+    "hjalte_support"
+] = "Hej! En användare av Telehelp söker support. Vill du ta detta samtal? Tryck 1. Om inte tryck 2."
 
 """
 Sound bytes played to customer only
@@ -32,7 +41,7 @@ text_input[
 ] = "Hej och välkommen till Telehelp. Här kan du bli tilldelad en volontär \
     som kan hjälpa dig med en vardagssyssla. Det kan exempelvis vara att handla mat eller hämta \
     ut medicin. Nästa gång du ringer kan du välja att bli tilldelad samma person. \
-    Behöver du hjälp med en vardagssyssla? Tryck 1. Vill du höra informationen igen? Tryck 2"
+    Behöver du hjälp med en vardagssyssla? Tryck 1. Vill du höra informationen igen? Tryck 2. För att nå Telehelps support, tryck 3."
 
 text_input[
     "post_nr"
@@ -48,13 +57,13 @@ text_input[
     "ensam_gamling"
 ] = "Välkommen till Telehelp. \
     Vi ser att du redan använt vår tjänst. Behöver du hjälp med en vardagssyssla? Tryck 1\
-    Vill du avregistrera dig från tjänsten? Tryck 2."
+    Vill du avregistrera dig från tjänsten? Tryck 2. För att nå Telehelps support, tryck 3."
 
 
 text_input[
     "pratade_sist"
 ] = "som du pratade med sist? Tryck 1. Vill du byta till en ny volontär? \
-    Tryck 2. Vill du avregistrera dig från tjänsten? Tryck 3."
+    Tryck 2. Vill du avregistrera dig från tjänsten? Tryck 3. För att nå Telehelps support, tryck 4."
 text_input["info_igen"] = "Vill du höra informationen igen?"
 
 text_input["vi_letar"] = "Vi letar efter någon som kan hjälpa dig i närområdet."
@@ -65,6 +74,7 @@ text_input[
     "ringer_tillbaka"
 ] = "Samtalet kommer nu att avslutas, men du kommer snart att ringas upp av en volontär. Då är det upp till dig att berätta vad du behöver hjälp med. Hejdå!"
 
+
 """
 Sound bytes played to volunteer only
 """
@@ -73,13 +83,14 @@ text_input[
 ] = "Hej! En användare av Telehelp behöver en hjälte. Vill du ta detta samtal? Tryck 1. Om inte tryck 2."
 text_input[
     "registrerad_volontar"
-] = "Välkommen till Telehelp. Vi ser att du är registrerad som volontär. Vill du nå den person du hjälpte sist? Tryck 1. Vill du avregistrera dig från tjänsten? Tryck 2."
+] = "Välkommen till Telehelp. Vi ser att du är registrerad som volontär. Vill du nå den person du hjälpte sist? Tryck 1. \
+                                Vill du avregistrera dig från tjänsten? Tryck 2. För att nå Telehelps support, tryck 3."
 text_input[
     "hjalper_ingen"
 ] = "Välkommen till Telehelp. Vi ser att du är registrerad som volontär. \
                                 Du hjälper för närvarande ingen i riskgruppen. Förhoppningsvis ringer vi upp dig snart, \
-                                när någon ber om hjälp! Tack för din insats. Vill du avregistrera dig från tjänsten? Tryck 1, \
-                                annars kan du lägga på nu."
+                                när någon ber om hjälp! Tack för din insats. Vill du avregistrera dig från tjänsten? Tryck 1.\
+                                För att nå Telehelps support, tryck 2."
 text_input[
     "ingen_hittad"
 ] = "Vi hittade tyvärr ingen ledig volontär i ditt område. Vänligen försök att ringa tillbaka senare. Hejdå"

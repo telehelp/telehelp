@@ -5,6 +5,7 @@ class ThanksTo extends React.Component {
     const sponsors = [
       { link: "https://46elks.se/", imagePath: "img/46elks-logo.svg" },
       { link: "https://cybercom.com", imagePath: "img/cybercom-logo.svg" },
+      { link: "https://helsingborg.se/", imagePath: "img/HBG-logo.svg" },
     ];
 
     return (
