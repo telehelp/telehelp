@@ -9,6 +9,9 @@ from .zipcode_utils import getDistrict
 from .zipcode_utils import getLatLong
 from .zipcode_utils import readZipCodeData
 
+# from dotenv import load_dotenv
+# load_dotenv()
+
 
 def create_connection(db_file, key):
     """ create a database connection to the SQLite database
@@ -260,8 +263,13 @@ def readCallHistory(db, key, callid, columnName):
     return res[0][0]
 
 
-def callExists(db, key, callid):
-    query = """ SELECT * FROM call_variables WHERE callid=?"""
+def callExists(db, key, callid, tableName):
+    if tableName == "call_variables":
+        query = """ SELECT * FROM call_variables WHERE callid=?"""
+    elif tableName == "call_analytics_customer":
+        query = """ SELECT * FROM call_analytics_customer WHERE telehelp_callid=?"""
+    elif tableName == "call_analytics_helper":
+        query = """ SELECT * FROM call_analytics_helper WHERE telehelp_callid=?"""
     params = [callid]
     ans = readDatabase(db, key, query, params)
     print(ans)
@@ -273,22 +281,78 @@ def callExists(db, key, callid):
 
 
 def createNewCallHistory(db, key, callid):
-    if not callExists(db, key, callid):
+    if not callExists(db, key, callid, "call_variables"):
         query = """ INSERT INTO call_variables (callid) values(?) """
         params = [callid]
         writeToDatabase(db, key, query, params)
 
 
-def writeNewCustomerAnalytics(callId, fields, data):
-    pass
+def writeCustomerAnalytics(db, key, telehelp_callid, columns, params):
+
+    if not callExists(db, key, telehelp_callid, "call_analytics_customer"):
+        columnStr = "(" + ",".join(columns) + ")"
+        valuesStr = "values(" + "?," * (len(columns) - 1) + "?)"
+
+        query = """ INSERT INTO call_analytics_customer %s %s """ % (columnStr, valuesStr)
+
+        print(query)
+        print(params)
+
+    else:
+        columnStr = ""
+        for i in range(len(columns) - 1):
+            columnStr += columns[i] + "=?,"
+        columnStr += columns[-1] + "=?"
+        query = """ UPDATE call_analytics_customer SET %s
+                        where telehelp_callid=?""" % (
+            columnStr
+        )
+        print(query)
+        print(params)
+
+    writeToDatabase(db, key, query, params)
+
+
+def writeHelperAnalytics(db, key, telehelp_callid, columns, params):
+
+    if not callExists(db, key, telehelp_callid, "call_analytics_helper"):
+        columnStr = "(" + ",".join(columns) + ")"
+        valuesStr = "values(" + "?," * (len(columns) - 1) + "?)"
+
+        query = """ INSERT INTO call_analytics_helper %s %s """ % (columnStr, valuesStr)
+
+        print(query)
+        print(params)
+
+    else:
+        columnStr = ""
+        for i in range(len(columns) - 1):
+            columnStr += columns[i] + "=?,"
+        columnStr += columns[-1] + "=?"
+        query = """ UPDATE call_analytics_helper SET %s
+                        where telehelp_callid=?""" % (
+            columnStr
+        )
+        print(query)
+        print(params)
+
+    writeToDatabase(db, key, query, params)
 
 
 if __name__ == "__main__":
     DATABASE_KEY = os.environ.get("DATABASE_KEY")
-    result = readCallHistory(
-        "telehelp.db", DATABASE_KEY, "c978d94b07cef017b39f4e4b42332b8e6", "current_customer",
+    # result = readCallHistory(
+    #     "telehelp.db", DATABASE_KEY, "c978d94b07cef017b39f4e4b42332b8e6", "current_customer",
+    # )
+
+    writeCustomerAnalytics(
+        "test.db",
+        DATABASE_KEY,
+        "b260239e-7d80-11ea-8607-9cb6d098d723",
+        ["match_found"],
+        ("True", "b260239e-7d80-11ea-8607-9cb6d098d723"),
     )
-    print(result)
+    # print(result)
 
     # conn, cursor = create_connection('telehelp.db', DATABASE_KEY)
     # # print(savePostcodeToDatabase('telehelp.db', DATABASSE_KEY, '125', '17070', 'customer'))

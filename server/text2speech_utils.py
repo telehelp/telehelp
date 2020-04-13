@@ -10,8 +10,9 @@ import urllib.parse
 from dotenv import load_dotenv
 from google.cloud import texttospeech
 from google.oauth2 import service_account
-from zipcode_utils import getListOfCities
-from zipcode_utils import readZipCodeData
+
+from .zipcode_utils import getListOfCities
+from .zipcode_utils import readZipCodeData
 
 load_dotenv()
 

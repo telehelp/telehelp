@@ -6,6 +6,7 @@ import socket
 import string
 import time
 import urllib.parse
+import uuid
 
 import pandas as pd
 import requests
@@ -32,7 +33,8 @@ from .databaseIntegration import userExists
 from .databaseIntegration import writeActiveCustomer
 from .databaseIntegration import writeActiveHelper
 from .databaseIntegration import writeCallHistory
-from .databaseIntegration import writeNewCustomerAnalytics
+from .databaseIntegration import writeCustomerAnalytics
+from .databaseIntegration import writeHelperAnalytics
 from .schemas import REGISTRATION_SCHEMA
 from .schemas import VERIFICATION_SCHEMA
 from .text2speech_utils import generateNameSoundByte
@@ -142,6 +144,7 @@ def receiveCall():
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     callId = request.form.get("callid")
     startTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
+    telehelpCallId = str(uuid.uuid1())
     createNewCallHistory(DATABASE, DATABASE_KEY, callId)
 
     from_sender = request.form.get("from")
@@ -150,6 +153,13 @@ def receiveCall():
     # For registered helpers
     if userExists(DATABASE, DATABASE_KEY, from_sender, "helper"):
         print("Registered helper")
+        writeHelperAnalytics(
+            DATABASE,
+            DATABASE_KEY,
+            telehelpCallId,
+            ["telehelp_callid", "elks_callid", "call_start_time"],
+            (telehelpCallId, callId, startTime),
+        )
         activeCustomer = readActiveCustomer(DATABASE, DATABASE_KEY, from_sender)
         print(activeCustomer)
         if activeCustomer is None:
@@ -157,19 +167,29 @@ def receiveCall():
                 "ivr": MEDIA_URL + "/ivr/hjalper_ingen.mp3",
                 "skippable": "true",
                 "digits": 1,
-                "1": {"play": MEDIA_URL + "/ivr/avreg_confirmed.mp3", "next": BASE_URL + "/removeHelper",},
+                "1": {
+                    "play": MEDIA_URL + "/ivr/avreg_confirmed.mp3",
+                    "next": BASE_URL + "/removeHelper/%s" % telehelpCallId,
+                },
             }
         else:
             payload = {
                 "ivr": MEDIA_URL + "/ivr/registrerad_volontar.mp3",
                 "digits": 1,
-                "next": BASE_URL + "/handleReturningHelper",
+                "next": BASE_URL + "/handleReturningHelper/%s" % telehelpCallId,
             }
         return json.dumps(payload)
 
     # For registered customers
     elif userExists(DATABASE, DATABASE_KEY, from_sender, "customer"):
         print("Registered customer")
+        writeCustomerAnalytics(
+            DATABASE,
+            DATABASE_KEY,
+            telehelpCallId,
+            ["telehelp_callid", "elks_callid", "call_start_time", "new_customer"],
+            (telehelpCallId, callId, startTime, "False"),
+        )
 
         # Get name of person to suggest call to from DB
         helperNumber = readActiveHelper(DATABASE, DATABASE_KEY, from_sender)
@@ -179,7 +199,7 @@ def receiveCall():
             payload = {
                 "ivr": MEDIA_URL + "/ivr/ensam_gamling.mp3",
                 "digits": 1,
-                "next": BASE_URL + "/handleLonelyCustomer",
+                "next": BASE_URL + "/handleLonelyCustomer/%s" % telehelpCallId,
             }
             return json.dumps(payload)
 
@@ -197,71 +217,107 @@ def receiveCall():
                     "next": {
                         "ivr": MEDIA_URL + "/ivr/pratade_sist.mp3",
                         "digits": 1,
-                        "next": BASE_URL + "/handleReturningCustomer",
+                        "next": BASE_URL + "/handleReturningCustomer/%s" % telehelpCallId,
                     },
                 },
             }
             return json.dumps(payload)
 
     # New customer
-    writeNewCustomerAnalytics(callId, fields=["call_start_time"], data=[startTime])
+    writeCustomerAnalytics(
+        DATABASE,
+        DATABASE_KEY,
+        telehelpCallId,
+        ["telehelp_callid", "elks_callid", "call_start_time", "new_customer"],
+        (telehelpCallId, callId, startTime, "True"),
+    )
 
     payload = {
         "ivr": MEDIA_URL + "/ivr/info.mp3",
         "skippable": "true",
         "digits": 1,
         "2": BASE_URL + "/receiveCall",
-        "next": BASE_URL + "/handleNumberInput",
+        "next": BASE_URL + "/handleNumberInput/%s" % telehelpCallId,
     }
     return json.dumps(payload)
 
 
-@app.route("/hangup", methods=["POST"])
-def hangup():
-
+@app.route("/customerHangup/<string:telehelpCallId>", methods=["POST", "GET"])
+def customerHangup(telehelpCallId):
     print("hangup")
+    endTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
+    writeCustomerAnalytics(
+        DATABASE, DATABASE_KEY, telehelpCallId, ["call_end_time"], (endTime, telehelpCallId)
+    )
     return ""
 
 
-@app.route("/handleReturningHelper", methods=["POST"])
-def handleReturningHelper():
+@app.route("/helperHangup/<string:telehelpCallId>", methods=["POST", "GET"])
+def helperHangup(telehelpCallId):
+    print("hangup")
+    endTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
+    writeHelperAnalytics(DATABASE, DATABASE_KEY, telehelpCallId, ["call_end_time"], (endTime, telehelpCallId))
+    return ""
+
+
+@app.route("/handleReturningHelper/<string:telehelpCallId>", methods=["POST"])
+def handleReturningHelper(telehelpCallId):
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     print(request.form.get("result"))
     number = int(request.form.get("result"))
     if number == 1:
+        writeHelperAnalytics(
+            DATABASE,
+            DATABASE_KEY,
+            telehelpCallId,
+            ["contacted_prev_customer", "deregistered"],
+            ("True", "False", telehelpCallId),
+        )
         payload = {
             "play": MEDIA_URL + "/ivr/du_kopplas.mp3",
-            "next": BASE_URL + "/callExistingCustomer",
+            "next": BASE_URL + "/callExistingCustomer/%s" % telehelpCallId,
         }
         return json.dumps(payload)
 
     elif number == 2:
         payload = {
             "play": MEDIA_URL + "/ivr/avreg_confirmed.mp3",
-            "next": BASE_URL + "/removeHelper",
+            "next": BASE_URL + "/removeHelper/%s" % telehelpCallId,
         }
         return json.dumps(payload)
 
 
-@app.route("/callExistingCustomer", methods=["POST"])
-def callExistingCustomer():
+@app.route("/callExistingCustomer/<string:telehelpCallId>", methods=["POST"])
+def callExistingCustomer(telehelpCallId):
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     helperPhone = request.form.get("from")
     customerPhone = readActiveCustomer(DATABASE, DATABASE_KEY, helperPhone)
-    payload = {"connect": customerPhone, "callerid": ELK_NUMBER}
+    payload = {
+        "connect": customerPhone,
+        "callerid": ELK_NUMBER,
+        "whenhangup": BASE_URL + "/helperHangup/%s" % telehelpCallId,
+    }
     return json.dumps(payload)
 
 
-@app.route("/removeHelper", methods=["POST"])
-def removeHelper():
+@app.route("/removeHelper/<string:telehelpCallId>", methods=["POST"])
+def removeHelper(telehelpCallId):
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     from_sender = request.form.get("from")
+    endTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
+    writeHelperAnalytics(
+        DATABASE,
+        DATABASE_KEY,
+        telehelpCallId,
+        ["call_end_time", "contacted_prev_customer", "deregistered"],
+        (endTime, "False", "True", telehelpCallId),
+    )
     deleteFromDatabase(DATABASE, DATABASE_KEY, from_sender, "helper")
     return ""
 
 
-@app.route("/handleReturningCustomer", methods=["POST"])
-def handleReturningCustomer():
+@app.route("/handleReturningCustomer/<string:telehelpCallId>", methods=["POST"])
+def handleReturningCustomer(telehelpCallId):
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     print(request.form.get("result"))
     number = int(request.form.get("result"))
@@ -271,20 +327,34 @@ def handleReturningCustomer():
         payload = {
             "play": MEDIA_URL + "/ivr/du_kopplas.mp3",
             "skippable": "true",
-            "next": BASE_URL + "/callExistingHelper",
+            "next": BASE_URL + "/callExistingHelper/%s" % telehelpCallId,
         }
         return json.dumps(payload)
 
     if number == 2:
+        writeCustomerAnalytics(
+            DATABASE,
+            DATABASE_KEY,
+            telehelpCallId,
+            ["used_prev_helper", "deregistered"],
+            ("False", "False", telehelpCallId),
+        )
         zipcode = readZipcodeFromDatabase(DATABASE, DATABASE_KEY, phone, "customer")
         payload = {
             "play": MEDIA_URL + "/ivr/vi_letar.mp3",
             "skippable": "true",
-            "next": BASE_URL + "/postcodeInput/%s" % zipcode,
+            "next": BASE_URL + "/postcodeInput/%s/%s" % (zipcode, telehelpCallId),
         }
         return json.dumps(payload)
 
     if number == 3:
+        writeCustomerAnalytics(
+            DATABASE,
+            DATABASE_KEY,
+            telehelpCallId,
+            ["used_prev_helper", "deregistered"],
+            ("False", "True", telehelpCallId),
+        )
         payload = {
             "play": MEDIA_URL + "/ivr/avreg_confirmed.mp3",
             "next": BASE_URL + "/removeCustomer",
@@ -294,8 +364,8 @@ def handleReturningCustomer():
     return ""
 
 
-@app.route("/handleLonelyCustomer", methods=["POST"])
-def handleLonelyCustomer():
+@app.route("/handleLonelyCustomer/<string:telehelpCallId>", methods=["POST"])
+def handleLonelyCustomer(telehelpCallId):
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     print(request.form.get("result"))
     number = int(request.form.get("result"))
@@ -306,11 +376,14 @@ def handleLonelyCustomer():
         payload = {
             "play": MEDIA_URL + "/ivr/vi_letar.mp3",
             "skippable": "true",
-            "next": BASE_URL + "/postcodeInput/%s" % zipcode,
+            "next": BASE_URL + "/postcodeInput/%s/%s" % (zipcode, telehelpCallId),
         }
         return json.dumps(payload)
 
     if number == 2:
+        writeCustomerAnalytics(
+            DATABASE, DATABASE_KEY, telehelpCallId, ["deregistered"], ("True", telehelpCallId)
+        )
         payload = {
             "play": MEDIA_URL + "/ivr/avreg_confirmed.mp3",
             "next": BASE_URL + "/removeCustomer",
@@ -320,17 +393,28 @@ def handleLonelyCustomer():
     return ""
 
 
-@app.route("/callExistingHelper", methods=["POST"])
-def callExistingHelper():
+@app.route("/callExistingHelper/<string:telehelpCallId>", methods=["POST"])
+def callExistingHelper(telehelpCallId):
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     customerPhone = request.form.get("from")
     helperPhone = readActiveHelper(DATABASE, DATABASE_KEY, customerPhone)
-    payload = {"connect": helperPhone, "callerid": ELK_NUMBER}
+    writeCustomerAnalytics(
+        DATABASE,
+        DATABASE_KEY,
+        telehelpCallId,
+        ["used_prev_helper", "deregistered"],
+        ("True", "False", telehelpCallId),
+    )
+    payload = {
+        "connect": helperPhone,
+        "callerid": ELK_NUMBER,
+        "whenhangup": BASE_URL + "/customerHangup/%s" % telehelpCallId,
+    }
     return json.dumps(payload)
 
 
-@app.route("/postcodeInput/<string:zipcode>", methods=["POST"])
-def postcodeInput(zipcode):
+@app.route("/postcodeInput/<string:zipcode>/<string:telehelpCallId>", methods=["POST"])
+def postcodeInput(zipcode, telehelpCallId):
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     callId = request.form.get("callid")
     phone = request.form.get("from")
@@ -345,7 +429,9 @@ def postcodeInput(zipcode):
     writeCallHistory(DATABASE, DATABASE_KEY, callId, "closest_helpers", json.dumps(closestHelpers))
 
     if closestHelpers is None:
-        writeNewCustomerAnalytics(callId, fields=["n_helpers_contacted"], data=[0])
+        writeCustomerAnalytics(
+            DATABASE, DATABASE_KEY, telehelpCallId, ["n_helpers_contacted"], ("0", telehelpCallId)
+        )
         payload = {"play": MEDIA_URL + "/ivr/finns_ingen.mp3"}
 
         return json.dumps(payload)
@@ -354,20 +440,27 @@ def postcodeInput(zipcode):
         payload = {
             "play": MEDIA_URL + "/ivr/ringer_tillbaka.mp3",
             "skippable": "true",
-            "next": BASE_URL + "/call/0/%s/%s" % (callId, phone),
+            "next": BASE_URL + "/call/0/%s/%s/%s" % (callId, phone, telehelpCallId),
         }
         return json.dumps(payload)
 
 
-@app.route("/call/<int:helperIndex>/<string:customerCallId>/<string:customerPhone>", methods=["POST"])
-def call(helperIndex, customerCallId, customerPhone):
+@app.route(
+    "/call/<int:helperIndex>/<string:customerCallId>/<string:customerPhone>/<string:telehelpCallId>",
+    methods=["POST"],
+)
+def call(helperIndex, customerCallId, customerPhone, telehelpCallId):
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     stopCalling = readCallHistory(DATABASE, DATABASE_KEY, customerCallId, "hangup")
     if stopCalling == "True":
         # TODO: diff between existing and new customer
         endTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
-        writeNewCustomerAnalytics(
-            customerCallId, fields=["n_helpers_contacted", "call_end_time"], data=[helperIndex, endTime]
+        writeCustomerAnalytics(
+            DATABASE,
+            DATABASE_KEY,
+            telehelpCallId,
+            ["call_end_time", "n_helpers_contacted"],
+            (endTime, str(helperIndex), telehelpCallId),
         )
         return ""
     else:
@@ -382,7 +475,16 @@ def call(helperIndex, customerCallId, customerPhone):
 
         if helperIndex >= len(closestHelpers):
             writeCallHistory(DATABASE, DATABASE_KEY, customerCallId, "hangup", "True")
-            return redirect(url_for("callBackToCustomer", customerPhone=customerPhone))
+            writeCustomerAnalytics(
+                DATABASE,
+                DATABASE_KEY,
+                telehelpCallId,
+                ["n_helpers_contacted"],
+                (str(helperIndex), telehelpCallId),
+            )
+            return redirect(
+                url_for("callBackToCustomer", customerPhone=customerPhone, telehelpCallId=telehelpCallId)
+            )
 
         print(closestHelpers[helperIndex])
         print(ELK_NUMBER)
@@ -391,9 +493,11 @@ def call(helperIndex, customerCallId, customerPhone):
         payload = {
             "ivr": MEDIA_URL + "/ivr/hjalte.mp3",
             "timeout": "30",
-            "whenhangup": BASE_URL + "/call/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone),
-            "1": BASE_URL + "/connectUsers/%s/%s" % (customerPhone, customerCallId),
-            "2": BASE_URL + "/call/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone),
+            "whenhangup": BASE_URL
+            + "/call/%s/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone, telehelpCallId),
+            "1": BASE_URL + "/connectUsers/%s/%s/%s" % (customerPhone, customerCallId, telehelpCallId),
+            "2": BASE_URL
+            + "/call/%s/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone, telehelpCallId),
         }
 
         print("Calling: ", closestHelpers[helperIndex])
@@ -415,8 +519,8 @@ def call(helperIndex, customerCallId, customerPhone):
         return ""
 
 
-@app.route("/callBackToCustomer/<string:customerPhone>", methods=["POST", "GET"])
-def callBackToCustomer(customerPhone):
+@app.route("/callBackToCustomer/<string:customerPhone>/<string:telehelpCallId>", methods=["POST", "GET"])
+def callBackToCustomer(customerPhone, telehelpCallId):
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     print("No one found")
     auth = (API_USERNAME, API_PASSWORD)
@@ -425,6 +529,15 @@ def callBackToCustomer(customerPhone):
     fields = {"from": ELK_NUMBER, "to": customerPhone, "voice_start": json.dumps(payload)}
 
     requests.post(ELK_BASE + "/a1/calls", data=fields, auth=auth)
+    endTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
+    writeCustomerAnalytics(
+        DATABASE,
+        DATABASE_KEY,
+        telehelpCallId,
+        ["call_end_time", "match_found"],
+        (endTime, "False", telehelpCallId),
+    )
+
     return ""
 
 
@@ -436,8 +549,8 @@ def removeCustomer():
     return ""
 
 
-@app.route("/handleNumberInput", methods=["POST"])
-def handleNumberInput():
+@app.route("/handleNumberInput/<string:telehelpCallId>", methods=["POST"])
+def handleNumberInput(telehelpCallId):
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     print(request.form.get("result"))
     number = int(request.form.get("result"))
@@ -447,7 +560,11 @@ def handleNumberInput():
 
         payload = {
             "play": MEDIA_URL + "/ivr/post_nr.mp3",
-            "next": {"ivr": MEDIA_URL + "/ivr/bep.mp3", "digits": 5, "next": BASE_URL + "/checkZipcode"},
+            "next": {
+                "ivr": MEDIA_URL + "/ivr/bep.mp3",
+                "digits": 5,
+                "next": BASE_URL + "/checkZipcode/%s" % telehelpCallId,
+            },
         }
 
         return json.dumps(payload)
@@ -457,8 +574,8 @@ def handleNumberInput():
     return ""
 
 
-@app.route("/checkZipcode", methods=["POST"])
-def checkZipcode():
+@app.route("/checkZipcode/<string:telehelpCallId>", methods=["POST"])
+def checkZipcode(telehelpCallId):
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     zipcode = request.form.get("result")
     callId = request.form.get("callid")
@@ -475,14 +592,14 @@ def checkZipcode():
             "play": MEDIA_URL + "/city/" + cityEncoded + ".mp3",
             "next": {
                 "ivr": MEDIA_URL + "/ivr/stammer_det.mp3",
-                "1": BASE_URL + f"/postcodeInput/{zipcode}",
+                "1": BASE_URL + f"/postcodeInput/{zipcode}/{telehelpCallId}",
                 "2": {
                     "play": MEDIA_URL + "/ivr/post_nr.mp3",
                     "skippable": "true",
                     "next": {
                         "ivr": MEDIA_URL + "/ivr/bep.mp3",
                         "digits": 5,
-                        "next": BASE_URL + "/checkZipcode",
+                        "next": BASE_URL + "/checkZipcode/%s" % telehelpCallId,
                     },
                 },
             },
@@ -492,8 +609,10 @@ def checkZipcode():
     return json.dumps(payload)
 
 
-@app.route("/connectUsers/<string:customerPhone>/<string:customerCallId>", methods=["POST"])
-def connectUsers(customerPhone, customerCallId):
+@app.route(
+    "/connectUsers/<string:customerPhone>/<string:customerCallId>/<string:telehelpCallId>", methods=["POST"]
+)
+def connectUsers(customerPhone, customerCallId, telehelpCallId):
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
 
     helperPhone = request.form.get("to")
@@ -501,7 +620,8 @@ def connectUsers(customerPhone, customerCallId):
 
     print("Saving customer -> helper connection to database")
     # TODO: check current active customer/helper and move to previous
-    writeNewCustomerAnalytics(customerCallId, fields=["match_found"], data=["True"])
+    writeCustomerAnalytics(DATABASE, DATABASE_KEY, telehelpCallId, ["match_found"], ("True", telehelpCallId))
+    # writeCustomerAnalytics(DATABASE, DATABASE_KEY, telehelpCallId, match_found="True")
     writeActiveCustomer(DATABASE, DATABASE_KEY, helperPhone, customerPhone)
     writeActiveHelper(DATABASE, DATABASE_KEY, customerPhone, helperPhone)
     writeCallHistory(DATABASE, DATABASE_KEY, customerCallId, "hangup", "True")
