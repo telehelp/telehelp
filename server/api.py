@@ -152,7 +152,7 @@ def receiveCall():
         print(activeCustomer)
         if activeCustomer is None:
             payload = {
-                "ivr": MEDIA_URL + "/ivr/hjalper_ingen.mp3",
+                "ivr": f"{MEDIA_URL}/ivr/hjalper_ingen.mp3",
                 "skippable": "true",
                 "digits": 1,
                 "2": BASE_URL + "/support",
