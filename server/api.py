@@ -155,12 +155,14 @@ def receiveCall():
                 "skippable": "true",
                 "digits": 1,
                 "1": {"play": MEDIA_URL + "/ivr/avreg_confirmed.mp3", "next": BASE_URL + "/removeHelper",},
+                "next": BASE_URL + "/receiveCall",
             }
         else:
             payload = {
                 "ivr": MEDIA_URL + "/ivr/registrerad_volontar.mp3",
                 "digits": 1,
-                "next": BASE_URL + "/handleReturningHelper",
+                "1": BASE_URL + "/handleReturningHelper",
+                "next": BASE_URL + "/receiveCall",
             }
         return json.dumps(payload)
 
@@ -176,7 +178,8 @@ def receiveCall():
             payload = {
                 "ivr": MEDIA_URL + "/ivr/ensam_gamling.mp3",
                 "digits": 1,
-                "next": BASE_URL + "/handleLonelyCustomer",
+                "1": BASE_URL + "/handleLonelyCustomer",
+                "next": BASE_URL + "/receiveCall",
             }
             return json.dumps(payload)
 
@@ -194,7 +197,10 @@ def receiveCall():
                     "next": {
                         "ivr": MEDIA_URL + "/ivr/pratade_sist.mp3",
                         "digits": 1,
-                        "next": BASE_URL + "/handleReturningCustomer",
+                        "1": BASE_URL + "/handleReturningCustomer",
+                        "2": BASE_URL + "/handleReturningCustomer",
+                        "3": BASE_URL + "/handleReturningCustomer",
+                        "next": BASE_URL + "/receiveCall",
                     },
                 },
             }
@@ -205,8 +211,9 @@ def receiveCall():
         "ivr": MEDIA_URL + "/ivr/info.mp3",
         "skippable": "true",
         "digits": 1,
+        "1": BASE_URL + "/handleNumberInput",
         "2": BASE_URL + "/receiveCall",
-        "next": BASE_URL + "/handleNumberInput",
+        "next": BASE_URL + "/receiveCall",
     }
     return json.dumps(payload)
 
@@ -430,16 +437,14 @@ def handleNumberInput():
     print(request.form.get("result"))
     number = int(request.form.get("result"))
     print("number: ", number)
-    if number == 1:
-        print("Write your zipcode")
+    print("Write your zipcode")
 
-        payload = {
-            "play": MEDIA_URL + "/ivr/post_nr.mp3",
-            "next": {"ivr": MEDIA_URL + "/ivr/bep.mp3", "digits": 5, "next": BASE_URL + "/checkZipcode"},
-        }
+    payload = {
+        "play": MEDIA_URL + "/ivr/post_nr.mp3",
+        "next": {"ivr": MEDIA_URL + "/ivr/bep.mp3", "digits": 5, "next": BASE_URL + "/checkZipcode"},
+    }
 
-        return json.dumps(payload)
-    return ""
+    return json.dumps(payload)
 
 
 @app.route("/checkZipcode", methods=["POST"])
@@ -461,15 +466,8 @@ def checkZipcode():
             "next": {
                 "ivr": MEDIA_URL + "/ivr/stammer_det.mp3",
                 "1": BASE_URL + f"/postcodeInput/{zipcode}",
-                "2": {
-                    "play": MEDIA_URL + "/ivr/post_nr.mp3",
-                    "skippable": "true",
-                    "next": {
-                        "ivr": MEDIA_URL + "/ivr/bep.mp3",
-                        "digits": 5,
-                        "next": BASE_URL + "/checkZipcode",
-                    },
-                },
+                "2": BASE_URL + "/handleNumberInput",
+                "next": BASE_URL + "/handleNumberInput",
             },
         },
     }
