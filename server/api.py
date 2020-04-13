@@ -84,7 +84,7 @@ checkEnv(SECRET_KEY, "SECRET_KEY")
 
 ZIPDATA = "SE.txt"
 MEDIA_FOLDER = "media"
-MEDIA_URL = "https://media.telehelp.se/media"
+MEDIA_URL = "https://media.telehelp.se/sv"
 ELK_BASE = "https://api.46elks.com"
 TRUSTED_PROXY = ["127.0.0.1"]
 ELK_USER_AGENT = "46elks/0.2"
@@ -174,24 +174,34 @@ def receiveCall():
         # Get name of person to suggest call to from DB
         helperNumber = readActiveHelper(DATABASE, DATABASE_KEY, from_sender)
         name = readNameByNumber(DATABASE, DATABASE_KEY, helperNumber)
-        nameEncoded = urllib.parse.quote(name)  # åäö etc not handled well as URL -> crash
 
-        # Make sure name already exists (generate if somehow missing, for example early volunteers)
-        if not os.path.isfile("/media/name/" + nameEncoded + ".mp3"):
-            generateNameSoundByte(name)
+        if name is None:
+            payload = {
+                "ivr": MEDIA_URL + "/ivr/ensam_gamling.mp3",
+                "digits": 1,
+                "next": BASE_URL + "/handleLonelyCustomer",
+            }
+            return json.dumps(payload)
 
-        payload = {
-            "play": MEDIA_URL + "/ivr/behover_hjalp.mp3",
-            "next": {
-                "play": MEDIA_URL + "/name/" + nameEncoded + ".mp3",
+        else:
+            nameEncoded = urllib.parse.quote(name)  # åäö etc not handled well as URL -> crash
+
+            # Make sure name already exists (generate if somehow missing, for example early volunteers)
+            if not os.path.isfile("/media/name/" + nameEncoded + ".mp3"):
+                generateNameSoundByte(name)
+
+            payload = {
+                "play": MEDIA_URL + "/ivr/behover_hjalp.mp3",
                 "next": {
-                    "ivr": MEDIA_URL + "/ivr/pratade_sist.mp3",
-                    "digits": 1,
-                    "next": BASE_URL + "/handleReturningCustomer",
+                    "play": MEDIA_URL + "/name/" + nameEncoded + ".mp3",
+                    "next": {
+                        "ivr": MEDIA_URL + "/ivr/pratade_sist.mp3",
+                        "digits": 1,
+                        "next": BASE_URL + "/handleReturningCustomer",
+                    },
                 },
-            },
-        }
-        return json.dumps(payload)
+            }
+            return json.dumps(payload)
 
     # New customer
     writeNewCustomerAnalytics(callId, fields=["call_start_time"], data=[startTime])
@@ -284,6 +294,32 @@ def handleReturningCustomer():
     return ""
 
 
+@app.route("/handleLonelyCustomer", methods=["POST"])
+def handleLonelyCustomer():
+    checkRequest(request, ELK_USER_AGENT, ELK_URL)
+    print(request.form.get("result"))
+    number = int(request.form.get("result"))
+    phone = request.form.get("from")
+
+    if number == 1:
+        zipcode = readZipcodeFromDatabase(DATABASE, DATABASE_KEY, phone, "customer")
+        payload = {
+            "play": MEDIA_URL + "/ivr/vi_letar.mp3",
+            "skippable": "true",
+            "next": BASE_URL + "/postcodeInput/%s" % zipcode,
+        }
+        return json.dumps(payload)
+
+    if number == 2:
+        payload = {
+            "play": MEDIA_URL + "/ivr/avreg_confirmed.mp3",
+            "next": BASE_URL + "/removeCustomer",
+        }
+        return json.dumps(payload)
+
+    return ""
+
+
 @app.route("/callExistingHelper", methods=["POST"])
 def callExistingHelper():
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
@@ -346,7 +382,7 @@ def call(helperIndex, customerCallId, customerPhone):
 
         if helperIndex >= len(closestHelpers):
             writeCallHistory(DATABASE, DATABASE_KEY, customerCallId, "hangup", "True")
-            return redirect(url_for("callBackToCustomer/%s" % customerPhone))
+            return redirect(url_for("callBackToCustomer", customerPhone=customerPhone))
 
         print(closestHelpers[helperIndex])
         print(ELK_NUMBER)
@@ -430,7 +466,6 @@ def checkZipcode():
     cityEncoded = urllib.parse.quote(city)
     print("zipcode: ", zipcode)
     print("callId: ", callId)
-    print("zipcode: ", zipcode)
     print("city: ", city)
     print("cityEnc: ", cityEncoded)
 
@@ -559,15 +594,15 @@ def getVolunteerLocations():
 
 
 # -----------------------------------Test Functions-------------------------------------------------
-@app.route("/testredirect", methods=["POST", "GET"])
-def testredirect():
-    print("Redirect works")
+@app.route("/testredirect/<int:numb>", methods=["POST", "GET"])
+def testredirect(numb):
+    print(f"Redirect works:{numb}")
     return "Redirect works"
 
 
 @app.route("/testendpoint", methods=["GET"])
 def testendpoint():
-    return redirect(url_for("testredirect"))
+    return redirect(url_for("testredirect", numb=1))
 
 
 # --------------------------------------------------------------------------------------------------
