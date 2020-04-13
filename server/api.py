@@ -350,6 +350,18 @@ def postcodeInput(zipcode):
     print("zipcode: ", zipcode)
 
     closestHelpers = fetchHelper(DATABASE, DATABASE_KEY, district, zipcode, location_dict)
+
+    # Reads if the customer has a current helper and if so it will delete the current helper from closestHelpers
+    # since the customer have choosen a new helper.
+    # closestHelpers
+    helperPhone = readActiveHelper(DATABASE, DATABASE_KEY, phone)
+    print(f"Helperphone: {helperPhone}")
+    print(f"closestHelpers: {closestHelpers}")
+    if helperPhone is not None:
+        if closestHelpers is not None and helperPhone in closestHelpers:
+            closestHelpers.remove(helperPhone)
+        writeActiveCustomer(DATABASE, DATABASE_KEY, helperPhone, None)
+
     writeCallHistory(DATABASE, DATABASE_KEY, callId, "closest_helpers", json.dumps(closestHelpers))
 
     if closestHelpers is None:
