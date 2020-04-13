@@ -5,6 +5,7 @@ import random
 import secrets
 import socket
 import string
+import threading
 import time
 import urllib.parse
 import uuid
@@ -20,6 +21,7 @@ from flask import url_for
 from flask_session import Session
 
 from .checkMedia import checkPayload
+from .databaseIntegration import clearCustomerHelperPairing
 from .databaseIntegration import createNewCallHistory
 from .databaseIntegration import deleteFromDatabase
 from .databaseIntegration import fetchData
@@ -661,7 +663,42 @@ def connectUsers(customerPhone, customerCallId, telehelpCallId):
     print("Connecting users")
     print("customer:", customerPhone)
     payload = {"connect": customerPhone, "callerid": ELK_NUMBER, "timeout": "15"}
+
+    # Send a delayed SMS asking for a response on whether assignment accepted
+    print("Preparing to send SMS to connected volunteer.")
+    smsThread = threading.Thread(target=sendAskIfHelpingSms, args=(helperPhone,))
+    smsThread.start()
+
     return json.dumps(payload)
+
+
+def sendAskIfHelpingSms(volunteerNumber):
+    time.sleep(60)
+
+    msg = "Förhoppningsvis kan du hjälpa personen du precis pratade med. \
+Ring till Telehelp på 0766861551 för att nå personen igen vid behov. \
+Svara TILLGÄNGLIG om du inte kunde hjälpa till eller är klar med uppgiften, så gör \
+vi dig tillgänglig för nya uppdrag. Observera att varken du eller den \
+du hjälpt kommer kunna nå varandra igen om du gör detta. Tack för din insats!"
+    auth = (API_USERNAME, API_PASSWORD)
+    fields = {"from": ELK_NUMBER, "to": volunteerNumber, "message": msg}
+    requests.post(ELK_BASE + "/a1/sms", auth=auth, data=fields)
+
+    print("Sent confirmation SMS to volunteer: " + volunteerNumber)
+
+
+@app.route("/receiveSms", methods=["POST"])
+def receiveSms():
+    volunteerNumber = request.form.get("from")
+    response = request.form.get("message").strip().upper()
+    print("SMS received: " + response + " from " + volunteerNumber)
+
+    if response == "TILLGÄNGLIG":
+        # Clear database pairing to make volunteer available again. Remove volunteer from customer side too.
+        clearCustomerHelperPairing(DATABASE, DATABASE_KEY, volunteerNumber)
+
+    # Your webhook code must respond with a HTTP status in the range 200-204.
+    return ""
 
 
 # -------------------------------------------------------------------------------------------------

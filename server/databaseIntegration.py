@@ -89,6 +89,13 @@ def saveHelperToDatabase(db, key, name, phone, zipcode, district, timestr):
     return flag
 
 
+def clearCustomerHelperPairing(db, key, helperPhone):
+    customerPhone = readActiveCustomer(db, key, helperPhone)
+    if customerPhone is not None:
+        writeActiveCustomer(db, key, helperPhone, None)
+    writeActiveHelper(db, key, customerPhone, None)
+
+
 def writeActiveCustomer(db, key, helperPhone, customerPhone):
     query = """ UPDATE user_helpers set active_customers=? where phone=? """
     params = (customerPhone, helperPhone)
