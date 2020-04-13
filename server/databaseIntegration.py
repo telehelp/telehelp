@@ -104,6 +104,8 @@ def readActiveCustomer(db, key, helperPhone):
     query = """ SELECT active_customers FROM user_helpers where phone=? """
     params = [helperPhone]
     res = readDatabase(db, key, query, params)
+    if res == []:
+        return None
     return res[0][0]
 
 
@@ -198,7 +200,7 @@ def writeCallHistory(db, key, callid, columnName, data):
 
 """
 Fetch a list of helpers based on a given district, and selecting the
-closest helpers (with some noise to randomize order within zipcodes).
+closest unassigned helpers (with some noise to randomize order within zipcodes).
 The output list is limited to maxDist km and maxQueue numbers.
 """
 
@@ -210,7 +212,7 @@ def fetchHelper(db, key, district, zipcode, location_dict):
     distances = []
     phoneNumbers = []
     if helperData.empty:
-        print("No helpers found in area")
+        print("No helpers registered in area")
         return None
     for i in range(len(helperData)):
         phoneNumbers.append(helperData.loc[i, "phone"])
@@ -229,7 +231,7 @@ def fetchHelper(db, key, district, zipcode, location_dict):
     sortedDistancesFinal = []
 
     for number, distance in zipped:
-        if distance <= maxDist:
+        if (distance <= maxDist) and (readActiveCustomer(db, key, number) is None):
             sortedNumbersFinal.append(number)
             sortedDistancesFinal.append(distance)
 
@@ -237,6 +239,10 @@ def fetchHelper(db, key, district, zipcode, location_dict):
     sortedNumbersFinal = sortedNumbersFinal[:maxQueue]
     print(list(sortedDistancesFinal))
     print(list(sortedNumbersFinal))
+    if len(sortedNumbersFinal) == 0:
+        print("No unassigned helpers available in area")
+        return None
+
     return list(sortedNumbersFinal)
 
 

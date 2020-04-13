@@ -57,7 +57,9 @@ text_input[
 text_input["info_igen"] = "Vill du höra informationen igen?"
 
 text_input["vi_letar"] = "Vi letar efter någon som kan hjälpa dig i närområdet."
-text_input["finns_ingen"] = "Ingen volontär är registrerad i ditt närområde. Vänligen försök igen senare."
+text_input[
+    "finns_ingen"
+] = "Ingen tillgänglig volontär är registrerad i ditt närområde. Vänligen försök igen senare."
 text_input[
     "ringer_tillbaka"
 ] = "Samtalet kommer nu att avslutas, men du kommer snart att ringas upp av en volontär. Då är det upp till dig att berätta vad du behöver hjälp med. Hejdå!"
