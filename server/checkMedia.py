@@ -4,20 +4,22 @@ import re
 import urllib.request
 
 
-def checkURL(url):
+def checkURL(url, log=None):
     try:
         code = urllib.request.urlopen(url).getcode()
         # print("Path found")
         return code
     except urllib.error.HTTPError as e:
         print(f"Warning can't find path: {url}. Status {e.code} {e.reason}")
+        if log is not None:
+            log.warning(f"Can't find path: {url}. Status {e.code} {e.reason}")
         return e.code
 
 
-def checkPayload(payload, key_word):
+def checkPayload(payload, key_word, log=None):
     for key in payload.keys():
         if isinstance(payload[key], str):
-            print(payload[key])
+            # print(payload[key])
             if key_word in payload[key]:
                 checkURL(payload[key])
         elif isinstance(payload[key], dict):
@@ -38,7 +40,7 @@ if __name__ == "__main__":
         "next": {
             "play": f"{MEDIA_URL}/city/{cityEncoded}.mp3",
             "next": {
-                "ivr": MEDIA_URL + "/ivr/stammer_det.mp3",
+                "ivr": MEDIA_URL + "/ivr/stamme_det.mp3",
                 "1": BASE_URL + f"/postcodeInput/{zipcode}",
                 "2": BASE_URL + "/handleNumberInput",
                 "next": BASE_URL + "/handleNumberInput",

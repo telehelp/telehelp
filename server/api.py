@@ -18,6 +18,7 @@ from flask import session
 from flask import url_for
 from flask_session import Session
 
+from .checkMedia import checkPayload
 from .databaseIntegration import createNewCallHistory
 from .databaseIntegration import deleteFromDatabase
 from .databaseIntegration import fetchData
@@ -70,7 +71,7 @@ DATABASE_KEY = os.getenv("DATABASE_KEY")
 def checkEnv(envVar, envStr):
     if envVar is None:
         print(f"Warning! An environmental variable is not set {envStr}")
-        log.info(f"Warning! An environmental variable is not set {envStr}")
+        log.warning(f"Warning! An environmental variable is not set {envStr}")
 
 
 # Checks if the environmental variables are set
@@ -167,6 +168,7 @@ def receiveCall():
                 "3": BASE_URL + "/support",
                 "next": BASE_URL + "/receiveCall",
             }
+        checkPayload()
         return json.dumps(payload)
 
     # For registered customers
