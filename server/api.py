@@ -205,8 +205,9 @@ def receiveCall():
         "ivr": MEDIA_URL + "/ivr/info.mp3",
         "skippable": "true",
         "digits": 1,
+        "1": BASE_URL + "/handleNumberInput",
         "2": BASE_URL + "/receiveCall",
-        "next": BASE_URL + "/handleNumberInput",
+        "next": BASE_URL + "/receiveCall",
     }
     return json.dumps(payload)
 
