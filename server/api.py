@@ -437,16 +437,14 @@ def handleNumberInput():
     print(request.form.get("result"))
     number = int(request.form.get("result"))
     print("number: ", number)
-    if number == 1:
-        print("Write your zipcode")
+    print("Write your zipcode")
 
-        payload = {
-            "play": MEDIA_URL + "/ivr/post_nr.mp3",
-            "next": {"ivr": MEDIA_URL + "/ivr/bep.mp3", "digits": 5, "next": BASE_URL + "/checkZipcode"},
-        }
+    payload = {
+        "play": MEDIA_URL + "/ivr/post_nr.mp3",
+        "next": {"ivr": MEDIA_URL + "/ivr/bep.mp3", "digits": 5, "next": BASE_URL + "/checkZipcode"},
+    }
 
-        return json.dumps(payload)
-    return ""
+    return json.dumps(payload)
 
 
 @app.route("/checkZipcode", methods=["POST"])
@@ -477,7 +475,7 @@ def checkZipcode():
                         "next": BASE_URL + "/checkZipcode",
                     },
                 },
-                "next": BASE_URL + "/checkZipcode",
+                "next": BASE_URL + "/handleNumberInput",
             },
         },
     }
