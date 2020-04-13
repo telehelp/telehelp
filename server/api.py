@@ -172,7 +172,7 @@ def receiveCall():
                 "2": BASE_URL + "/support",
                 "1": {
                     "play": MEDIA_URL + "/ivr/avreg_confirmed.mp3",
-                    "next": BASE_URL + "/removeHelper%s" % telehelpCallId,
+                    "next": BASE_URL + "/removeHelper/%s" % telehelpCallId,
                 },
                 "next": BASE_URL + "/receiveCall",
             }
@@ -181,6 +181,10 @@ def receiveCall():
                 "ivr": MEDIA_URL + "/ivr/registrerad_volontar.mp3",
                 "digits": 1,
                 "1": BASE_URL + "/handleReturningHelper/%s" % telehelpCallId,
+                "2": {
+                    "play": MEDIA_URL + "/ivr/avreg_confirmed.mp3",
+                    "next": BASE_URL + "/removeHelper/%s" % telehelpCallId,
+                },
                 "3": BASE_URL + "/support",
                 "next": BASE_URL + "/receiveCall",
             }
