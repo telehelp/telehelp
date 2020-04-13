@@ -84,7 +84,7 @@ checkEnv(SECRET_KEY, "SECRET_KEY")
 
 ZIPDATA = "SE.txt"
 MEDIA_FOLDER = "media"
-MEDIA_URL = "https://media.telehelp.se/sv"
+MEDIA_URL = "https://files.telehelp.se/sv"
 ELK_BASE = "https://api.46elks.com"
 TRUSTED_PROXY = ["127.0.0.1"]
 ELK_USER_AGENT = "46elks/0.2"
@@ -122,6 +122,10 @@ def checkRequest(request, agent, white_url):
                 f"Invalid user connecting to 46 ELK endpoint with User-Agent: {userAgent} from ip: {remote_addr}"
             )
             abort(403)
+
+
+def mediaExists():
+    pass
 
 
 @app.route("/")
