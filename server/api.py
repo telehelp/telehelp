@@ -178,7 +178,8 @@ def receiveCall():
             payload = {
                 "ivr": MEDIA_URL + "/ivr/ensam_gamling.mp3",
                 "digits": 1,
-                "next": BASE_URL + "/handleLonelyCustomer",
+                "1": BASE_URL + "/handleLonelyCustomer",
+                "next": BASE_URL + "/receiveCall",
             }
             return json.dumps(payload)
 
@@ -196,7 +197,10 @@ def receiveCall():
                     "next": {
                         "ivr": MEDIA_URL + "/ivr/pratade_sist.mp3",
                         "digits": 1,
-                        "next": BASE_URL + "/handleReturningCustomer",
+                        "1": BASE_URL + "/handleReturningCustomer",
+                        "2": BASE_URL + "/handleReturningCustomer",
+                        "3": BASE_URL + "/handleReturningCustomer",
+                        "next": BASE_URL + "/receiveCall",
                     },
                 },
             }
