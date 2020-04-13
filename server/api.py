@@ -466,15 +466,7 @@ def checkZipcode():
             "next": {
                 "ivr": MEDIA_URL + "/ivr/stammer_det.mp3",
                 "1": BASE_URL + f"/postcodeInput/{zipcode}",
-                "2": {
-                    "play": MEDIA_URL + "/ivr/post_nr.mp3",
-                    "skippable": "true",
-                    "next": {
-                        "ivr": MEDIA_URL + "/ivr/bep.mp3",
-                        "digits": 5,
-                        "next": BASE_URL + "/checkZipcode",
-                    },
-                },
+                "2": BASE_URL + "/handleNumberInput",
                 "next": BASE_URL + "/handleNumberInput",
             },
         },
