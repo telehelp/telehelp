@@ -168,7 +168,7 @@ def receiveCall():
                 "3": BASE_URL + "/support",
                 "next": BASE_URL + "/receiveCall",
             }
-        checkPayload(payload, MEDIA_URL, log)
+        checkPayload(payload, MEDIA_URL, log=log)
         return json.dumps(payload)
 
     # For registered customers
@@ -187,7 +187,7 @@ def receiveCall():
                 "3": BASE_URL + "/support",
                 "next": BASE_URL + "/receiveCall",
             }
-            checkPayload(payload, MEDIA_URL, log)
+            checkPayload(payload, MEDIA_URL, log=log)
             return json.dumps(payload)
 
         else:
@@ -212,7 +212,7 @@ def receiveCall():
                     },
                 },
             }
-            checkPayload(payload, MEDIA_URL, log)
+            checkPayload(payload, MEDIA_URL, log=log)
             return json.dumps(payload)
 
     # New customer
@@ -225,7 +225,7 @@ def receiveCall():
         "3": BASE_URL + "/support",
         "next": BASE_URL + "/receiveCall",
     }
-    checkPayload(payload, MEDIA_URL, log)
+    checkPayload(payload, MEDIA_URL, log=log)
     return json.dumps(payload)
 
 

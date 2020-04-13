@@ -21,7 +21,7 @@ def checkPayload(payload, key_word, log=None):
         if isinstance(payload[key], str):
             # print(payload[key])
             if key_word in payload[key]:
-                checkURL(payload[key])
+                checkURL(payload[key], log=log)
         elif isinstance(payload[key], dict):
             checkPayload(payload[key], key_word)
 
