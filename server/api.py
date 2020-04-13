@@ -155,12 +155,14 @@ def receiveCall():
                 "skippable": "true",
                 "digits": 1,
                 "1": {"play": MEDIA_URL + "/ivr/avreg_confirmed.mp3", "next": BASE_URL + "/removeHelper",},
+                "next": BASE_URL + "/receiveCall",
             }
         else:
             payload = {
                 "ivr": MEDIA_URL + "/ivr/registrerad_volontar.mp3",
                 "digits": 1,
-                "next": BASE_URL + "/handleReturningHelper",
+                "1": BASE_URL + "/handleReturningHelper",
+                "next": BASE_URL + "/receiveCall",
             }
         return json.dumps(payload)
 
