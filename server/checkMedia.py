@@ -24,30 +24,6 @@ def checkPayload(payload, key_word):
             checkPayload(payload[key], key_word)
 
 
-def parseLine(line):
-    print(line)
-    pattern = re.compile(r"f{1}(\".+\")|(\'.+\')")
-    fString = pattern.search(line)
-    if fString is not None:
-        print(fString)
-
-    # print(checkURL(fstring))
-
-
-def checkMedia(python_file, key_word):
-    row = 0
-    with open(python_file) as file:
-        line = file.readline()
-        if key_word in line and "checkMedia" not in line:
-            if "f" not in line:
-                print(
-                    f"Warning! detected key_word that is not included in an fstring on row: {row}. Can't check that path"
-                )
-            else:
-                pass
-        row += 1
-
-
 if __name__ == "__main__":
     MEDIA_URL = "https://files.telehelp.se/sv"
     BASE_URL = "https://telehelp.se"
