@@ -10,6 +10,7 @@ import time
 import urllib.parse
 import uuid
 from collections import Counter
+from collections import defaultdict
 from pprint import pprint
 
 import pandas as pd
@@ -767,20 +768,25 @@ def getVolunteerLocations():
     query = "SELECT zipcode FROM user_helpers"
     volunteer_zipcodes_df = fetchData(DATABASE, DATABASE_KEY, query, params=None)["zipcode"]
 
+    district_data = defaultdict(list)
     c = Counter(volunteer_zipcodes_df)
-    response = {"total": sum(c.values()), "locations": []}
 
     for zipCode, count in c.most_common():
-        z = int(zipCode)  # Should change this to use string we have time
+        z = int(zipCode)  # Should change this to use string if we have the time
+        district = DISTRICT_DICT.get(z)
+
         entry = {
             "coordinates": LOCATION_DICT.get(z),
-            "district": DISTRICT_DICT.get(z),
             "city": CITY_DICT.get(z),
+            "zipcode": zipCode,
             "count": count,
         }
-        response["locations"].append(entry)
+        district_data[district].append(entry)
 
-    return response
+    return {
+        "total": sum(c.values()),
+        "locations": [{"district": key, "data": val} for key, val in district_data.items()],
+    }
 
 
 #################### TELEHELP SUPPORT FUNCTIONS ###########################

@@ -1,6 +1,6 @@
 import React from "react";
-import { Map as LeafletMap, TileLayer, Marker } from "react-leaflet";
-//Popup?
+import { Map as LeafletMap, TileLayer, Marker, Popup } from "react-leaflet";
+import MarkerClusterGroup from "react-leaflet-markercluster";
 
 class MapView extends React.Component {
   constructor(props) {
@@ -24,8 +24,28 @@ class MapView extends React.Component {
       });
   }
 
+  markerText(loc) {
+    if (loc.count > 1) {
+      return `${loc.count} volontärer i ${loc.city} (${loc.zipcode})`;
+    }
+    return `${loc.count} volontär i ${loc.city} (${loc.zipcode})`;
+  }
+
   render() {
     const { mapData } = this.state;
+    const markers = mapData.locations.map((d, i) => {
+      return (
+        <MarkerClusterGroup key={i}>
+          {d.data.map((e, j) => {
+            return (
+              <Marker key={j} position={e.coordinates}>
+                <Popup>{this.markerText(e)}</Popup>
+              </Marker>
+            );
+          })}
+        </MarkerClusterGroup>
+      );
+    });
 
     return (
       <div className="mapHolder">
@@ -44,10 +64,7 @@ class MapView extends React.Component {
             easeLinearity={0.35}
           >
             <TileLayer url="https://{s}.tile.osm.org/{z}/{x}/{y}.png" />
-
-            {mapData.locations.map((e, i) => {
-              return <Marker key={i} position={e.coordinates}></Marker>;
-            })}
+            {markers}
           </LeafletMap>
         </div>
       </div>
