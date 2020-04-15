@@ -35,7 +35,12 @@ class MapView extends React.Component {
     const { mapData } = this.state;
     const markers = mapData.locations.map((d, i) => {
       return (
-        <MarkerClusterGroup key={i}>
+        // We need to set spiderfyOnMaxZoom to false so that markers in the same spot don't spider
+        <MarkerClusterGroup
+          key={i}
+          singleMarkerMode={true}
+          spiderfyOnMaxZoom={false}
+        >
           {d.data.map((e, j) => {
             return (
               <Marker key={j} position={e.coordinates}>
@@ -54,7 +59,7 @@ class MapView extends React.Component {
           <LeafletMap
             center={[59.8, 14.9]}
             zoom={5}
-            maxZoom={20}
+            maxZoom={19}
             attributionControl={true}
             zoomControl={true}
             doubleClickZoom={true}
