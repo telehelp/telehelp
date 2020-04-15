@@ -33,6 +33,7 @@ from .databaseIntegration import readActiveCustomer
 from .databaseIntegration import readActiveHelper
 from .databaseIntegration import readCallHistory
 from .databaseIntegration import readNameByNumber
+from .databaseIntegration import readNewConnectionInfo
 from .databaseIntegration import readZipcodeFromDatabase
 from .databaseIntegration import saveCustomerToDatabase
 from .databaseIntegration import saveHelperToDatabase
@@ -661,6 +662,13 @@ def connectUsers(customerPhone, customerCallId, telehelpCallId):
     writeCallHistory(DATABASE, DATABASE_KEY, customerCallId, "hangup", "True")
     print("Connecting users")
     print("customer:", customerPhone)
+
+    if HOOK_URL is not None:
+        res = readNewConnectionInfo(DATABASE, DATABASE_KEY, helperPhone)[0]
+        requests.post(
+            HOOK_URL, {"content": f"{res[0]} från {res[1]} har fått kontakt med någon som behöver hjälp!"}
+        )
+
     payload = {"connect": customerPhone, "callerid": ELK_NUMBER, "timeout": "15"}
 
     # Send a delayed SMS asking for a response on whether assignment accepted

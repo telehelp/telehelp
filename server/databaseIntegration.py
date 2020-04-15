@@ -125,6 +125,13 @@ def readActiveHelper(db, key, customerPhone):
     return res[0][0]
 
 
+def readNewConnectionInfo(db, key, helperPhone):
+    query = """ SELECT name, district FROM user_helpers where phone=? """
+    params = [helperPhone]
+    res = readDatabase(db, key, query, params)
+    return res
+
+
 def readNameByNumber(db, key, helperPhone):
     query = """ SELECT name FROM user_helpers WHERE phone=? """
     res = readDatabase(db, key, query, [helperPhone])
