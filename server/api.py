@@ -73,6 +73,7 @@ API_USERNAME = os.getenv("API_USERNAME")
 API_PASSWORD = os.getenv("API_PASSWORD")
 DATABASE = os.getenv("DATABASE")
 DATABASE_KEY = os.getenv("DATABASE_KEY")
+HOOK_URL = os.getenv("HOOK_URL")
 
 
 def checkEnv(envVar, envStr):
@@ -757,6 +758,8 @@ def verify():
             zipcode = sess["zipCode"]
             city = sess["city"]
 
+            if HOOK_URL is not None:
+                requests.post(HOOK_URL, {"content": f"{name} från {city} har registrerat sig som volontär!"})
             log.info(f"Saving helper to database {name}, {phone_number}, {zipcode}, {city}")
             timestr = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
             saveHelperToDatabase(DATABASE, DATABASE_KEY, name, phone_number, zipcode, city, timestr)
