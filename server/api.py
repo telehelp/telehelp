@@ -210,6 +210,7 @@ def receiveCall():
                 "ivr": MEDIA_URL + "/ivr/ensam_gamling.mp3",
                 "digits": 1,
                 "1": BASE_URL + "/handleLonelyCustomer/%s" % telehelpCallId,
+                "2": BASE_URL + "/handleLonelyCustomer/%s" % telehelpCallId,
                 "3": BASE_URL + "/support",
                 "next": BASE_URL + "/receiveCall",
             }
@@ -532,7 +533,7 @@ def call(helperIndex, customerCallId, customerPhone, telehelpCallId):
         print(closestHelpers[helperIndex])
         print(ELK_NUMBER)
 
-        # TODO: Handle if call is not picked up
+        # TODO: Handle if call is not picked up, how does "busy" work??
         payload = {
             "ivr": MEDIA_URL + "/ivr/hjalte.mp3",
             "timeout": "30",
