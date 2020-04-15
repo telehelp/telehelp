@@ -730,11 +730,6 @@ def register():
             "code": code,
         }
 
-        # Generate sound byte of name: (TODO: Remove if user quits?)
-        nameEncoded = urllib.parse.quote(validated["helperName"])  # åäö etc not handled well as URL -> crash
-        if not os.path.isfile("/media/name/" + nameEncoded + ".mp3"):
-            generateNameSoundByte(validated["helperName"])
-
         return {"type": "success"}
     return {"type": "failure"}
 
@@ -763,6 +758,13 @@ def verify():
             log.info(f"Saving helper to database {name}, {phone_number}, {zipcode}, {city}")
             timestr = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
             saveHelperToDatabase(DATABASE, DATABASE_KEY, name, phone_number, zipcode, city, timestr)
+
+            #  TODO: Remove soundbyte if user quits?
+            urlEscapedName = urllib.parse.quote(name)
+            mediaPath = os.path.join("/", "media", f"{urlEscapedName}.mp3")
+            if not os.path.isfile(mediaPath):
+                generateNameSoundByte(name)
+
             return {"type": "success"}
     return {"type": "failure"}
 
