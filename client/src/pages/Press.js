@@ -5,6 +5,7 @@ const Press = () => {
     {
       header: "Vinnare av Hack The Crisis 2020",
       name: "Hack the Crisis pressmeddelande",
+      date: "2020-04-06",
       link:
         "https://www.mynewsdesk.com/se/hack-for-sweden/pressreleases/winners-of-hack-the-crisis-2989133",
       description:
@@ -13,6 +14,7 @@ const Press = () => {
     {
       header: "KTH aktuellt",
       name: "Hoppfulla resultat av Hack the Crisis",
+      date: "2020-04-08",
       link:
         "https://www.kth.se/aktuellt/nyheter/hoppfulla-resultat-av-hack-the-crisis-1.973649",
       description:
@@ -21,6 +23,7 @@ const Press = () => {
     {
       header: "Digital hälsa",
       name: "Telehelp en av vinnarna i svenska ”Hack the crisis”",
+      date: "2020-04-08",
       link:
         "https://app.red.bbmbonnier.se/e/es?s=355424421&e=913550&elqTrackId=aab2e8d998ac428ab064b29999b8fa67&elq=3301dc131494412b98482696742f133e&elqaid=32630&elqat=1",
       description:
@@ -29,6 +32,7 @@ const Press = () => {
     {
       header: "Mitti Stockholm",
       name: "Nystartad hjälptelefon ska stötta äldre i krisvardagen",
+      date: "2020-04-15",
       link: "https://mitti.se/nyheter/nystartad-hjalptelefon-krisvardagen/",
       description:
         "En bild på oss alla (nästan) tillsammans och en härligt skriven artikel",
@@ -41,7 +45,9 @@ const Press = () => {
         return (
           <div key={i}>
             <h3>{e.header}</h3>
-            <a href={e.link}>{e.name}</a>
+            <a href={e.link}>
+              {e.name} - {e.date}
+            </a>
             <p>{e.description}</p>
           </div>
         );
