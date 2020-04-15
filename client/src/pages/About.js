@@ -3,16 +3,10 @@ import React from "react";
 const About = () => {
   const people = [
     {
-      name: "David",
-      responsibility: "Webmaster",
+      name: "David Ekvall",
+      responsibility: "Frontend developer",
       about: "Studerar elektroteknik och robotik vid KTH",
       email: "david@telehelp.se",
-    },
-    {
-      name: "Daniel Eriksson",
-      responsibility: "System administrator",
-      about: "Elektroingenjör på SAAB",
-      email: "daniel@telehelp.se",
     },
     {
       name: "Johan Ehrenfors",
@@ -25,6 +19,12 @@ const About = () => {
       responsibility: "Backend developer",
       about: "Data engineer hos Sellpy",
       email: "therese@telehelp.se",
+    },
+    {
+      name: "Daniel Eriksson",
+      responsibility: "System administrator",
+      about: "Elektroingenjör på SAAB",
+      email: "daniel@telehelp.se",
     },
     {
       name: "Dennis Lioubartsev",
@@ -45,6 +45,11 @@ const About = () => {
           </div>
         );
       })}
+      <img
+        className="img-fluid about-image"
+        src="/img/all-of-us.jpg"
+        alt="The telehelp team"
+      />
     </div>
   );
 };
