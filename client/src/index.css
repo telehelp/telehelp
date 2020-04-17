@@ -1,12 +1,15 @@
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #f5f4f0;
   font-size: large;
+}
+
+h1, h2, h3, h4, h5 {
+  font-family: Manrope, "Arial", sans-serif;
+  font-weight: 600;
+  color: #136b70;
 }
 
 code {
