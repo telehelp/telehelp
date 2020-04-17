@@ -212,7 +212,7 @@ def receiveCall():
                 "ivr": MEDIA_URL + "/ivr/ensam_gamling.mp3",
                 "digits": 1,
                 "1": BASE_URL + "/handleLonelyCustomer/%s" % telehelpCallId,
-                "2": BASE_URL + "/handleLonelyCustomer/%s" % telehelpCallId,
+                "2": BASE_URL + "/removeCustomer",
                 "3": BASE_URL + "/support",
                 "next": BASE_URL + "/receiveCall",
             }
@@ -854,7 +854,8 @@ def callSupport(helperIndex, supportCallId, supportPhone):
         payload = {
             "ivr": MEDIA_URL + "/ivr/hjalte_support.mp3",
             "timeout": "30",
-            "whenhangup": BASE_URL + "/call/%s/%s/%s" % (str(helperIndex + 1), supportCallId, supportPhone),
+            "whenhangup": BASE_URL
+            + "/callSupport/%s/%s/%s" % (str(helperIndex + 1), supportCallId, supportPhone),
             "1": BASE_URL + "/connectUsersSupport/%s/%s" % (supportPhone, supportCallId),
             "2": BASE_URL + "/callSupport/%s/%s/%s" % (str(helperIndex + 1), supportCallId, supportPhone),
         }
