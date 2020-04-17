@@ -489,6 +489,17 @@ def postcodeInput(zipcode, telehelpCallId):
 
 
 @app.route(
+    "/hangupResponse", methods=["POST"],
+)
+def hangupResponse():
+    print("hangup")
+    print(request.form.get("result"))
+
+    # payload = {"whenhangup:"}
+    return ""
+
+
+@app.route(
     "/call/<int:helperIndex>/<string:customerCallId>/<string:customerPhone>/<string:telehelpCallId>",
     methods=["POST"],
 )
@@ -536,29 +547,46 @@ def call(helperIndex, customerCallId, customerPhone, telehelpCallId):
         # TODO: Handle if call is not picked up, how does "busy" work??
         payload = {
             "ivr": MEDIA_URL + "/ivr/hjalte.mp3",
-            "timeout": "30",
-            "whenhangup": BASE_URL
-            + "/call/%s/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone, telehelpCallId),
+            "timeout": "10",
             "1": BASE_URL + "/connectUsers/%s/%s/%s" % (customerPhone, customerCallId, telehelpCallId),
             "2": BASE_URL
             + "/call/%s/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone, telehelpCallId),
         }
+
+        # payload = {
+        #     "ivr": MEDIA_URL + "/ivr/hjalte.mp3",
+        #     "timeout": "10",
+        #     "whenhangup": BASE_URL
+        #     + "/call/%s/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone, telehelpCallId),
+        #     "1": BASE_URL + "/connectUsers/%s/%s/%s" % (customerPhone, customerCallId, telehelpCallId),
+        #     "2": BASE_URL
+        #     + "/call/%s/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone, telehelpCallId),
+        #     "next":BASE_URL+'/hangupResponse'
+
+        # }
+        # "next":BASE_URL+'/hangupResponse',
         checkPayload(payload, MEDIA_URL, log=log)
 
         print("Calling: ", closestHelpers[helperIndex])
-        fields = {"from": ELK_NUMBER, "to": closestHelpers[helperIndex], "voice_start": json.dumps(payload)}
-
+        fields = {
+            "from": ELK_NUMBER,
+            "to": closestHelpers[helperIndex],
+            "voice_start": json.dumps(payload),
+            "whenhangup": BASE_URL
+            + "/call/%s/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone, telehelpCallId),
+        }
+        # BASE_URL + "/call/%s/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone, telehelpCallId)
         response = requests.post(ELK_BASE + "/a1/calls", data=fields, auth=auth)
 
-        print(json.loads(response.text)["state"])
-        print(json.loads(response.text)["state"] == "ongoing")
+        # print(json.loads(response.text)["state"])
+        # print(json.loads(response.text)["state"] == "ongoing")
         # while json.loads(response.text)["state"] == 'ongoing':
         #     pass
-        print(json.loads(response.text))
-        state = json.loads(response.text)["state"]
-        print("state: ", state)
-        result = request.form.get("result")
-        print("result", result)
+        # print(json.loads(response.text))
+        # state = json.loads(response.text)["state"]
+        # print("state: ", state)
+        # result = request.form.get("result")
+        # print("result", result)
 
         print(response.text)
         return ""
