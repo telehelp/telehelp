@@ -145,7 +145,6 @@ def index():
 
 @app.route("/api/receiveCall", methods=["POST"])
 def receiveCall():
-    checkRequest(request, ELK_USER_AGENT, ELK_URL)
     callId = request.form.get("callid")
     startTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
     telehelpCallId = str(uuid.uuid1())
@@ -287,7 +286,6 @@ def helperHangup(telehelpCallId):
 
 @app.route("/api/handleReturningHelper/<string:telehelpCallId>", methods=["POST"])
 def handleReturningHelper(telehelpCallId):
-    checkRequest(request, ELK_USER_AGENT, ELK_URL)
     print(request.form.get("result"))
     number = int(request.form.get("result"))
     if number == 1:
@@ -316,7 +314,6 @@ def handleReturningHelper(telehelpCallId):
 
 @app.route("/api/callExistingCustomer/<string:telehelpCallId>", methods=["POST"])
 def callExistingCustomer(telehelpCallId):
-    checkRequest(request, ELK_USER_AGENT, ELK_URL)
     helperPhone = request.form.get("from")
     customerPhone = readActiveCustomer(DATABASE, DATABASE_KEY, helperPhone)
     payload = {
@@ -329,7 +326,6 @@ def callExistingCustomer(telehelpCallId):
 
 @app.route("/api/removeHelper/<string:telehelpCallId>", methods=["POST"])
 def removeHelper(telehelpCallId):
-    checkRequest(request, ELK_USER_AGENT, ELK_URL)
     from_sender = request.form.get("from")
     endTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
     writeHelperAnalytics(
@@ -345,7 +341,6 @@ def removeHelper(telehelpCallId):
 
 @app.route("/api/handleReturningCustomer/<string:telehelpCallId>", methods=["POST"])
 def handleReturningCustomer(telehelpCallId):
-    checkRequest(request, ELK_USER_AGENT, ELK_URL)
     print(request.form.get("result"))
     number = int(request.form.get("result"))
     phone = request.form.get("from")
@@ -396,7 +391,6 @@ def handleReturningCustomer(telehelpCallId):
 
 @app.route("/api/handleLonelyCustomer/<string:telehelpCallId>", methods=["POST"])
 def handleLonelyCustomer(telehelpCallId):
-    checkRequest(request, ELK_USER_AGENT, ELK_URL)
     print(request.form.get("result"))
     number = int(request.form.get("result"))
     phone = request.form.get("from")
@@ -427,7 +421,6 @@ def handleLonelyCustomer(telehelpCallId):
 
 @app.route("/api/callExistingHelper/<string:telehelpCallId>", methods=["POST"])
 def callExistingHelper(telehelpCallId):
-    checkRequest(request, ELK_USER_AGENT, ELK_URL)
     customerPhone = request.form.get("from")
     helperPhone = readActiveHelper(DATABASE, DATABASE_KEY, customerPhone)
     writeCustomerAnalytics(
@@ -447,7 +440,6 @@ def callExistingHelper(telehelpCallId):
 
 @app.route("/api/postcodeInput/<string:zipcode>/<string:telehelpCallId>", methods=["POST"])
 def postcodeInput(zipcode, telehelpCallId):
-    checkRequest(request, ELK_USER_AGENT, ELK_URL)
     callId = request.form.get("callid")
     phone = request.form.get("from")
 
@@ -497,7 +489,7 @@ def postcodeInput(zipcode, telehelpCallId):
 )
 def call(helperIndex, customerCallId, customerPhone, telehelpCallId):
     # NOTE: When making changes here, also update /callSupport :)
-    checkRequest(request, ELK_USER_AGENT, ELK_URL)
+
     stopCalling = readCallHistory(DATABASE, DATABASE_KEY, customerCallId, "hangup")
     if stopCalling == "True":
         endTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
@@ -561,7 +553,6 @@ def call(helperIndex, customerCallId, customerPhone, telehelpCallId):
 
 @app.route("/api/callBackToCustomer/<string:customerPhone>/<string:telehelpCallId>", methods=["POST", "GET"])
 def callBackToCustomer(customerPhone, telehelpCallId):
-    checkRequest(request, ELK_USER_AGENT, ELK_URL)
     print("No one found")
     auth = (API_USERNAME, API_PASSWORD)
     payload = {"play": MEDIA_URL + "/ivr/ingen_hittad.mp3"}
@@ -583,7 +574,6 @@ def callBackToCustomer(customerPhone, telehelpCallId):
 
 @app.route("/api/removeCustomer", methods=["POST"])
 def removeCustomer():
-    checkRequest(request, ELK_USER_AGENT, ELK_URL)
     from_sender = request.form.get("from")
     deleteFromDatabase(DATABASE, DATABASE_KEY, from_sender, "customer")
     return ""
@@ -591,7 +581,6 @@ def removeCustomer():
 
 @app.route("/api/handleNumberInput/<string:telehelpCallId>", methods=["POST"])
 def handleNumberInput(telehelpCallId):
-    checkRequest(request, ELK_USER_AGENT, ELK_URL)
     print(request.form.get("result"))
     number = int(request.form.get("result"))
     print("number: ", number)
@@ -611,7 +600,6 @@ def handleNumberInput(telehelpCallId):
 
 @app.route("/api/checkZipcode/<string:telehelpCallId>", methods=["POST"])
 def checkZipcode(telehelpCallId):
-    checkRequest(request, ELK_USER_AGENT, ELK_URL)
     zipcode = request.form.get("result")
     callId = request.form.get("callid")
     city = getCity(int(zipcode), CITY_DICT)
@@ -642,8 +630,6 @@ def checkZipcode(telehelpCallId):
     methods=["POST"],
 )
 def connectUsers(customerPhone, customerCallId, telehelpCallId):
-    checkRequest(request, ELK_USER_AGENT, ELK_URL)
-
     helperPhone = request.form.get("to")
     print("helper: ", helperPhone)
 
@@ -803,8 +789,6 @@ def getVolunteerLocations():
 @app.route("/api/support", methods=["POST"])
 def support():
     # Call the Telehelp team in randomized order
-
-    checkRequest(request, ELK_USER_AGENT, ELK_URL)
     callId = request.form.get("callid")
     phone = request.form.get("from")
 
@@ -824,7 +808,6 @@ def support():
 
 @app.route("/api/callSupport/<int:helperIndex>/<string:supportCallId>/<string:supportPhone>", methods=["POST"])
 def callSupport(helperIndex, supportCallId, supportPhone):
-    checkRequest(request, ELK_USER_AGENT, ELK_URL)
     stopCalling = readCallHistory(DATABASE, DATABASE_KEY, supportCallId, "hangup")
     if stopCalling == "True":
         return ""
@@ -870,7 +853,6 @@ def callSupport(helperIndex, supportCallId, supportPhone):
 
 @app.route("/api/callBackToSupportCustomer/<string:supportPhone>", methods=["POST", "GET"])
 def callBackToSupportCustomer(supportPhone):
-    checkRequest(request, ELK_USER_AGENT, ELK_URL)
     print("No support team person found")
     auth = (API_USERNAME, API_PASSWORD)
     payload = {"play": MEDIA_URL + "/ivr/ingen_hittad_support.mp3"}
@@ -883,8 +865,6 @@ def callBackToSupportCustomer(supportPhone):
 
 @app.route("/api/connectUsersSupport/<string:customerPhone>/<string:customerCallId>", methods=["POST"])
 def connectUsersSupport(customerPhone, customerCallId):
-    checkRequest(request, ELK_USER_AGENT, ELK_URL)
-
     helperPhone = request.form.get("to")
     print("support from: ", helperPhone)
 
