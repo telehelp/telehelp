@@ -33,6 +33,7 @@ from .databaseIntegration import readActiveCustomer
 from .databaseIntegration import readActiveHelper
 from .databaseIntegration import readCallHistory
 from .databaseIntegration import readNameByNumber
+from .databaseIntegration import readNewConnectionInfo
 from .databaseIntegration import readZipcodeFromDatabase
 from .databaseIntegration import saveCustomerToDatabase
 from .databaseIntegration import saveHelperToDatabase
@@ -73,6 +74,7 @@ API_USERNAME = os.getenv("API_USERNAME")
 API_PASSWORD = os.getenv("API_PASSWORD")
 DATABASE = os.getenv("DATABASE")
 DATABASE_KEY = os.getenv("DATABASE_KEY")
+HOOK_URL = os.getenv("HOOK_URL")
 
 
 def checkEnv(envVar, envStr):
@@ -210,7 +212,7 @@ def receiveCall():
                 "ivr": MEDIA_URL + "/ivr/ensam_gamling.mp3",
                 "digits": 1,
                 "1": BASE_URL + "/handleLonelyCustomer/%s" % telehelpCallId,
-                "2": BASE_URL + "/handleLonelyCustomer/%s" % telehelpCallId,
+                "2": BASE_URL + "/removeCustomer",
                 "3": BASE_URL + "/support",
                 "next": BASE_URL + "/receiveCall",
             }
@@ -652,6 +654,13 @@ def connectUsers(customerPhone, customerCallId, telehelpCallId):
     writeCallHistory(DATABASE, DATABASE_KEY, customerCallId, "hangup", "True")
     print("Connecting users")
     print("customer:", customerPhone)
+
+    if HOOK_URL is not None:
+        res = readNewConnectionInfo(DATABASE, DATABASE_KEY, helperPhone)[0]
+        requests.post(
+            HOOK_URL, {"content": f"{res[0]} från {res[1]} har fått kontakt med någon som behöver hjälp!"}
+        )
+
     payload = {"connect": customerPhone, "callerid": ELK_NUMBER, "timeout": "15"}
 
     # Send a delayed SMS asking for a response on whether assignment accepted
@@ -721,11 +730,6 @@ def register():
             "code": code,
         }
 
-        # Generate sound byte of name: (TODO: Remove if user quits?)
-        nameEncoded = urllib.parse.quote(validated["helperName"])  # åäö etc not handled well as URL -> crash
-        if not os.path.isfile("/media/name/" + nameEncoded + ".mp3"):
-            generateNameSoundByte(validated["helperName"])
-
         return {"type": "success"}
     return {"type": "failure"}
 
@@ -749,9 +753,18 @@ def verify():
             zipcode = sess["zipCode"]
             city = sess["city"]
 
+            if HOOK_URL is not None:
+                requests.post(HOOK_URL, {"content": f"{name} från {city} har registrerat sig som volontär!"})
             log.info(f"Saving helper to database {name}, {phone_number}, {zipcode}, {city}")
             timestr = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
             saveHelperToDatabase(DATABASE, DATABASE_KEY, name, phone_number, zipcode, city, timestr)
+
+            #  TODO: Remove soundbyte if user quits?
+            urlEscapedName = urllib.parse.quote(name)
+            mediaPath = os.path.join("/", "media", f"{urlEscapedName}.mp3")
+            if not os.path.isfile(mediaPath):
+                generateNameSoundByte(name)
+
             return {"type": "success"}
     return {"type": "failure"}
 
