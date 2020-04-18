@@ -508,6 +508,8 @@ def call(helperIndex, customerCallId, customerPhone, telehelpCallId):
             "1": BASE_URL + "/api/connectUsers/%s/%s/%s" % (customerPhone, customerCallId, telehelpCallId),
             "2": BASE_URL
             + "/api/call/%s/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone, telehelpCallId),
+            "next": BASE_URL
+            + "/api/call/%s/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone, telehelpCallId),
         }
 
         checkPayload(payload, MEDIA_URL, log=log)
@@ -809,6 +811,8 @@ def callSupport(helperIndex, supportCallId, supportPhone):
             "timeout": "30",
             "1": BASE_URL + "/api/connectUsersSupport/%s/%s" % (supportPhone, supportCallId),
             "2": BASE_URL + "/api/callSupport/%s/%s/%s" % (str(helperIndex + 1), supportCallId, supportPhone),
+            "next": BASE_URL
+            + "/api/callSupport/%s/%s/%s" % (str(helperIndex + 1), supportCallId, supportPhone),
         }
 
         print("Calling: ", supportTeamList[helperIndex])
