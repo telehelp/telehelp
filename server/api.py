@@ -94,12 +94,8 @@ checkEnv(SECRET_KEY, "SECRET_KEY")
 checkEnv(HOOK_URL, "HOOK_URL")
 
 ZIPDATA = "SE.txt"
-MEDIA_FOLDER = "media"
 MEDIA_URL = "https://files.telehelp.se/sv"
 ELK_BASE = "https://api.46elks.com"
-TRUSTED_PROXY = ["127.0.0.1"]
-ELK_USER_AGENT = "46elks/0.2"
-ELK_URL = "api.46elks.com"
 
 VERIFICATION_EXPIRY_TIME = 5 * 60  # 5 minutes
 
