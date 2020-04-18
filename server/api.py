@@ -499,7 +499,6 @@ def call(helperIndex, customerCallId, customerPhone, telehelpCallId):
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     stopCalling = readCallHistory(DATABASE, DATABASE_KEY, customerCallId, "hangup")
     if stopCalling == "True":
-        # TODO: diff between existing and new customer
         endTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
         writeCustomerAnalytics(
             DATABASE,
@@ -535,33 +534,26 @@ def call(helperIndex, customerCallId, customerPhone, telehelpCallId):
         print(closestHelpers[helperIndex])
         print(ELK_NUMBER)
 
-        # TODO: Handle if call is not picked up, how does "busy" work??
         payload = {
             "ivr": MEDIA_URL + "/ivr/hjalte.mp3",
             "timeout": "30",
-            "whenhangup": BASE_URL
-            + "/call/%s/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone, telehelpCallId),
             "1": BASE_URL + "/connectUsers/%s/%s/%s" % (customerPhone, customerCallId, telehelpCallId),
             "2": BASE_URL
             + "/call/%s/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone, telehelpCallId),
         }
+
         checkPayload(payload, MEDIA_URL, log=log)
 
         print("Calling: ", closestHelpers[helperIndex])
-        fields = {"from": ELK_NUMBER, "to": closestHelpers[helperIndex], "voice_start": json.dumps(payload)}
+        fields = {
+            "from": ELK_NUMBER,
+            "to": closestHelpers[helperIndex],
+            "voice_start": json.dumps(payload),
+            "whenhangup": BASE_URL
+            + "/call/%s/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone, telehelpCallId),
+        }
 
         response = requests.post(ELK_BASE + "/a1/calls", data=fields, auth=auth)
-
-        print(json.loads(response.text)["state"])
-        print(json.loads(response.text)["state"] == "ongoing")
-        # while json.loads(response.text)["state"] == 'ongoing':
-        #     pass
-        print(json.loads(response.text))
-        state = json.loads(response.text)["state"]
-        print("state: ", state)
-        result = request.form.get("result")
-        print("result", result)
-
         print(response.text)
         return ""
 
@@ -816,6 +808,7 @@ def support():
 
     # J, T, DEr
     supportTeam = ["+46737600282", "+46707812741", "+46761423456"]
+    # +46761423456
     random.shuffle(supportTeam)  # Randomize order to spread load
     writeCallHistory(DATABASE, DATABASE_KEY, callId, "closest_helpers", json.dumps(supportTeam))
     writeCallHistory(DATABASE, DATABASE_KEY, callId, "hangup", "False")
@@ -854,14 +847,18 @@ def callSupport(helperIndex, supportCallId, supportPhone):
         payload = {
             "ivr": MEDIA_URL + "/ivr/hjalte_support.mp3",
             "timeout": "30",
-            "whenhangup": BASE_URL
-            + "/callSupport/%s/%s/%s" % (str(helperIndex + 1), supportCallId, supportPhone),
             "1": BASE_URL + "/connectUsersSupport/%s/%s" % (supportPhone, supportCallId),
             "2": BASE_URL + "/callSupport/%s/%s/%s" % (str(helperIndex + 1), supportCallId, supportPhone),
         }
 
         print("Calling: ", supportTeamList[helperIndex])
-        fields = {"from": ELK_NUMBER, "to": supportTeamList[helperIndex], "voice_start": json.dumps(payload)}
+        fields = {
+            "from": ELK_NUMBER,
+            "to": supportTeamList[helperIndex],
+            "voice_start": json.dumps(payload),
+            "whenhangup": BASE_URL
+            + "/callSupport/%s/%s/%s" % (str(helperIndex + 1), supportCallId, supportPhone),
+        }
 
         response = requests.post(ELK_BASE + "/a1/calls", data=fields, auth=auth)
 
@@ -869,14 +866,14 @@ def callSupport(helperIndex, supportCallId, supportPhone):
         return ""
 
 
-@app.route("/callBackToSupportCustomer/<string:customerPhone>", methods=["POST", "GET"])
-def callBackToSupportCustomer(customerPhone):
+@app.route("/callBackToSupportCustomer/<string:supportPhone>", methods=["POST", "GET"])
+def callBackToSupportCustomer(supportPhone):
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     print("No support team person found")
     auth = (API_USERNAME, API_PASSWORD)
     payload = {"play": MEDIA_URL + "/ivr/ingen_hittad_support.mp3"}
 
-    fields = {"from": ELK_NUMBER, "to": customerPhone, "voice_start": json.dumps(payload)}
+    fields = {"from": ELK_NUMBER, "to": supportPhone, "voice_start": json.dumps(payload)}
 
     requests.post(ELK_BASE + "/a1/calls", data=fields, auth=auth)
     return ""
