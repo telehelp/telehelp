@@ -91,6 +91,7 @@ checkEnv(API_PASSWORD, "API_PASSWORD")
 checkEnv(DATABASE, "DATABASE")
 checkEnv(DATABASE_KEY, "DATABASE_KEY")
 checkEnv(SECRET_KEY, "SECRET_KEY")
+checkEnv(HOOK_URL, "HOOK_URL")
 
 ZIPDATA = "SE.txt"
 MEDIA_FOLDER = "media"
@@ -142,7 +143,7 @@ def index():
 # ------------------------------ PHONE API ----------------------------------------------------
 
 
-@app.route("/receiveCall", methods=["POST"])
+@app.route("/api/receiveCall", methods=["POST"])
 def receiveCall():
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     callId = request.form.get("callid")
@@ -173,21 +174,21 @@ def receiveCall():
                 "2": BASE_URL + "/support",
                 "1": {
                     "play": MEDIA_URL + "/ivr/avreg_confirmed.mp3",
-                    "next": BASE_URL + "/removeHelper/%s" % telehelpCallId,
+                    "next": BASE_URL + "/api/removeHelper/%s" % telehelpCallId,
                 },
-                "next": BASE_URL + "/receiveCall",
+                "next": BASE_URL + "/api/receiveCall",
             }
         else:
             payload = {
                 "ivr": MEDIA_URL + "/ivr/registrerad_volontar.mp3",
                 "digits": 1,
-                "1": BASE_URL + "/handleReturningHelper/%s" % telehelpCallId,
+                "1": BASE_URL + "/api/handleReturningHelper/%s" % telehelpCallId,
                 "2": {
                     "play": MEDIA_URL + "/ivr/avreg_confirmed.mp3",
-                    "next": BASE_URL + "/removeHelper/%s" % telehelpCallId,
+                    "next": BASE_URL + "/api/removeHelper/%s" % telehelpCallId,
                 },
-                "3": BASE_URL + "/support",
-                "next": BASE_URL + "/receiveCall",
+                "3": BASE_URL + "/api/support",
+                "next": BASE_URL + "/api/receiveCall",
             }
         checkPayload(payload, MEDIA_URL, log=log)
         return json.dumps(payload)
@@ -211,10 +212,10 @@ def receiveCall():
             payload = {
                 "ivr": MEDIA_URL + "/ivr/ensam_gamling.mp3",
                 "digits": 1,
-                "1": BASE_URL + "/handleLonelyCustomer/%s" % telehelpCallId,
-                "2": BASE_URL + "/removeCustomer",
-                "3": BASE_URL + "/support",
-                "next": BASE_URL + "/receiveCall",
+                "1": BASE_URL + "/api/handleLonelyCustomer/%s" % telehelpCallId,
+                "2": BASE_URL + "/api/removeCustomer",
+                "3": BASE_URL + "/api/support",
+                "next": BASE_URL + "/api/receiveCall",
             }
             checkPayload(payload, MEDIA_URL, log=log)
             return json.dumps(payload)
@@ -233,11 +234,11 @@ def receiveCall():
                     "next": {
                         "ivr": MEDIA_URL + "/ivr/pratade_sist.mp3",
                         "digits": 1,
-                        "1": BASE_URL + "/handleReturningCustomer/%s" % telehelpCallId,
-                        "2": BASE_URL + "/handleReturningCustomer/%s" % telehelpCallId,
-                        "3": BASE_URL + "/handleReturningCustomer/%s" % telehelpCallId,
-                        "4": BASE_URL + "/support",
-                        "next": BASE_URL + "/receiveCall",
+                        "1": BASE_URL + "/api/handleReturningCustomer/%s" % telehelpCallId,
+                        "2": BASE_URL + "/api/handleReturningCustomer/%s" % telehelpCallId,
+                        "3": BASE_URL + "/api/handleReturningCustomer/%s" % telehelpCallId,
+                        "4": BASE_URL + "/api/support",
+                        "next": BASE_URL + "/api/receiveCall",
                     },
                 },
             }
@@ -257,16 +258,16 @@ def receiveCall():
         "ivr": MEDIA_URL + "/ivr/info.mp3",
         "skippable": "true",
         "digits": 1,
-        "1": BASE_URL + "/handleNumberInput/%s" % telehelpCallId,
-        "2": BASE_URL + "/receiveCall",
-        "3": BASE_URL + "/support",
-        "next": BASE_URL + "/receiveCall",
+        "1": BASE_URL + "/api/handleNumberInput/%s" % telehelpCallId,
+        "2": BASE_URL + "/api/receiveCall",
+        "3": BASE_URL + "/api/support",
+        "next": BASE_URL + "/api/receiveCall",
     }
     checkPayload(payload, MEDIA_URL, log=log)
     return json.dumps(payload)
 
 
-@app.route("/customerHangup/<string:telehelpCallId>", methods=["POST", "GET"])
+@app.route("/api/customerHangup/<string:telehelpCallId>", methods=["POST", "GET"])
 def customerHangup(telehelpCallId):
     print("hangup")
     endTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
@@ -276,7 +277,7 @@ def customerHangup(telehelpCallId):
     return ""
 
 
-@app.route("/helperHangup/<string:telehelpCallId>", methods=["POST", "GET"])
+@app.route("/api/helperHangup/<string:telehelpCallId>", methods=["POST", "GET"])
 def helperHangup(telehelpCallId):
     print("hangup")
     endTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
@@ -284,7 +285,7 @@ def helperHangup(telehelpCallId):
     return ""
 
 
-@app.route("/handleReturningHelper/<string:telehelpCallId>", methods=["POST"])
+@app.route("/api/handleReturningHelper/<string:telehelpCallId>", methods=["POST"])
 def handleReturningHelper(telehelpCallId):
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     print(request.form.get("result"))
@@ -299,7 +300,7 @@ def handleReturningHelper(telehelpCallId):
         )
         payload = {
             "play": MEDIA_URL + "/ivr/du_kopplas.mp3",
-            "next": BASE_URL + "/callExistingCustomer/%s" % telehelpCallId,
+            "next": BASE_URL + "/api/callExistingCustomer/%s" % telehelpCallId,
         }
         checkPayload(payload, MEDIA_URL, log=log)
         return json.dumps(payload)
@@ -307,13 +308,13 @@ def handleReturningHelper(telehelpCallId):
     elif number == 2:
         payload = {
             "play": MEDIA_URL + "/ivr/avreg_confirmed.mp3",
-            "next": BASE_URL + "/removeHelper/%s" % telehelpCallId,
+            "next": BASE_URL + "/api/removeHelper/%s" % telehelpCallId,
         }
         checkPayload(payload, MEDIA_URL, log=log)
         return json.dumps(payload)
 
 
-@app.route("/callExistingCustomer/<string:telehelpCallId>", methods=["POST"])
+@app.route("/api/callExistingCustomer/<string:telehelpCallId>", methods=["POST"])
 def callExistingCustomer(telehelpCallId):
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     helperPhone = request.form.get("from")
@@ -321,12 +322,12 @@ def callExistingCustomer(telehelpCallId):
     payload = {
         "connect": customerPhone,
         "callerid": ELK_NUMBER,
-        "whenhangup": BASE_URL + "/helperHangup/%s" % telehelpCallId,
+        "whenhangup": BASE_URL + "/api/helperHangup/%s" % telehelpCallId,
     }
     return json.dumps(payload)
 
 
-@app.route("/removeHelper/<string:telehelpCallId>", methods=["POST"])
+@app.route("/api/removeHelper/<string:telehelpCallId>", methods=["POST"])
 def removeHelper(telehelpCallId):
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     from_sender = request.form.get("from")
@@ -342,7 +343,7 @@ def removeHelper(telehelpCallId):
     return ""
 
 
-@app.route("/handleReturningCustomer/<string:telehelpCallId>", methods=["POST"])
+@app.route("/api/handleReturningCustomer/<string:telehelpCallId>", methods=["POST"])
 def handleReturningCustomer(telehelpCallId):
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     print(request.form.get("result"))
@@ -353,7 +354,7 @@ def handleReturningCustomer(telehelpCallId):
         payload = {
             "play": MEDIA_URL + "/ivr/du_kopplas.mp3",
             "skippable": "true",
-            "next": BASE_URL + "/callExistingHelper/%s" % telehelpCallId,
+            "next": BASE_URL + "/api/callExistingHelper/%s" % telehelpCallId,
         }
         checkPayload(payload, MEDIA_URL, log=log)
         return json.dumps(payload)
@@ -370,7 +371,7 @@ def handleReturningCustomer(telehelpCallId):
         payload = {
             "play": MEDIA_URL + "/ivr/vi_letar.mp3",
             "skippable": "true",
-            "next": BASE_URL + "/postcodeInput/%s/%s" % (zipcode, telehelpCallId),
+            "next": BASE_URL + "/api/postcodeInput/%s/%s" % (zipcode, telehelpCallId),
         }
         checkPayload(payload, MEDIA_URL, log=log)
         return json.dumps(payload)
@@ -385,7 +386,7 @@ def handleReturningCustomer(telehelpCallId):
         )
         payload = {
             "play": MEDIA_URL + "/ivr/avreg_confirmed.mp3",
-            "next": BASE_URL + "/removeCustomer",
+            "next": BASE_URL + "/api/removeCustomer",
         }
         checkPayload(payload, MEDIA_URL, log=log)
         return json.dumps(payload)
@@ -393,7 +394,7 @@ def handleReturningCustomer(telehelpCallId):
     return ""
 
 
-@app.route("/handleLonelyCustomer/<string:telehelpCallId>", methods=["POST"])
+@app.route("/api/handleLonelyCustomer/<string:telehelpCallId>", methods=["POST"])
 def handleLonelyCustomer(telehelpCallId):
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     print(request.form.get("result"))
@@ -405,7 +406,7 @@ def handleLonelyCustomer(telehelpCallId):
         payload = {
             "play": MEDIA_URL + "/ivr/vi_letar.mp3",
             "skippable": "true",
-            "next": BASE_URL + "/postcodeInput/%s/%s" % (zipcode, telehelpCallId),
+            "next": BASE_URL + "/api/postcodeInput/%s/%s" % (zipcode, telehelpCallId),
         }
         checkPayload(payload, MEDIA_URL, log=log)
         return json.dumps(payload)
@@ -416,7 +417,7 @@ def handleLonelyCustomer(telehelpCallId):
         )
         payload = {
             "play": MEDIA_URL + "/ivr/avreg_confirmed.mp3",
-            "next": BASE_URL + "/removeCustomer",
+            "next": BASE_URL + "/api/removeCustomer",
         }
         checkPayload(payload, MEDIA_URL, log=log)
         return json.dumps(payload)
@@ -424,7 +425,7 @@ def handleLonelyCustomer(telehelpCallId):
     return ""
 
 
-@app.route("/callExistingHelper/<string:telehelpCallId>", methods=["POST"])
+@app.route("/api/callExistingHelper/<string:telehelpCallId>", methods=["POST"])
 def callExistingHelper(telehelpCallId):
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     customerPhone = request.form.get("from")
@@ -439,12 +440,12 @@ def callExistingHelper(telehelpCallId):
     payload = {
         "connect": helperPhone,
         "callerid": ELK_NUMBER,
-        "whenhangup": BASE_URL + "/customerHangup/%s" % telehelpCallId,
+        "whenhangup": BASE_URL + "/api/customerHangup/%s" % telehelpCallId,
     }
     return json.dumps(payload)
 
 
-@app.route("/postcodeInput/<string:zipcode>/<string:telehelpCallId>", methods=["POST"])
+@app.route("/api/postcodeInput/<string:zipcode>/<string:telehelpCallId>", methods=["POST"])
 def postcodeInput(zipcode, telehelpCallId):
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     callId = request.form.get("callid")
@@ -484,14 +485,14 @@ def postcodeInput(zipcode, telehelpCallId):
         payload = {
             "play": MEDIA_URL + "/ivr/ringer_tillbaka.mp3",
             "skippable": "true",
-            "next": BASE_URL + "/call/0/%s/%s/%s" % (callId, phone, telehelpCallId),
+            "next": BASE_URL + "/api/call/0/%s/%s/%s" % (callId, phone, telehelpCallId),
         }
         checkPayload(payload, MEDIA_URL, log=log)
         return json.dumps(payload)
 
 
 @app.route(
-    "/call/<int:helperIndex>/<string:customerCallId>/<string:customerPhone>/<string:telehelpCallId>",
+    "/api/call/<int:helperIndex>/<string:customerCallId>/<string:customerPhone>/<string:telehelpCallId>",
     methods=["POST"],
 )
 def call(helperIndex, customerCallId, customerPhone, telehelpCallId):
@@ -537,9 +538,9 @@ def call(helperIndex, customerCallId, customerPhone, telehelpCallId):
         payload = {
             "ivr": MEDIA_URL + "/ivr/hjalte.mp3",
             "timeout": "30",
-            "1": BASE_URL + "/connectUsers/%s/%s/%s" % (customerPhone, customerCallId, telehelpCallId),
+            "1": BASE_URL + "/api/connectUsers/%s/%s/%s" % (customerPhone, customerCallId, telehelpCallId),
             "2": BASE_URL
-            + "/call/%s/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone, telehelpCallId),
+            + "/api/call/%s/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone, telehelpCallId),
         }
 
         checkPayload(payload, MEDIA_URL, log=log)
@@ -550,7 +551,7 @@ def call(helperIndex, customerCallId, customerPhone, telehelpCallId):
             "to": closestHelpers[helperIndex],
             "voice_start": json.dumps(payload),
             "whenhangup": BASE_URL
-            + "/call/%s/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone, telehelpCallId),
+            + "/api/call/%s/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone, telehelpCallId),
         }
 
         response = requests.post(ELK_BASE + "/a1/calls", data=fields, auth=auth)
@@ -558,7 +559,7 @@ def call(helperIndex, customerCallId, customerPhone, telehelpCallId):
         return ""
 
 
-@app.route("/callBackToCustomer/<string:customerPhone>/<string:telehelpCallId>", methods=["POST", "GET"])
+@app.route("/api/callBackToCustomer/<string:customerPhone>/<string:telehelpCallId>", methods=["POST", "GET"])
 def callBackToCustomer(customerPhone, telehelpCallId):
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     print("No one found")
@@ -580,7 +581,7 @@ def callBackToCustomer(customerPhone, telehelpCallId):
     return ""
 
 
-@app.route("/removeCustomer", methods=["POST"])
+@app.route("/api/removeCustomer", methods=["POST"])
 def removeCustomer():
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     from_sender = request.form.get("from")
@@ -588,7 +589,7 @@ def removeCustomer():
     return ""
 
 
-@app.route("/handleNumberInput/<string:telehelpCallId>", methods=["POST"])
+@app.route("/api/handleNumberInput/<string:telehelpCallId>", methods=["POST"])
 def handleNumberInput(telehelpCallId):
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     print(request.form.get("result"))
@@ -600,7 +601,7 @@ def handleNumberInput(telehelpCallId):
         "next": {
             "ivr": MEDIA_URL + "/ivr/bep.mp3",
             "digits": 5,
-            "next": BASE_URL + "/checkZipcode/%s" % telehelpCallId,
+            "next": BASE_URL + "/api/checkZipcode/%s" % telehelpCallId,
         },
     }
     checkPayload(payload, MEDIA_URL, log=log)
@@ -608,7 +609,7 @@ def handleNumberInput(telehelpCallId):
     return ""
 
 
-@app.route("/checkZipcode/<string:telehelpCallId>", methods=["POST"])
+@app.route("/api/checkZipcode/<string:telehelpCallId>", methods=["POST"])
 def checkZipcode(telehelpCallId):
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     zipcode = request.form.get("result")
@@ -626,9 +627,9 @@ def checkZipcode(telehelpCallId):
             "play": MEDIA_URL + "/city/" + cityEncoded + ".mp3",
             "next": {
                 "ivr": MEDIA_URL + "/ivr/stammer_det.mp3",
-                "1": BASE_URL + f"/postcodeInput/{zipcode}/{telehelpCallId}",
-                "2": BASE_URL + "/handleNumberInput/%s" % telehelpCallId,
-                "next": BASE_URL + "/handleNumberInput/%s" % telehelpCallId,
+                "1": BASE_URL + f"/api/postcodeInput/{zipcode}/{telehelpCallId}",
+                "2": BASE_URL + "/api/handleNumberInput/%s" % telehelpCallId,
+                "next": BASE_URL + "/api/handleNumberInput/%s" % telehelpCallId,
             },
         },
     }
@@ -637,7 +638,8 @@ def checkZipcode(telehelpCallId):
 
 
 @app.route(
-    "/connectUsers/<string:customerPhone>/<string:customerCallId>/<string:telehelpCallId>", methods=["POST"]
+    "/api/connectUsers/<string:customerPhone>/<string:customerCallId>/<string:telehelpCallId>",
+    methods=["POST"],
 )
 def connectUsers(customerPhone, customerCallId, telehelpCallId):
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
@@ -686,7 +688,7 @@ du hjälpt kommer kunna nå varandra igen om du gör detta. Tack för din insats
     print("Sent confirmation SMS to volunteer: " + volunteerNumber)
 
 
-@app.route("/receiveSms", methods=["POST"])
+@app.route("/api/receiveSms", methods=["POST"])
 def receiveSms():
     volunteerNumber = request.form.get("from")
     response = request.form.get("message").strip().upper()
@@ -798,7 +800,7 @@ def getVolunteerLocations():
 #################### TELEHELP SUPPORT FUNCTIONS ###########################
 
 
-@app.route("/support", methods=["POST"])
+@app.route("/api/support", methods=["POST"])
 def support():
     # Call the Telehelp team in randomized order
 
@@ -815,12 +817,12 @@ def support():
     payload = {
         "play": MEDIA_URL + "/ivr/ringer_tillbaka_support.mp3",
         "skippable": "true",
-        "next": BASE_URL + "/callSupport/0/%s/%s" % (callId, phone),
+        "next": BASE_URL + "/api/callSupport/0/%s/%s" % (callId, phone),
     }
     return json.dumps(payload)
 
 
-@app.route("/callSupport/<int:helperIndex>/<string:supportCallId>/<string:supportPhone>", methods=["POST"])
+@app.route("/api/callSupport/<int:helperIndex>/<string:supportCallId>/<string:supportPhone>", methods=["POST"])
 def callSupport(helperIndex, supportCallId, supportPhone):
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     stopCalling = readCallHistory(DATABASE, DATABASE_KEY, supportCallId, "hangup")
@@ -847,8 +849,8 @@ def callSupport(helperIndex, supportCallId, supportPhone):
         payload = {
             "ivr": MEDIA_URL + "/ivr/hjalte_support.mp3",
             "timeout": "30",
-            "1": BASE_URL + "/connectUsersSupport/%s/%s" % (supportPhone, supportCallId),
-            "2": BASE_URL + "/callSupport/%s/%s/%s" % (str(helperIndex + 1), supportCallId, supportPhone),
+            "1": BASE_URL + "/api/connectUsersSupport/%s/%s" % (supportPhone, supportCallId),
+            "2": BASE_URL + "/api/callSupport/%s/%s/%s" % (str(helperIndex + 1), supportCallId, supportPhone),
         }
 
         print("Calling: ", supportTeamList[helperIndex])
@@ -857,7 +859,7 @@ def callSupport(helperIndex, supportCallId, supportPhone):
             "to": supportTeamList[helperIndex],
             "voice_start": json.dumps(payload),
             "whenhangup": BASE_URL
-            + "/callSupport/%s/%s/%s" % (str(helperIndex + 1), supportCallId, supportPhone),
+            + "/api/callSupport/%s/%s/%s" % (str(helperIndex + 1), supportCallId, supportPhone),
         }
 
         response = requests.post(ELK_BASE + "/a1/calls", data=fields, auth=auth)
@@ -866,7 +868,7 @@ def callSupport(helperIndex, supportCallId, supportPhone):
         return ""
 
 
-@app.route("/callBackToSupportCustomer/<string:supportPhone>", methods=["POST", "GET"])
+@app.route("/api/callBackToSupportCustomer/<string:supportPhone>", methods=["POST", "GET"])
 def callBackToSupportCustomer(supportPhone):
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
     print("No support team person found")
@@ -879,7 +881,7 @@ def callBackToSupportCustomer(supportPhone):
     return ""
 
 
-@app.route("/connectUsersSupport/<string:customerPhone>/<string:customerCallId>", methods=["POST"])
+@app.route("/api/connectUsersSupport/<string:customerPhone>/<string:customerCallId>", methods=["POST"])
 def connectUsersSupport(customerPhone, customerCallId):
     checkRequest(request, ELK_USER_AGENT, ELK_URL)
 
