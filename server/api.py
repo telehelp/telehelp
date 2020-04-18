@@ -114,27 +114,6 @@ def canonicalize_number(phone_number):
     return phone_number
 
 
-# Checks that header field User Agent and ip address.
-def checkRequest(request, agent, white_url):
-    white_ip = socket.getaddrinfo(white_url, 443)[0][-1][0]
-    if "X-Forwarded-For" in request.headers:
-        remote_addr = request.headers.getlist("X-Forwarded-For")[0]
-        if "," in remote_addr:
-            remote_addr = remote_addr.split(",")[0]
-    else:
-        remote_addr = request.remote_addr or "untrackable"
-    if "User-Agent" in request.headers:
-        userAgent = request.headers.getlist("User-Agent")[0]
-        if userAgent != agent or remote_addr != white_ip:
-            print(
-                f"Invalid user connecting to 46 ELK endpoint with User-Agent: {userAgent} from ip: {remote_addr}"
-            )
-            log.info(
-                f"Invalid user connecting to 46 ELK endpoint with User-Agent: {userAgent} from ip: {remote_addr}"
-            )
-            abort(403)
-
-
 @app.route("/")
 def index():
     return app.send_static_file("index.html")
