@@ -32,7 +32,7 @@ subgroup of registered volunteers in a provided district, according to this form
         print(helpStr)
     else:
         message = sys.argv[1]
-        district = sys.argv[2]  # Swedish län
+        district = sys.argv[2]
         numSubgroups = int(sys.argv[3])
         targetSubgroup = int(sys.argv[4])
         print(f"Message: {message}")
