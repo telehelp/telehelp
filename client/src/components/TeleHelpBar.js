@@ -16,40 +16,37 @@ const TeleHelpBar = (props) => {
   const toggleNavbar = () => setCollapsed(!collapsed);
 
   return (
-    <div className="row telebar">
-      <div className="col-md-12">
-        <Navbar color="faded" light>
-          <NavbarBrand href="/" className="mr-auto">
-            <img src="img/telehelp-logo.svg" alt="telehelp logo" />
-          </NavbarBrand>
-          <NavbarToggler onClick={toggleNavbar} className="mr-2" />
-          <Collapse isOpen={!collapsed} navbar>
-            <Nav navbar>
-              <NavItem>
-                <NavLink href="/#register">Registrera dig som volontär</NavLink>
-              </NavItem>
-              <NavItem>
-                <NavLink href="/#faq">Vanliga frågor</NavLink>
-              </NavItem>
-              <NavItem>
-                <NavLink href="/static/terms-and-conditions.pdf">
-                  Användarvillkor
-                </NavLink>
-              </NavItem>
-              <NavItem>
-                <Link to="/about" style={{ textDecoration: "none" }}>
-                  <NavLink>Om oss</NavLink>
-                </Link>
-              </NavItem>
-              <NavItem>
-                <Link to="/press" style={{ textDecoration: "none" }}>
-                  <NavLink>I media</NavLink>
-                </Link>
-              </NavItem>
-            </Nav>
-          </Collapse>
-        </Navbar>
-      </div>
+    <div>
+      <Navbar color="faded" light className="telebar navbar-expand-lg">
+        <NavbarBrand href="/" className="mr-auto">
+          <img
+            src="img/logo/telehelp-logo-heart.svg"
+            alt="telehelp"
+            height="50px"
+          />
+        </NavbarBrand>
+        <NavbarToggler onClick={toggleNavbar} />
+        <Collapse isOpen={!collapsed} navbar className="ml-auto">
+          <Nav navbar className="nav mx-auto">
+            <NavItem className="tele-number">
+              <NavLink href="tel:+46766861551">
+                <i class="fas fa-mobile icon-before"></i>
+                076-686 15 51
+              </NavLink>
+            </NavItem>
+          </Nav>
+          <Nav navbar className="nav">
+            <NavItem>
+              <NavLink href="/#faq">Frågor & Svar</NavLink>
+            </NavItem>
+            <NavItem>
+              <Link to="/about" style={{ textDecoration: "none" }}>
+                <NavLink>Om oss</NavLink>
+              </Link>
+            </NavItem>
+          </Nav>
+        </Collapse>
+      </Navbar>
     </div>
   );
 };
