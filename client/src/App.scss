@@ -1,9 +1,5 @@
 @import "./variables.scss";
 
-$font-stack: "Open Sans", sans-serif;
-$primary-color: #333;
-$old-background: #b6f0e3;
-
 @keyframes blink {
   50% {
     border-color: #ff0000;
@@ -11,9 +7,37 @@ $old-background: #b6f0e3;
 }
 
 .App {
-  color: $primary-color;
+  color: $font-color;
+  font-family: $body-font-stack;
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5 {
+    font-family: $heading-font-stack;
+    font-weight: 600;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+  h2 {
+    font-size: 1.75rem;
+  }
+  h3 {
+    font-size: 1.5rem;
+  }
+  h4 {
+    font-size: 1.25rem;
+  }
+
   a {
-    color: #17a2b8;
+    color: $primary-color;
+  }
+
+  a:hover {
+    color: $secondary-dark;
   }
 
   .signup {
@@ -27,7 +51,30 @@ $old-background: #b6f0e3;
   }
 
   .telebar {
-    padding-bottom: 3em;
+    padding: 1.5rem 0;
+  }
+
+  .telebar .tele-number .nav-link {
+    font-weight: 800;
+    font-size: 130%;
+  }
+
+  .icon-before {
+    padding-right: 0.5rem;
+    color: $secondary-orange;
+  }
+
+  .telebar .nav-item {
+    font-weight: 600;
+    font-family: $heading-font-stack;
+  }
+
+  .telebar .nav-link {
+    color: $primary-color;
+  }
+
+  .telebar .nav-link:hover {
+    color: $secondary-dark;
   }
 
   .photo {

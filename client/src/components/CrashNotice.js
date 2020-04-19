@@ -3,7 +3,9 @@ import React from "react";
 const CrashNotice = () => {
   return (
     <div className="alert alert-info" role="alert">
-      <h4 className="alert-heading">Till er som registrerat er som volontärer</h4>
+      <h4 className="alert-heading">
+        Till er som registrerat er som volontärer
+      </h4>
       <p>
         Natten till den 16 april kraschade vår server, och vår databas med era
         uppgifter gick tyvärr inte att återställa. Vi har jobbat hårt med att
