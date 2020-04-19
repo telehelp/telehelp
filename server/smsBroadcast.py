@@ -23,7 +23,7 @@ def sendSmsBroadcast():
     numArgs = len(sys.argv)  # TODO: Use argparse if complexity increased in future.
     if numArgs < 4:  # Print help message if not enough arguments
         helpStr = "This script sends an SMS broadcast to a numerically specified \
-subgroup of registered volunteers in a provided district (län), according to this formula:\n\tsubgroup = user ID % numSubgroups\n\
+subgroup of registered volunteers in a provided district, according to this formula:\n\tsubgroup = user ID % numSubgroups\n\
 \nUsage: \n\tpython sendSmsBroadcast.py <message> <district> <numSubgroups> <targetSubgroup> [<test phone numbers>]\n\
 \nNote that you will need to confirm the broadcast manually before sending begins.\
 \nNote that the <message> and <district> can be surrounded by single quotes to escape spaces.\
