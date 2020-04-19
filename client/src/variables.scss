@@ -1,2 +1,16 @@
-$primary-color: #282c34;
-$secondary-color: #61dafb;
+// OLD:
+//$primary-color: #282c34;
+//$secondary-color: #61dafb;
+$old-background: #b6f0e3;
+
+// FONT STACK:
+$heading-font-stack: Manrope, "Open Sans", sans-serif;
+$body-font-stack: Roboto, "Open Sans", sans-serif;
+
+// COLOR PALETTE:
+$primary-color: rgba(2, 136, 144, 1);
+$secondary-light: rgba(81, 163, 163, 1);
+$secondary-dark: rgba(19, 107, 112, 1);
+$secondary-blue: rgba(24, 191, 206, 1);
+$secondary-orange: rgba(244, 117, 48, 1);
+$font-color: rgba(16, 44, 46, 1);
