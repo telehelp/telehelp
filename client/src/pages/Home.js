@@ -5,16 +5,10 @@ import ThanksTo from "../components/ThanksTo";
 import MainForm from "../components/MainForm";
 import BackgroundInfo from "../components/BackgroundInfo";
 import NumberPresentation from "../components/NumberPresentation";
-import CrashNotice from "../components/CrashNotice";
 
 function Home() {
   return (
     <div>
-      <div className="row">
-        <div className="col-md-12">
-          <CrashNotice />
-        </div>
-      </div>
       <div className="row">
         <div className="col-md-8">
           <BackgroundInfo />
