@@ -20,7 +20,9 @@ class MapView extends React.Component {
         return Promise.reject("No response from server");
       })
       .then((data) => {
-        this.setState({ mapData: data });
+        //Might have to do with how i'm not passing props but i hav to do this atm
+        //The markers do not show if they get displayed before the map
+        setTimeout(() => this.setState({ mapData: data }), 500);
       });
   }
 
