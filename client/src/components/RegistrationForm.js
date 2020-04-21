@@ -57,11 +57,16 @@ function RegistrationForm(props) {
   //if progress ngt
   //use a main form to do this
   // The main form should have all three steps
-  const message = "Registrera dig som volontär!";
+  const message = "Registrera dig som volontär ";
 
   return (
     <Form onSubmit={handleSubmit(onSubmit)}>
-      <h4>{message}</h4>
+      <h3 className="form-title">
+        {message}
+        <small>
+          <i class="fas fa-heart"></i>
+        </small>
+      </h3>
       <FormGroup>
         <Label for="helperName">Tilltalsnamn</Label>
         <Input
@@ -131,7 +136,7 @@ function RegistrationForm(props) {
           Du måste acceptera användarvillkoren
         </FormFeedback>
       </FormGroup>
-      <Button color="info">Registrera</Button>
+      <Button color="light">Registrera</Button>
     </Form>
   );
 }

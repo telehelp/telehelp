@@ -98,9 +98,17 @@
   }
 
   .signup {
-    padding: 3em;
+    padding: 3rem;
+    margin: 1rem;
     border-radius: 1em;
-    box-shadow: 0em 0em 2em grey;
+    background-color: $primary-color;
+    color: #fff;
+    box-shadow: 0em 0em 1em $secondary-light-2;
+  }
+
+  .signup label a {
+    color: #fff;
+    font-weight: 600;
   }
 
   .faq {
@@ -112,10 +120,6 @@
     height: 40%;
     //padding-bottom: 1em;
     padding: 2em;
-  }
-
-  .introduction {
-    padding-right: 3em;
   }
 
   .number-pres {

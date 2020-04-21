@@ -4,17 +4,15 @@ import MapView from "../components/MapView";
 import ThanksTo from "../components/ThanksTo";
 import MainForm from "../components/MainForm";
 import BackgroundInfo from "../components/BackgroundInfo";
-import NumberPresentation from "../components/NumberPresentation";
 
 function Home() {
   return (
     <div>
       <div className="row">
-        <div className="col-md-8">
+        <div className="col-lg-8">
           <BackgroundInfo />
         </div>
-        <div className="col-md-4">
-          <NumberPresentation />
+        <div className="col-lg-4">
           <MainForm />
         </div>
       </div>
