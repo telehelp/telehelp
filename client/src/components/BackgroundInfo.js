@@ -3,7 +3,12 @@ import React from "react";
 const BackgroundInfo = () => {
   return (
     <div className="introduction">
-      <h2>Hjälp dina grannar att klara vardagen!</h2>
+      <h1 class="tele-number text-center">
+        <a href="tel:+46766861551">
+          <i className="fas fa-mobile icon-before"></i>
+          076-686 15 51
+        </a>
+      </h1>
       <p>
         Som riskgrupp kan du ringa Telehelps nummer för att enkelt få hjälp med
         dina vardagsbestyr av en volontär i närheten.
