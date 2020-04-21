@@ -8,7 +8,7 @@ import BackgroundInfo from "../components/BackgroundInfo";
 function Home() {
   return (
     <div>
-      <div className="row">
+      <div className="row section">
         <div className="col-lg-8">
           <BackgroundInfo />
         </div>
@@ -16,17 +16,17 @@ function Home() {
           <MainForm />
         </div>
       </div>
-      <div className="row">
+      <div className="row section">
         <div className="col-md-12">
           <FAQ />
         </div>
       </div>
-      <div className="row">
+      <div className="row section">
         <div className="col-md-12">
           <MapView />
         </div>
       </div>
-      <div className="row">
+      <div className="row section">
         <div className="col-md-12">
           <ThanksTo />
         </div>

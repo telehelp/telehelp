@@ -61,7 +61,7 @@ function RegistrationForm(props) {
 
   return (
     <Form onSubmit={handleSubmit(onSubmit)}>
-      <h3 className="form-title">
+      <h3>
         {message}
         <small>
           <i class="fas fa-heart"></i>

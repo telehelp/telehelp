@@ -5,24 +5,6 @@ class FAQ extends React.Component {
   render() {
     const entries = [
       {
-        question: "Hur fungerar det?",
-        answer: (
-          <p>
-            När du skriver upp dig som volontär ber vi dig att uppge ditt
-            tilltalsnamn, telefonnummer, och postnummer. När en hemmasittande
-            person ringer upp Telehelp kommer de att själva uppge sitt
-            postnummer, och kopplas därefter ihop med volontärer i närområdet.
-            Om du blir uppringd kommer ni att få gemensamt bestämma hur ni vill
-            hantera ärendet - Telehelp står bara för att etablera kontakten. Om
-            du eller pensionären själv ringer upp det nummer du blivit uppringd
-            ifrån, kommer ni automatiskt att bli ihopkopplade - på så vis måste
-            ni inte skriva ner några telefonnummer till varandra.{" "}
-            <a href="https://www.youtube.com/watch?v=4dXq6gTrPCQ">Här</a> finns
-            en länk till en kort informationsvideo på engelska.
-          </p>
-        ),
-      },
-      {
         question: "Hur ska vi hantera betalningar och leveranser?",
         answer: (
           <p>
@@ -111,23 +93,37 @@ class FAQ extends React.Component {
 
     return (
       <div className="faq" id="faq">
-        <h2>Vanliga frågor</h2>
-        {entries.map((e, i) => {
-          return (
-            <div key={i}>
-              <Button
-                color="info"
-                id={"faq-toggle-" + i}
-                style={{ marginBottom: "1rem", marginRight: "1rem" }}
-              >
-                {e.question}
-              </Button>
-              <UncontrolledCollapse toggler={"faq-toggle-" + i}>
-                {e.answer}
-              </UncontrolledCollapse>
-            </div>
-          );
-        })}
+        <h2>Frågor & Svar</h2>
+        <div id="accordion" aria-multiselectable="true">
+          {entries.map((e, i) => {
+            return (
+              <div className="card faq-card" key={i}>
+                <div className="card-header faq-question" id={"heading + i"}>
+                  <button
+                    className="btn btn-link"
+                    data-toggle="collapse"
+                    data-target={"#collapse-" + i}
+                    aria-expanded="true"
+                    aria-controls={"collapse-" + i}
+                  >
+                    <h5>
+                      <i className="fas fa-angle-right rotate-icon"></i>{" "}
+                      {e.question}
+                    </h5>
+                  </button>
+                </div>
+                <div
+                  id={"collapse-" + i}
+                  className="collapse"
+                  aria-labelledby={"heading + i"}
+                  data-parent="#accordion"
+                >
+                  <div className="card-body faq-answer">{e.answer}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     );
   }
