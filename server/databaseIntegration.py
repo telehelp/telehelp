@@ -52,10 +52,13 @@ def writeToDatabase(db, key, query, params):
     # 	return 'Failure'
 
 
-def readDatabase(db, key, query, params):
+def readDatabase(db, key, query, params=None):
     # try:
     conn, cursor = create_connection(db, key)
-    cursor.execute(query, params)
+    if params is None:
+        cursor.execute(query)
+    else:
+        cursor.execute(query, params)
     res = cursor.fetchall()
     conn.close()
     return res

@@ -19,6 +19,44 @@ DATABASE = os.getenv("DATABASE")
 DATABASE_KEY = os.getenv("DATABASE_KEY")
 
 
+def sendSmsBroadcastToLostUsers():
+
+    message = sys.argv[1]
+    print(f"Message: {message}")
+
+    query = """SELECT phone FROM user_helpers"""
+    targetNumbersTuples = readDatabase(DATABASE, DATABASE_KEY, query, params=None)
+
+    skipNumbers = [x[0] for x in targetNumbersTuples]
+
+    fileNumbers = []
+
+    with open("lost_numbers.txt", "r", encoding="utf-8") as file:
+        for line in file:
+            fileNumbers.append(line.strip())
+
+    existingNumbers = set(skipNumbers)
+    lostNumbers = set(fileNumbers)
+
+    targetNumbers = lostNumbers - existingNumbers
+
+    alreadyBackNumbers = lostNumbers - targetNumbers
+
+    print(f"These {len(alreadyBackNumbers)} users have already signed up again:")
+    for num in alreadyBackNumbers:
+        print(f" - {num}")
+
+    print(f"The SMS broadcast will reach the remaining {len(targetNumbers)} users:")
+    for num in targetNumbers:
+        print(f" - {num}")
+
+    confirmation = input("Continue? [y|n] ").lower()
+    if confirmation == "y":
+        performSmsBroadcast(message, targetNumbers)
+    else:
+        print("User aborted broadcast.")
+
+
 def sendSmsBroadcast():
     numArgs = len(sys.argv)  # TODO: Use argparse if complexity increased in future.
     if numArgs < 4:  # Print help message if not enough arguments
