@@ -10,10 +10,7 @@ const HelpSpread = () => {
           <li>Sprid numret 076-686 15 51</li>
           <li>
             Skriv ut{" "}
-            <a
-              href="https://drive.google.com/file/d/1eGr_MifqMuQftcRK8LefbS9yzhqDiUdL/view?usp=sharing"
-              target="_blank"
-            >
+            <a href="/static/flyer.pdf" target="_blank">
               detta informationsblad
             </a>{" "}
             och sätt upp i din trappuppgång, i din på din lokala butik eller på

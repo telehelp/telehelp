@@ -29,6 +29,7 @@ const About = () => {
       responsibility: "System administrator",
       about: "Elektroingenjör på SAAB",
       email: "daniel@telehelp.se",
+      img: "img/team/Daniel.png",
     },
     {
       name: "Dennis Lioubartsev",
@@ -67,7 +68,7 @@ const About = () => {
           <div className="row">
             {people.map((e, i) => {
               return (
-                <div className="col-lg-4">
+                <div className="col-lg-4" key={i}>
                   <div key={i} className="about-entry">
                     <img
                       className="img-fluid about-entry-img"

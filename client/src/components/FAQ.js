@@ -1,5 +1,4 @@
 import React from "react";
-import { UncontrolledCollapse, Button } from "reactstrap";
 
 class FAQ extends React.Component {
   render() {

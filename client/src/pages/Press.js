@@ -48,7 +48,7 @@ const Press = () => {
             <div className="col-lg-12">
               {mediaApperance.map((e, i) => {
                 return (
-                  <div class="media-entry" key={i}>
+                  <div className="media-entry" key={i}>
                     <h5>{e.date}</h5>
                     <a href={e.link}>
                       <h3>{e.title}</h3>
