@@ -2,7 +2,7 @@ import React from "react";
 
 const BackgroundInfo = () => {
   return (
-    <div className="introduction">
+    <div className="introduction page-section">
       <h2>Bli en vardagshjälte idag</h2>
       <p>
         Genom att anmäla dig som volontär där du bor kan personer som ingår i

@@ -64,7 +64,7 @@ function RegistrationForm(props) {
       <h3>
         {message}
         <small>
-          <i class="fas fa-heart"></i>
+          <i className="fas fa-heart"></i>
         </small>
       </h3>
       <FormGroup>

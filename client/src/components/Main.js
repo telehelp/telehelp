@@ -7,11 +7,13 @@ import Press from "../pages/Press";
 
 const Main = () => {
   return (
-    <Switch>
-      <Route exact path="/" component={Home}></Route>
-      <Route exact path="/about" component={About}></Route>
-      <Route exact path="/press" component={Press}></Route>
-    </Switch>
+    <div>
+      <Switch>
+        <Route exact path="/" component={Home}></Route>
+        <Route exact path="/om-oss" component={About}></Route>
+        <Route exact path="/i-media" component={Press}></Route>
+      </Switch>
+    </div>
   );
 };
 

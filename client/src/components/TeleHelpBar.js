@@ -17,7 +17,7 @@ const TeleHelpBar = (props) => {
 
   return (
     <div>
-      <div class="container">
+      <div className="container">
         <Navbar color="faded" light className="telebar navbar-expand-lg">
           <NavbarBrand href="/" className="mr-auto">
             <img
@@ -28,22 +28,15 @@ const TeleHelpBar = (props) => {
           </NavbarBrand>
           <NavbarToggler onClick={toggleNavbar} />
           <Collapse isOpen={!collapsed} navbar className="ml-auto">
-            {/*             <Nav navbar className="nav mx-auto">
-              <NavItem className="tele-number">
-                <NavLink href="tel:+46766861551">
-                  <i className="fas fa-mobile icon-before"></i>
-                  076-686 15 51
-                </NavLink>
-              </NavItem>
-            </Nav> */}
             <Nav navbar className="nav ml-auto">
               <NavItem>
                 <NavLink href="/#faq">Frågor & Svar</NavLink>
               </NavItem>
               <NavItem>
-                <Link to="/about" style={{ textDecoration: "none" }}>
-                  <NavLink>Om oss</NavLink>
-                </Link>
+                <NavLink href="/om-oss">Om oss</NavLink>
+              </NavItem>
+              <NavItem>
+                <NavLink href="/i-media">I media</NavLink>
               </NavItem>
             </Nav>
           </Collapse>
