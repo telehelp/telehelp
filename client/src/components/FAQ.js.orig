@@ -4,6 +4,38 @@ class FAQ extends React.Component {
   render() {
     const entries = [
       {
+<<<<<<< HEAD
+=======
+        question: "Hur fungerar det?",
+        answer: (
+          <p>
+            När du skriver upp dig som volontär ber vi dig att uppge ditt
+            tilltalsnamn, telefonnummer, och postnummer. När en hemmasittande
+            person ringer upp Telehelp kommer de att själva uppge sitt
+            postnummer, och kopplas därefter ihop med volontärer i närområdet.
+            Om du blir uppringd kommer ni att få gemensamt bestämma hur ni vill
+            hantera ärendet - Telehelp står bara för att etablera kontakten. Om
+            du eller utsatta personen själv ringer upp det nummer du blivit
+            uppringd ifrån, kommer ni automatiskt att bli ihopkopplade - på så
+            vis måste ni inte skriva ner några telefonnummer till varandra.{" "}
+            <a href="https://www.youtube.com/watch?v=4dXq6gTrPCQ">Här</a> finns
+            en länk till en kort informationsvideo på engelska.
+          </p>
+        ),
+      },
+      {
+        question: "Vem får använda tjänsten?",
+        answer: (
+          <p>
+            Tjänsten är främst riktad till att hjälpa de äldre men kan även
+            användas av andra personer som tillhör riskgrupper. Det enda kravet
+            för volontärer är att man är över 18 år, men vi rekommenderar att du
+            är frisk och motiverad att hjälpa till.
+          </p>
+        ),
+      },
+      {
+>>>>>>> Edit FAQ to include non pensioners
         question: "Hur ska vi hantera betalningar och leveranser?",
         answer: (
           <p>
@@ -41,10 +73,10 @@ class FAQ extends React.Component {
         answer: (
           <p>
             För att minimera smittorisken och förenkla användarupplevelsen är
-            tjänsten byggd för att du ska kunna paras ihop med en person i
-            taget. Personen kan när som helst välja att byta till en annan
-            volontär, vartefter ni inte längre kan komma i kontakt. Även du
-            själv kan ta bort ditt konto om du inte längre vill använda
+            tjänsten byggd för att du ska kunna paras ihop med en enda person i
+            riskgruppen i taget. Personen kan när som helst välja att byta till
+            en annan volontär, vartefter ni inte längre kan komma i kontakt.
+            Även du själv kan ta bort ditt konto om du inte längre vill använda
             tjänsten, men vi rekommenderar att du förklarar detta för den du
             hjälper först.
           </p>
@@ -58,7 +90,7 @@ class FAQ extends React.Component {
             vardagshjälte, så kan du antingen ringa upp numret själv och följa
             instruktionerna, eller maila oss för att vi ska ta bort ditt
             telefonnummer manuellt ur vår databas. Om du redan har kontakt med
-            en person rekommenderar vi att du förklarar varför du inte längre
+            en pensionär rekommenderar vi att du förklarar varför du inte längre
             kan hjälpa till innan du gör detta.
           </p>
         ),
@@ -82,8 +114,9 @@ class FAQ extends React.Component {
         question: "Hur kan jag hjälpa att finansiera tjänsten?",
         answer: (
           <p>
-            Om du är intresserad av att sponsra tjänsten så kan du höra av dig
-            till <a href="mailto:info@telehelp.se">info@telehelp.se</a>
+            Vi har ingen donationssida än, men om du är intresserad av att
+            sponsra tjänsten hör av dig till{" "}
+            <a href="mailto:info@telehelp.se">info@telehelp.se</a>
           </p>
         ),
       },
