@@ -3,55 +3,71 @@ import React from "react";
 const Press = () => {
   const mediaApperance = [
     {
-      header: "Vinnare av Hack The Crisis 2020",
-      name: "Hack the Crisis pressmeddelande",
+      title: "Vinnare av Hack The Crisis",
+      media: "Hack the Crisis pressmeddelande",
       date: "2020-04-06",
       link:
         "https://www.mynewsdesk.com/se/hack-for-sweden/pressreleases/winners-of-hack-the-crisis-2989133",
-      description:
-        "Det var några långa dagar och nätter, men det gick bra tillslut",
+      description: "Vinnare i kategorin Digital - Save Communities",
     },
     {
-      header: "KTH aktuellt",
-      name: "Hoppfulla resultat av Hack the Crisis",
+      title: "Hoppfulla resultat av Hack the Crisis",
+      media: "KTH aktuellt",
       date: "2020-04-08",
       link:
         "https://www.kth.se/aktuellt/nyheter/hoppfulla-resultat-av-hack-the-crisis-1.973649",
-      description:
-        "Tyvärr är bara en av oss med i artikeln, trots att alla gjorde ett fantastiskt arbete",
+      description: "",
     },
     {
-      header: "Digital hälsa",
-      name: "Telehelp en av vinnarna i svenska ”Hack the crisis”",
+      title: "Telehelp en av vinnarna i svenska ”Hack the crisis”",
+      media: "Digital hälsa",
       date: "2020-04-08",
       link:
         "https://app.red.bbmbonnier.se/e/es?s=355424421&e=913550&elqTrackId=aab2e8d998ac428ab064b29999b8fa67&elq=3301dc131494412b98482696742f133e&elqaid=32630&elqat=1",
-      description:
-        "Återigen är bara en av oss med i artikeln, men vi hoppas på en samlad intervju i framtiden",
+      description: "",
     },
     {
-      header: "Mitti Stockholm",
-      name: "Nystartad hjälptelefon ska stötta äldre i krisvardagen",
+      title: "Nystartad hjälptelefon ska stötta äldre i krisvardagen",
+      media: "Mitti Stockholm",
       date: "2020-04-15",
       link: "https://mitti.se/nyheter/nystartad-hjalptelefon-krisvardagen/",
-      description:
-        "En bild på oss alla (nästan) tillsammans och en härligt skriven artikel",
+      description: "",
+    },
+    {
+      title: "Telehelp – bridging the digital divide",
+      media: "Cybercom News",
+      date: "2020-05-05",
+      link: "https://mitti.se/nyheter/nystartad-hjalptelefon-krisvardagen/",
+      description: "",
     },
   ];
 
   return (
     <div>
-      {mediaApperance.map((e, i) => {
-        return (
-          <div key={i}>
-            <h3>{e.header}</h3>
-            <a href={e.link}>
-              {e.name} - {e.date}
-            </a>
-            <p>{e.description}</p>
+      <header className="tele-header-small">
+        <div className="container">
+          <h1 className="tele-title">I media</h1>
+        </div>
+      </header>
+      <section className="tele-section">
+        <div className="container">
+          <div className="row">
+            <div className="col-lg-12">
+              {mediaApperance.map((e, i) => {
+                return (
+                  <div className="media-entry" key={i}>
+                    <h5>{e.date}</h5>
+                    <a href={e.link}>
+                      <h3>{e.title}</h3>
+                    </a>
+                    <strong>{e.media}</strong>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        );
-      })}
+        </div>
+      </section>
     </div>
   );
 };

@@ -7,14 +7,8 @@ import Main from "./components/Main";
 function App() {
   return (
     <div className="App">
-      <div className="container">
-        <div className="row">
-          <div className="col-md-12">
-            <TeleHelpBar />
-          </div>
-        </div>
-        <Main />
-      </div>
+      <TeleHelpBar />
+      <Main />
       <Footer />
     </div>
   );
