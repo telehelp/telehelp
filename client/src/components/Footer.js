@@ -10,7 +10,11 @@ const Footer = () => {
             <p>
               Kontakt: <a href="mailto:info@telehelp.se">info@telehelp.se</a>
             </p>
-            <a href="/static/terms-and-conditions.pdf" target="_blank">
+            <a
+              href="/static/terms-and-conditions.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               Användarvillkor
             </a>
           </div>
