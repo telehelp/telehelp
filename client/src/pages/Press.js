@@ -33,6 +33,13 @@ const Press = () => {
       link: "https://mitti.se/nyheter/nystartad-hjalptelefon-krisvardagen/",
       description: "",
     },
+    {
+      title: "Telehelp – bridging the digital divide",
+      media: "Cybercom News",
+      date: "2020-05-05",
+      link: "https://mitti.se/nyheter/nystartad-hjalptelefon-krisvardagen/",
+      description: "",
+    },
   ];
 
   return (
