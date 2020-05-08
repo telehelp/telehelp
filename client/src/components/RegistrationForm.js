@@ -110,19 +110,6 @@ function RegistrationForm(props) {
       <FormGroup>
         <Input
           type="checkbox"
-          name="ofage"
-          id="ofage"
-          invalid={"ofage" in errors}
-          innerRef={register({ required: true })}
-        />
-        <Label for="ofage">Jag är 18 år eller äldre</Label>
-        <FormFeedback invalid>
-          Du måste vara minst 18 år för att registrera dig som volontär
-        </FormFeedback>
-      </FormGroup>
-      <FormGroup>
-        <Input
-          type="checkbox"
           name="terms"
           id="terms"
           invalid={"terms" in errors}

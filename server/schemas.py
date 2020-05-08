@@ -10,7 +10,6 @@ REGISTRATION_SCHEMA = Schema(
         "zipCode": And(str, Regex(r"^[0-9]{5}$"), Use(int)),
         "phoneNumber": Regex(r"^[0]{1}\d{7,9}$|^[\+46]{3}\d{9}$"),
         "terms": bool,
-        "ofage": bool,
     }
 )
 VERIFICATION_SCHEMA = Schema(
