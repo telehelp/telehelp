@@ -26,6 +26,7 @@ class FAQ extends React.Component {
             <a
               href="https://omni.se/folkhalsomyndighetens-nya-rad-aldre-bor-undvika-mataffarer-helt-och-hallet/a/Vb8PjW"
               target="_blank"
+              rel="noopener noreferrer"
             >
               Folkhälsomyndigheten
             </a>{" "}
