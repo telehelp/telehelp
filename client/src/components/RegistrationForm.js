@@ -117,7 +117,8 @@ function RegistrationForm(props) {
         />
         <Label for="terms">
           Jag accepterar{" "}
-          <a href="/static/terms-and-conditions.pdf">användarvillkoren</a>
+          <a href="/static/terms-and-conditions.pdf">användarvillkoren</a> och
+          är över 18 år gammal
         </Label>
         <FormFeedback invalid>
           Du måste acceptera användarvillkoren
