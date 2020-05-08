@@ -80,15 +80,6 @@ class FAQ extends React.Component {
         ),
       },
       {
-        question: "Hur kan jag hjälpa att finansiera tjänsten?",
-        answer: (
-          <p>
-            Om du är intresserad av att sponsra tjänsten så kan du höra av dig
-            till <a href="mailto:info@telehelp.se">info@telehelp.se</a>
-          </p>
-        ),
-      },
-      {
         question: "Kan jag lita på att ni hanterar min data på ett bra sätt?",
         answer: (
           <p>
