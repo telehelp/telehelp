@@ -686,7 +686,6 @@ def register():
         auth = (API_USERNAME, API_PASSWORD)
         fields = {"from": "Telehelp", "to": phone_number, "message": code}
         requests.post(ELK_BASE + "/a1/sms", auth=auth, data=fields)
-
         session[phone_number] = {
             "zipCode": validated["zipCode"],
             "name": validated["helperName"],
@@ -727,7 +726,7 @@ def verify():
             #  TODO: Remove soundbyte if user quits?
             urlEscapedName = urllib.parse.quote(name)
             mediaPath = os.path.join("/", "media", f"{urlEscapedName}.mp3")
-            if not os.path.isfile(mediaPath):
+            if not os.path.isfile(mediaPath) and os.getenv("GOOGLE_APPLICATION_CREDENTIALS") is not None:
                 generateNameSoundByte(name)
 
             return {"type": "success"}
