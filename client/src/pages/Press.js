@@ -37,7 +37,7 @@ const Press = () => {
       title: "Telehelp – bridging the digital divide",
       media: "Cybercom News",
       date: "2020-05-05",
-      link: "https://mitti.se/nyheter/nystartad-hjalptelefon-krisvardagen/",
+      link: "https://www.cybercom.com/About-Cybercom/Press-Media/News/telehelp/",
       description: "",
     },
   ];
