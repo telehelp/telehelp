@@ -1,0 +1,55 @@
+version: '3'
+services:
+    website:
+        build: ./client
+        ports:
+            - 3001:80
+    redis:
+        image: redis
+        networks:
+            - webnet
+        env_file:
+            - ./server/.env
+    db:
+        image: postgres
+        networks:
+            - webnet
+            - pgadminnet
+        volumes:
+            - pgdata:/var/lib/postgresql/data
+        env_file:
+            - ./server/.env
+        expose:
+            - '5432'
+    pgadmin:
+        image: dpage/pgadmin4
+        env_file:
+            - ./server/.env
+        ports:
+            - '54321:80'
+        depends_on:
+            - db
+        logging:
+            driver: none
+    server:
+        build: ./server
+        expose:
+            - '5000'
+        ports:
+            - '5000:5000'
+        networks:
+            - webnet
+        depends_on:
+            - db
+            - redis
+        environment:
+            DB_HOST: db
+            REDIS_HOST: redis
+        command: ['./wait-for-it.sh', '-t', '30', 'db:5432']
+networks:
+    webnet:
+    pgadminnet:
+        driver: bridge
+    volumes:
+    pgdata:
+    
