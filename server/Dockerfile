@@ -8,4 +8,4 @@ COPY . /server
 WORKDIR /server
 EXPOSE 5000
 
-CMD python api.py
+CMD flask run

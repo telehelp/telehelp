@@ -2,7 +2,7 @@ import os
 import random
 
 import pandas as pd
-from pysqlcipher3 import dbapi2 as sqlite3
+import sqlite3
 
 from zipcode_utils import getDistanceApart
 from zipcode_utils import getDistrict

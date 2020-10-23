@@ -6,8 +6,8 @@ RUN apk update && apk upgrade && \
 
 WORKDIR /client
 
-COPY package.json yarn.lock ./
-RUN yarn
+COPY package*.json ./
+RUN npm install -s
 COPY . ./
 
-RUN yarn build
+RUN npm build
