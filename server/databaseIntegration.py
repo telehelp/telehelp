@@ -4,9 +4,9 @@ import random
 import pandas as pd
 from pysqlcipher3 import dbapi2 as sqlite3
 
-from .zipcode_utils import getDistanceApart
-from .zipcode_utils import getDistrict
-from .zipcode_utils import readZipCodeData
+from zipcode_utils import getDistanceApart
+from zipcode_utils import getDistrict
+from zipcode_utils import readZipCodeData
 
 # from dotenv import load_dotenv
 # load_dotenv()

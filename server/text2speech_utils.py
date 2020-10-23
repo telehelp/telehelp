@@ -11,8 +11,8 @@ from dotenv import load_dotenv
 from google.cloud import texttospeech
 from google.oauth2 import service_account
 
-from .zipcode_utils import getListOfCities
-from .zipcode_utils import readZipCodeData
+from zipcode_utils import getListOfCities
+from zipcode_utils import readZipCodeData
 
 load_dotenv()
 
@@ -99,7 +99,9 @@ text_input[
 Input parameters for text-to-speech model
 """
 voice = texttospeech.types.VoiceSelectionParams(
-    language_code="sv-SE", name="sv-SE-Wavenet-A", ssml_gender=texttospeech.enums.SsmlVoiceGender.NEUTRAL,
+    language_code="sv-SE",
+    name="sv-SE-Wavenet-A",
+    ssml_gender=texttospeech.enums.SsmlVoiceGender.NEUTRAL,
 )
 
 # Select the type of audio file you want returned
