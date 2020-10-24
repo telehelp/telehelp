@@ -27,6 +27,8 @@ services:
       - db
     logging:
       driver: none
+    networks:
+      - pgadminnet
   server:
     build: ./server
     ports:
@@ -39,6 +41,8 @@ services:
     environment:
       DB_HOST: db
       REDIS_HOST: redis
+    volumes:
+      - ./server:/telehelp/server
     command: [
         "./wait-for-it.sh",
         "-t",

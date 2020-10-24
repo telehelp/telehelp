@@ -4,7 +4,7 @@ import random
 import pandas as pd
 import sqlite3
 from dataclasses import dataclass
-from sqlalchemy import Engine
+from sqlalchemy.engine.base import Engine
 
 from zipcode_utils import getDistanceApart
 from zipcode_utils import getDistrict
