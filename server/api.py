@@ -85,7 +85,7 @@ engine = create_engine(
 )
 db = DatabaseConnection(engine)
 
-ZIPDATA = "SE.txt"
+ZIPDATA = "SE.tsv"
 MEDIA_URL = "https://files.telehelp.se/sv"
 ELK_BASE = "https://api.46elks.com"
 
