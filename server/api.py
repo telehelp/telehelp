@@ -22,27 +22,12 @@ from flask import request
 from flask import session
 from flask import url_for
 from flask_session import Session
+from redis import Redis
+from sqlalchemy import create_engine
 
 from checkMedia import checkPayload
-from databaseIntegration import clearCustomerHelperPairing
-from databaseIntegration import createNewCallHistory
-from databaseIntegration import deleteFromDatabase
-from databaseIntegration import fetchData
-from databaseIntegration import fetchHelper
-from databaseIntegration import readActiveCustomer
-from databaseIntegration import readActiveHelper
-from databaseIntegration import readCallHistory
-from databaseIntegration import readNameByNumber
-from databaseIntegration import readNewConnectionInfo
-from databaseIntegration import readZipcodeFromDatabase
-from databaseIntegration import saveCustomerToDatabase
-from databaseIntegration import saveHelperToDatabase
-from databaseIntegration import userExists
-from databaseIntegration import writeActiveCustomer
-from databaseIntegration import writeActiveHelper
-from databaseIntegration import writeCallHistory
-from databaseIntegration import writeCustomerAnalytics
-from databaseIntegration import writeHelperAnalytics
+from databaseIntegration import DatabaseConnection
+
 from schemas import REGISTRATION_SCHEMA
 from schemas import VERIFICATION_SCHEMA
 from text2speech_utils import generateNameSoundByte
@@ -55,6 +40,8 @@ app = Flask(__name__, static_folder="../client/build", static_url_path="/")
 
 SESSION_TYPE = "redis"
 SECRET_KEY = os.getenv("SECRET_KEY")
+REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+SESSION_REDIS = Redis(host=REDIS_HOST)
 app.config.from_object(__name__)
 Session(app)
 
@@ -72,9 +59,11 @@ BASE_URL = os.getenv("BASE_URL")
 ELK_NUMBER = os.getenv("ELK_NUMBER")
 API_USERNAME = os.getenv("API_USERNAME")
 API_PASSWORD = os.getenv("API_PASSWORD")
-DATABASE = os.getenv("DATABASE")
-DATABASE_KEY = os.getenv("DATABASE_KEY")
+DB_HOST = os.getenv("DB_HOST")
 HOOK_URL = os.getenv("HOOK_URL")
+
+POSTGRES_USER = os.getenv("POSTGRES_USER")
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
 
 
 def checkEnv(envVar, envStr):
@@ -88,10 +77,11 @@ checkEnv(BASE_URL, "BASE_URL")
 checkEnv(ELK_NUMBER, "ELK_NUMBER")
 checkEnv(API_USERNAME, "API_USERNAME")
 checkEnv(API_PASSWORD, "API_PASSWORD")
-checkEnv(DATABASE, "DATABASE")
-checkEnv(DATABASE_KEY, "DATABASE_KEY")
 checkEnv(SECRET_KEY, "SECRET_KEY")
 checkEnv(HOOK_URL, "HOOK_URL")
+
+engine = create_engine(f"postgresql+pg8000://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{DB_HOST}/telehelp")
+db = DatabaseConnection(engine)
 
 ZIPDATA = "SE.txt"
 MEDIA_URL = "https://files.telehelp.se/sv"
@@ -123,22 +113,20 @@ def receiveCall():
     callId = request.form.get("callid")
     startTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
     telehelpCallId = str(uuid.uuid1())
-    createNewCallHistory(DATABASE, DATABASE_KEY, callId)
+    db.createNewCallHistory(callId)
 
     from_sender = request.form.get("from")
     print(from_sender)
 
     # For registered helpers
-    if userExists(DATABASE, DATABASE_KEY, from_sender, "helper"):
+    if db.userExists(from_sender, "helper"):
         print("Registered helper")
-        writeHelperAnalytics(
-            DATABASE,
-            DATABASE_KEY,
+        db.writeHelperAnalytics(
             telehelpCallId,
             ["telehelp_callid", "elks_callid", "call_start_time"],
             (telehelpCallId, callId, startTime),
         )
-        activeCustomer = readActiveCustomer(DATABASE, DATABASE_KEY, from_sender)
+        activeCustomer = db.readActiveCustomer(from_sender)
         print(activeCustomer)
         if activeCustomer is None:
             payload = {
@@ -168,19 +156,17 @@ def receiveCall():
         return json.dumps(payload)
 
     # For registered customers
-    elif userExists(DATABASE, DATABASE_KEY, from_sender, "customer"):
+    elif db.userExists(from_sender, "customer"):
         print("Registered customer")
-        writeCustomerAnalytics(
-            DATABASE,
-            DATABASE_KEY,
+        db.writeCustomerAnalytics(
             telehelpCallId,
             ["telehelp_callid", "elks_callid", "call_start_time", "new_customer"],
             (telehelpCallId, callId, startTime, "False"),
         )
 
         # Get name of person to suggest call to from DB
-        helperNumber = readActiveHelper(DATABASE, DATABASE_KEY, from_sender)
-        name = readNameByNumber(DATABASE, DATABASE_KEY, helperNumber)
+        helperNumber = db.readActiveHelper(from_sender)
+        name = db.readNameByNumber(helperNumber)
 
         if name is None:
             payload = {
@@ -220,9 +206,7 @@ def receiveCall():
             return json.dumps(payload)
 
     # New customer
-    writeCustomerAnalytics(
-        DATABASE,
-        DATABASE_KEY,
+    db.writeCustomerAnalytics(
         telehelpCallId,
         ["telehelp_callid", "elks_callid", "call_start_time", "new_customer"],
         (telehelpCallId, callId, startTime, "True"),
@@ -245,9 +229,7 @@ def receiveCall():
 def customerHangup(telehelpCallId):
     print("hangup")
     endTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
-    writeCustomerAnalytics(
-        DATABASE, DATABASE_KEY, telehelpCallId, ["call_end_time"], (endTime, telehelpCallId)
-    )
+    db.writeCustomerAnalytics(telehelpCallId, ["call_end_time"], (endTime, telehelpCallId))
     return ""
 
 
@@ -255,7 +237,7 @@ def customerHangup(telehelpCallId):
 def helperHangup(telehelpCallId):
     print("hangup")
     endTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
-    writeHelperAnalytics(DATABASE, DATABASE_KEY, telehelpCallId, ["call_end_time"], (endTime, telehelpCallId))
+    db.writeHelperAnalytics(telehelpCallId, ["call_end_time"], (endTime, telehelpCallId))
     return ""
 
 
@@ -264,9 +246,7 @@ def handleReturningHelper(telehelpCallId):
     print(request.form.get("result"))
     number = int(request.form.get("result"))
     if number == 1:
-        writeHelperAnalytics(
-            DATABASE,
-            DATABASE_KEY,
+        db.writeHelperAnalytics(
             telehelpCallId,
             ["contacted_prev_customer", "deregistered"],
             ("True", "False", telehelpCallId),
@@ -290,7 +270,7 @@ def handleReturningHelper(telehelpCallId):
 @app.route("/api/callExistingCustomer/<string:telehelpCallId>", methods=["POST"])
 def callExistingCustomer(telehelpCallId):
     helperPhone = request.form.get("from")
-    customerPhone = readActiveCustomer(DATABASE, DATABASE_KEY, helperPhone)
+    customerPhone = db.readActiveCustomer(helperPhone)
     payload = {
         "connect": customerPhone,
         "callerid": ELK_NUMBER,
@@ -303,14 +283,12 @@ def callExistingCustomer(telehelpCallId):
 def removeHelper(telehelpCallId):
     from_sender = request.form.get("from")
     endTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
-    writeHelperAnalytics(
-        DATABASE,
-        DATABASE_KEY,
+    db.writeHelperAnalytics(
         telehelpCallId,
         ["call_end_time", "contacted_prev_customer", "deregistered"],
         (endTime, "False", "True", telehelpCallId),
     )
-    deleteFromDatabase(DATABASE, DATABASE_KEY, from_sender, "helper")
+    db.deleteFromDatabase(from_sender, "helper")
     return ""
 
 
@@ -330,14 +308,12 @@ def handleReturningCustomer(telehelpCallId):
         return json.dumps(payload)
 
     if number == 2:
-        writeCustomerAnalytics(
-            DATABASE,
-            DATABASE_KEY,
+        db.writeCustomerAnalytics(
             telehelpCallId,
             ["used_prev_helper", "deregistered"],
             ("False", "False", telehelpCallId),
         )
-        zipcode = readZipcodeFromDatabase(DATABASE, DATABASE_KEY, phone, "customer")
+        zipcode = db.readZipcodeFromDatabase(phone, "customer")
         payload = {
             "play": MEDIA_URL + "/ivr/vi_letar.mp3",
             "skippable": "true",
@@ -347,9 +323,7 @@ def handleReturningCustomer(telehelpCallId):
         return json.dumps(payload)
 
     if number == 3:
-        writeCustomerAnalytics(
-            DATABASE,
-            DATABASE_KEY,
+        db.writeCustomerAnalytics(
             telehelpCallId,
             ["used_prev_helper", "deregistered"],
             ("False", "True", telehelpCallId),
@@ -371,7 +345,7 @@ def handleLonelyCustomer(telehelpCallId):
     phone = request.form.get("from")
 
     if number == 1:
-        zipcode = readZipcodeFromDatabase(DATABASE, DATABASE_KEY, phone, "customer")
+        zipcode = db.readZipcodeFromDatabase(phone, "customer")
         payload = {
             "play": MEDIA_URL + "/ivr/vi_letar.mp3",
             "skippable": "true",
@@ -381,9 +355,7 @@ def handleLonelyCustomer(telehelpCallId):
         return json.dumps(payload)
 
     if number == 2:
-        writeCustomerAnalytics(
-            DATABASE, DATABASE_KEY, telehelpCallId, ["deregistered"], ("True", telehelpCallId)
-        )
+        db.writeCustomerAnalytics(telehelpCallId, ["deregistered"], ("True", telehelpCallId))
         payload = {
             "play": MEDIA_URL + "/ivr/avreg_confirmed.mp3",
             "next": BASE_URL + "/api/removeCustomer",
@@ -397,10 +369,8 @@ def handleLonelyCustomer(telehelpCallId):
 @app.route("/api/callExistingHelper/<string:telehelpCallId>", methods=["POST"])
 def callExistingHelper(telehelpCallId):
     customerPhone = request.form.get("from")
-    helperPhone = readActiveHelper(DATABASE, DATABASE_KEY, customerPhone)
-    writeCustomerAnalytics(
-        DATABASE,
-        DATABASE_KEY,
+    helperPhone = db.readActiveHelper(customerPhone)
+    db.writeCustomerAnalytics(
         telehelpCallId,
         ["used_prev_helper", "deregistered"],
         ("True", "False", telehelpCallId),
@@ -421,34 +391,32 @@ def postcodeInput(zipcode, telehelpCallId):
     # TODO: Add sound if zipcode is invalid (n/a)
     district = getDistrict(int(zipcode), DISTRICT_DICT)
     timestr = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
-    saveCustomerToDatabase(DATABASE, DATABASE_KEY, phone, str(zipcode), district, timestr)
+    db.saveCustomerToDatabase(phone, str(zipcode), district, timestr)
     print("zipcode: ", zipcode)
 
-    closestHelpers = fetchHelper(DATABASE, DATABASE_KEY, district, zipcode, LOCATION_DICT)
+    closestHelpers = db.fetchHelper(district, zipcode, LOCATION_DICT)
 
     # Reads if the customer has a current helper and if so it will delete the current helper from closestHelpers
     # since the customer have choosen a new helper.
     # closestHelpers
-    helperPhone = readActiveHelper(DATABASE, DATABASE_KEY, phone)
+    helperPhone = db.readActiveHelper(phone)
     print(f"Helperphone: {helperPhone}")
     print(f"closestHelpers: {closestHelpers}")
     if helperPhone is not None:
         if closestHelpers is not None and helperPhone in closestHelpers:
             closestHelpers.remove(helperPhone)
-        writeActiveCustomer(DATABASE, DATABASE_KEY, helperPhone, None)
+        db.writeActiveCustomer(helperPhone, None)
 
-    writeCallHistory(DATABASE, DATABASE_KEY, callId, "closest_helpers", json.dumps(closestHelpers))
+    db.writeCallHistory(callId, "closest_helpers", json.dumps(closestHelpers))
 
     if closestHelpers is None:
-        writeCustomerAnalytics(
-            DATABASE, DATABASE_KEY, telehelpCallId, ["n_helpers_contacted"], ("0", telehelpCallId)
-        )
+        db.writeCustomerAnalytics(telehelpCallId, ["n_helpers_contacted"], ("0", telehelpCallId))
         payload = {"play": MEDIA_URL + "/ivr/finns_ingen.mp3"}
 
         checkPayload(payload, MEDIA_URL, log=log)
         return json.dumps(payload)
     else:
-        writeCallHistory(DATABASE, DATABASE_KEY, callId, "hangup", "False")
+        db.writeCallHistory(callId, "hangup", "False")
         payload = {
             "play": MEDIA_URL + "/ivr/ringer_tillbaka.mp3",
             "skippable": "true",
@@ -465,12 +433,10 @@ def postcodeInput(zipcode, telehelpCallId):
 def call(helperIndex, customerCallId, customerPhone, telehelpCallId):
     # NOTE: When making changes here, also update /callSupport :)
 
-    stopCalling = readCallHistory(DATABASE, DATABASE_KEY, customerCallId, "hangup")
+    stopCalling = db.readCallHistory(customerCallId, "hangup")
     if stopCalling == "True":
         endTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
-        writeCustomerAnalytics(
-            DATABASE,
-            DATABASE_KEY,
+        db.writeCustomerAnalytics(
             telehelpCallId,
             ["call_end_time", "n_helpers_contacted"],
             (endTime, str(helperIndex), telehelpCallId),
@@ -481,16 +447,14 @@ def call(helperIndex, customerCallId, customerPhone, telehelpCallId):
 
         print("Customer callId: ", customerCallId)
 
-        closestHelpers = json.loads(readCallHistory(DATABASE, DATABASE_KEY, customerCallId, "closest_helpers"))
+        closestHelpers = json.loads(db.readCallHistory(customerCallId, "closest_helpers"))
         print("closest helpers: ", closestHelpers)
 
         auth = (API_USERNAME, API_PASSWORD)
 
         if helperIndex >= len(closestHelpers):
-            writeCallHistory(DATABASE, DATABASE_KEY, customerCallId, "hangup", "True")
-            writeCustomerAnalytics(
-                DATABASE,
-                DATABASE_KEY,
+            db.writeCallHistory(customerCallId, "hangup", "True")
+            db.writeCustomerAnalytics(
                 telehelpCallId,
                 ["n_helpers_contacted"],
                 (str(helperIndex), telehelpCallId),
@@ -538,9 +502,7 @@ def callBackToCustomer(customerPhone, telehelpCallId):
 
     requests.post(ELK_BASE + "/a1/calls", data=fields, auth=auth)
     endTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
-    writeCustomerAnalytics(
-        DATABASE,
-        DATABASE_KEY,
+    db.writeCustomerAnalytics(
         telehelpCallId,
         ["call_end_time", "match_found"],
         (endTime, "False", telehelpCallId),
@@ -552,7 +514,7 @@ def callBackToCustomer(customerPhone, telehelpCallId):
 @app.route("/api/removeCustomer", methods=["POST"])
 def removeCustomer():
     from_sender = request.form.get("from")
-    deleteFromDatabase(DATABASE, DATABASE_KEY, from_sender, "customer")
+    db.deleteFromDatabase(from_sender, "customer")
     return ""
 
 
@@ -612,16 +574,16 @@ def connectUsers(customerPhone, customerCallId, telehelpCallId):
 
     print("Saving customer -> helper connection to database")
     # TODO: check current active customer/helper and move to previous
-    writeCustomerAnalytics(DATABASE, DATABASE_KEY, telehelpCallId, ["match_found"], ("True", telehelpCallId))
+    db.writeCustomerAnalytics(telehelpCallId, ["match_found"], ("True", telehelpCallId))
     # writeCustomerAnalytics(DATABASE, DATABASE_KEY, telehelpCallId, match_found="True")
-    writeActiveCustomer(DATABASE, DATABASE_KEY, helperPhone, customerPhone)
-    writeActiveHelper(DATABASE, DATABASE_KEY, customerPhone, helperPhone)
-    writeCallHistory(DATABASE, DATABASE_KEY, customerCallId, "hangup", "True")
+    db.writeActiveCustomer(helperPhone, customerPhone)
+    db.writeActiveHelper(customerPhone, helperPhone)
+    db.writeCallHistory(customerCallId, "hangup", "True")
     print("Connecting users")
     print("customer:", customerPhone)
 
     if HOOK_URL is not None:
-        res = readNewConnectionInfo(DATABASE, DATABASE_KEY, helperPhone)[0]
+        res = db.readNewConnectionInfo(helperPhone)[0]
         requests.post(
             HOOK_URL, {"content": f"{res[0]} från {res[1]} har fått kontakt med någon som behöver hjälp!"}
         )
@@ -659,7 +621,7 @@ def receiveSms():
 
     if response == "TILLGÄNGLIG":
         # Clear database pairing to make volunteer available again. Remove volunteer from customer side too.
-        clearCustomerHelperPairing(DATABASE, DATABASE_KEY, volunteerNumber)
+        db.clearCustomerHelperPairing(volunteerNumber)
 
     # Your webhook code must respond with a HTTP status in the range 200-204.
     return ""
@@ -679,7 +641,7 @@ def register():
 
         if city == "n/a":
             return {"type": "failure", "message": "Invalid zip"}
-        if userExists(DATABASE, DATABASE_KEY, phone_number, "helper"):
+        if db.userExists(phone_number, "helper"):
             return {"type": "failure", "message": "User already exists"}
 
         code = "".join(secrets.choice(string.digits) for _ in range(6))
@@ -721,7 +683,7 @@ def verify():
                 requests.post(HOOK_URL, {"content": f"{name} från {city} har registrerat sig som volontär!"})
             log.info(f"Saving helper to database {name}, {phone_number}, {zipcode}, {city}")
             timestr = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
-            saveHelperToDatabase(DATABASE, DATABASE_KEY, name, phone_number, zipcode, city, timestr)
+            db.saveHelperToDatabase(name, phone_number, zipcode, city, timestr)
 
             #  TODO: Remove soundbyte if user quits?
             urlEscapedName = urllib.parse.quote(name)
@@ -736,7 +698,7 @@ def verify():
 @app.route("/getVolunteerLocations", methods=["GET"])
 def getVolunteerLocations():
     query = "SELECT zipcode FROM user_helpers"
-    volunteer_zipcodes_df = fetchData(DATABASE, DATABASE_KEY, query, params=None)["zipcode"]
+    volunteer_zipcodes_df = db.fetchData(query, params=None)["zipcode"]
 
     district_data = defaultdict(list)
     c = Counter(volunteer_zipcodes_df)
@@ -771,8 +733,8 @@ def support():
     # J, T, DEr
     supportTeam = ["+46737600282", "+46707812741"]
     random.shuffle(supportTeam)  # Randomize order to spread load
-    writeCallHistory(DATABASE, DATABASE_KEY, callId, "closest_helpers", json.dumps(supportTeam))
-    writeCallHistory(DATABASE, DATABASE_KEY, callId, "hangup", "False")
+    db.writeCallHistory(callId, "closest_helpers", json.dumps(supportTeam))
+    db.writeCallHistory(callId, "hangup", "False")
     payload = {
         "play": MEDIA_URL + "/ivr/ringer_tillbaka_support.mp3",
         "skippable": "true",
@@ -783,7 +745,7 @@ def support():
 
 @app.route("/api/callSupport/<int:helperIndex>/<string:supportCallId>/<string:supportPhone>", methods=["POST"])
 def callSupport(helperIndex, supportCallId, supportPhone):
-    stopCalling = readCallHistory(DATABASE, DATABASE_KEY, supportCallId, "hangup")
+    stopCalling = db.readCallHistory(supportCallId, "hangup")
     if stopCalling == "True":
         return ""
     else:
@@ -791,13 +753,13 @@ def callSupport(helperIndex, supportCallId, supportPhone):
 
         print("Support customer callId: ", supportCallId)
 
-        supportTeamList = json.loads(readCallHistory(DATABASE, DATABASE_KEY, supportCallId, "closest_helpers"))
+        supportTeamList = json.loads(db.readCallHistory(supportCallId, "closest_helpers"))
         print("closest helpers: ", supportTeamList)
 
         auth = (API_USERNAME, API_PASSWORD)
 
         if helperIndex >= len(supportTeamList):
-            writeCallHistory(DATABASE, DATABASE_KEY, supportCallId, "hangup", "True")
+            db.writeCallHistory(supportCallId, "hangup", "True")
             return redirect(url_for("callBackToSupportCustomer", supportPhone=supportPhone))
 
         print(supportTeamList[helperIndex])
@@ -845,7 +807,7 @@ def connectUsersSupport(customerPhone, customerCallId):
     helperPhone = request.form.get("to")
     print("support from: ", helperPhone)
 
-    writeCallHistory(DATABASE, DATABASE_KEY, customerCallId, "hangup", "True")
+    db.writeCallHistory(customerCallId, "hangup", "True")
     print("Connecting users")
     print("customer:", customerPhone)
     payload = {"connect": customerPhone, "callerid": ELK_NUMBER, "timeout": "15"}
@@ -862,6 +824,11 @@ def testredirect(numb):
 @app.route("/testendpoint", methods=["GET"])
 def testendpoint():
     return redirect(url_for("testredirect", numb=1))
+
+
+@app.route("/helloworld", methods=["GET"])
+def testhelloworld():
+    return "Hello World!"
 
 
 # --------------------------------------------------------------------------------------------------

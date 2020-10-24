@@ -29,7 +29,7 @@ There are two parts to the project
 In order to initialize the deployment add the remote for the server.
 
 ```
-git remote add production user@deploy_server:matkrasslig.git
+git remote add production user@deploy_server:telehelp.git
 ```
 
 Then push the changes to the deployment server
