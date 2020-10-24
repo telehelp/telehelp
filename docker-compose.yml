@@ -41,6 +41,8 @@ services:
     environment:
       DB_HOST: db
       REDIS_HOST: redis
+      FLASK_ENV: development
+      FLASK_APP: ./api.py
     volumes:
       - ./server:/telehelp/server
     command: [

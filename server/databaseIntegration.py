@@ -4,9 +4,10 @@ import random
 import pandas as pd
 
 from dataclasses import dataclass
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy.sql import func
 
 from zipcode_utils import getDistanceApart
 from zipcode_utils import getDistrict
@@ -14,23 +15,40 @@ from zipcode_utils import readZipCodeData
 
 Base = declarative_base()
 
-
+# Consider useing flask-mirgrate in the future
 class User(Base):
-    __tablename__ = "user"
+    __abstract__ = True
     id = Column("id", Integer, primary_key=True)
     name = Column("name", String)
     zipcode = Column("zipcode", String)
-    phone = Column("phone", String)
+    phone = Column("phone", String, unique=True)
+    signup_time = Column(DateTime(timezone=True), server_default=func.now())
 
 
-# class Helper(User):
-#     __abstract__ = False
-#     __tablename__ = "helper"
+class Helper(User):
+    __tablename__ = "helper"
 
 
-# class Customer(User):
-#     __abstract__ = False
-#     __tablename__ = "customer"
+class Customer(User):
+    __tablename__ = "customer"
+
+
+class Analytic(Base):
+    __abstract__ = True
+    id = Column("id", Integer, primary_key=True)
+
+
+class HelperAnalytic(Analytic):
+    __tablename__ = "helper_analytic"
+
+
+class CustomerAnalytic(Analytic):
+    __tablename__ = "customer_analytic"
+
+
+class CallVariable(Base):
+    __tablename__ = "call_variable"
+    id = Column("id", Integer, primary_key=True)
 
 
 class DatabaseConnection:
@@ -39,8 +57,7 @@ class DatabaseConnection:
     def __init__(self, db):
         self.db = db
         Base.metadata.create_all(bind=self.db)
-        Session = sessionmaker(bind=self.db)
-        self.session = Session()
+        self.Session = sessionmaker(bind=self.db)
 
     # def fetchData(self, query, params=None):
     #     with self.db.connect() as conn:
