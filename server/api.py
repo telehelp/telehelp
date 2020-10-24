@@ -80,7 +80,9 @@ checkEnv(API_PASSWORD, "API_PASSWORD")
 checkEnv(SECRET_KEY, "SECRET_KEY")
 checkEnv(HOOK_URL, "HOOK_URL")
 
-engine = create_engine(f"postgresql+pg8000://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{DB_HOST}/telehelp")
+engine = create_engine(
+    f"postgresql+pg8000://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{DB_HOST}/telehelp", echo=True, encoding="utf8"
+)
 db = DatabaseConnection(engine)
 
 ZIPDATA = "SE.txt"
@@ -600,7 +602,6 @@ def connectUsers(customerPhone, customerCallId, telehelpCallId):
 
 def sendAskIfHelpingSms(volunteerNumber):
     time.sleep(60)
-
     msg = "Förhoppningsvis kan du hjälpa personen du precis pratade med. \
 Ring till Telehelp på 0766861551 för att nå personen igen vid behov. \
 Svara TILLGÄNGLIG om du inte kunde hjälpa till eller är klar med uppgiften, så gör \
