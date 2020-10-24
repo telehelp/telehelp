@@ -13,7 +13,7 @@ from .zipcode_utils import readZipCodeData
 
 
 def create_connection(db_file, key):
-    """ create a database connection to the SQLite database
+    """create a database connection to the SQLite database
         specified by the db_file
     :param db_file: database file
     :return: Connection object or None
@@ -80,7 +80,14 @@ def readZipcodeFromDatabase(db, key, phone, userType):
 def saveHelperToDatabase(db, key, name, phone, zipcode, district, timestr):
     print("Writing phone and postcode to database")
     print(
-        "\nname: ", name, "\nzipcode:", zipcode, "\nphone: ", phone, "\ndistrict:", district,
+        "\nname: ",
+        name,
+        "\nzipcode:",
+        zipcode,
+        "\nphone: ",
+        phone,
+        "\ndistrict:",
+        district,
     )
 
     query = """ INSERT INTO user_helpers (phone, name, zipcode, district, signup_time)
@@ -373,7 +380,6 @@ if __name__ == "__main__":
     # conn, cursor = create_connection('telehelp.db', DATABASE_KEY)
     # # print(savePostcodeToDatabase('telehelp.db', DATABASSE_KEY, '125', '17070', 'customer'))
     # # print(getCustomers('telehelp.db', DATABASE_KEY)
-    # print(userExists('telehelp.db', DATABASE_KEY,'+46761423456', 'helper'))
     # print(userExists('telehelp.db', DATABASE_KEY,'+45674623456', 'helper'))
 
     # ZIPDATA = 'SE.txt'

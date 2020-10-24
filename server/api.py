@@ -769,8 +769,7 @@ def support():
     phone = request.form.get("from")
 
     # J, T, DEr
-    supportTeam = ["+46737600282", "+46707812741", "+46761423456"]
-    # +46761423456
+    supportTeam = ["+46737600282", "+46707812741"]
     random.shuffle(supportTeam)  # Randomize order to spread load
     writeCallHistory(DATABASE, DATABASE_KEY, callId, "closest_helpers", json.dumps(supportTeam))
     writeCallHistory(DATABASE, DATABASE_KEY, callId, "hangup", "False")

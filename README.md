@@ -1,7 +1,7 @@
 <a href="https://github.com/prettier/prettier/"><img alt="code style: prettier" src="https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square"></a>
 <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
-[![Actions Status](https://github.com/dekvall/matkrasslig/workflows/pre-commit/badge.svg)](https://github.com/dekvall/matkrasslig/actions)
+[![Actions Status](https://github.com/telehelp/telehelp/workflows/pre-commit/badge.svg)](https://github.com/telehelp/telehelp/actions)
 
 # Telehelp - Bridge the Digital Divide
 
