@@ -1,6 +1,6 @@
 # Server
 
-### Environmental Varialbles
+### Environment variables
 
 In order for the server to operate as intended you need to set a few environmental variables before you start. It is recommended to put these in a .env file that Flask can read automatically.
 
@@ -22,9 +22,6 @@ HOOK_URL=optional-discord-hook-url
 
 POSTGRES_PASSWORD=postgres
 POSTGRES_USER=postgres
-
-REDIS_HOST=localhost
-REDIS_PORT=6379
 
 PGADMIN_DEFAULT_EMAIL=test@telehelp.se
 PGADMIN_DEFAULT_PASSWORD=postgres
