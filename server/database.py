@@ -1,8 +1,6 @@
 import os
 import random
 
-import pandas as pd
-
 from dataclasses import dataclass
 from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.ext.declarative import declarative_base
@@ -21,14 +19,20 @@ Base = declarative_base()
 class User(Base):
     __abstract__ = True
     id = Column("id", Integer, primary_key=True)
-    name = Column("name", String)
     zipcode = Column("zipcode", String)
     phone = Column("phone", String, unique=True)
+    talking_to = Column("talking_to", String, nullable=True)
     signup_time = Column(DateTime(timezone=True), server_default=func.now())
+
+    district = Column("district", String)  # TODO, pre-calculate this in the add functions
+
+    # talking_to should probably be something else or be done in redis, but ok,
+    # also it should handle multiple users in the future so we can move it to one of the child classes
 
 
 class Helper(User):
     __tablename__ = "helper"
+    name = Column("name", String)
 
 
 class Customer(User):
@@ -57,7 +61,7 @@ DB_HOST = os.getenv("DB_HOST")
 POSTGRES_USER = os.getenv("POSTGRES_USER")
 POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
 
-# Database connection
+# Connect
 engine = create_engine(
     f"postgresql+pg8000://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{DB_HOST}/telehelp", echo=True, encoding="utf8"
 )
@@ -79,16 +83,70 @@ def db_session():
         session.close()
 
 
+# TODO, figure out something smart to do so these get deduplicated
 class DatabaseConnection:
     """Database interface"""
 
-    def helperExists(self, phone):
+    def add_helper(self, name, zipcode, phone):
+        with db_session() as session:
+            user = Helper(name=name, zipcode=zipcode, phone=phone)
+            session.add(user)
+
+    def add_customer(self, zipcode, phone):
+        with db_session() as session:
+            user = Customer(zipcode=zipcode, phone=phone)
+            session.add(user)
+
+    def helper_exists(self, phone):
         with db_session() as session:
             return session.query(Helper.id).filter_by(phone=phone).scalar() is not None
 
-    def customerExists(self, phone):
+    def customer_exists(self, phone):
         with db_session() as session:
             return session.query(Customer.id).filter_by(phone=phone).scalar() is not None
+
+    def helper_zipcodes(self):
+        with db_session() as session:
+            return session.query(Helper.zipcode).all()
+
+    def connect_users(self, helper_phone, customer_phone):
+        with db_session() as session:
+            session.query(Helper).filter_by(phone=helper_phone).update({Helper.talking_to: customer_phone})
+            session.query(Customer).filter_by(phone=customer_phone).update({Customer.talking_to: helper_phone})
+
+    def reset_helper_contact(self, phone):
+        with db_session() as session:
+            session.query(Helper).filter_by(phone=phone).update({Helper.talking_to: None})
+
+    def get_helper_customer(self, helper_phone):
+        with db_session() as session:
+            return session.query(Helper.talking_to).filter_by(phone=helper_phone).scalar()
+
+    def get_customer_helper(self, customer_phone):
+        with db_session() as session:
+            return session.query(Customer.talking_to).filter_by(phone=customer_phone).scalar()
+
+    def get_helper_name(self, phone):
+        with db_session() as session:
+            return session.query(Helper.name).filter_by(phone=phone).scalar()
+
+    def delete_helper(self, phone):
+        with db_session() as session:
+            session.query(Helper).filter_by(phone=phone).delete()
+            session.query(Customer).filter_by(talking_to=phone).update({Customer.talking_to: None})
+
+    def delete_customer(self, phone):
+        with db_session() as session:
+            session.query(Customer).filter_by(phone=phone).delete()
+            session.query(Helper).filter_by(talking_to=phone).update({Helper.talking_to: None})
+
+    def get_helper_zipcode(self, phone):
+        with db_session() as session:
+            return session.query(Helper.zipcode).filter_by(phone=phone).scalar()
+
+    def get_customer_zipcode(self, phone):
+        with db_session() as session:
+            return session.query(Customer.zipcode).filter_by(phone=phone).scalar()
 
     # def fetchData(self, query, params=None):
     #     with self.db.connect() as conn:

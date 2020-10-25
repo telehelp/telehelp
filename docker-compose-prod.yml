@@ -1,9 +1,5 @@
 version: "3"
 services:
-  website:
-    build: ./client
-    ports:
-      - 3001:80
   redis:
     image: redis
     networks:
@@ -31,10 +27,10 @@ services:
       - db
     logging:
       driver: none
+    networks:
+      - pgadminnet
   server:
     build: ./server
-    expose:
-      - "5000"
     ports:
       - "5000:5000"
     networks:
@@ -45,10 +41,24 @@ services:
     environment:
       DB_HOST: db
       REDIS_HOST: redis
-    command: ["./wait-for-it.sh", "-t", "30", "db:5432"]
+      FLASK_ENV: development
+      FLASK_APP: ./api.py
+    volumes:
+      - ./server:/telehelp/server
+    command: [
+        "./wait-for-it.sh",
+        "-t",
+        "30",
+        "db:5432",
+        "--",
+        "flask",
+        "run",
+        "--host",
+        "0.0.0.0", # Listen on all interfaces
+      ]
 networks:
   webnet:
   pgadminnet:
     driver: bridge
-  volumes:
+volumes:
   pgdata:

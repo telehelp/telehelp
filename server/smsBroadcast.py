@@ -6,7 +6,7 @@ import time
 import requests
 from dotenv import load_dotenv
 
-from databaseIntegration import readDatabase
+from database import readDatabase
 
 load_dotenv()
 
