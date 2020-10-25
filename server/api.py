@@ -36,6 +36,20 @@ from zipcode_utils import getDistanceApart
 from zipcode_utils import getDistrict
 from zipcode_utils import readZipCodeData
 
+
+def setup_logger():
+    log = logging.getLogger(__name__)
+    log.setLevel(logging.INFO)
+    handler = logging.FileHandler("flask.log")
+    handler.setLevel(logging.INFO)
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    handler.setFormatter(formatter)
+    log.addHandler(handler)
+    startTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
+    log.info(f"New log entry {startTime}")
+    return log
+
+
 env_vars = (
     "BASE_URL",
     "ELK_NUMBER",
@@ -97,22 +111,10 @@ def canonicalize_number(phone_number):
     return phone_number
 
 
-def setup_logger():
-    log = logging.getLogger(__name__)
-    log.setLevel(logging.INFO)
-    handler = logging.FileHandler("flask.log")
-    handler.setLevel(logging.INFO)
-    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-    handler.setFormatter(formatter)
-    log.addHandler(handler)
-    startTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
-    log.info(f"New log entry {startTime}")
-    return log
-
-
 def ivr(action):
     # TODO: Use an enum for static checking
     return f"{MEDIA_URL}/ivr/{action}.mp3"
+
 
 def api(action):
     return f"{BASE_URL}/api/{action}"
@@ -206,7 +208,7 @@ def receiveCall():
                 generateNameSoundByte(name)
 
             payload = {
-                "play": ivr(behover_hjalp.mp3",
+                "play": ivr("behover_hjalp"),
                 "next": {
                     "play": MEDIA_URL + "/name/" + nameEncoded + ".mp3",
                     "next": {
@@ -333,7 +335,7 @@ def handleReturningCustomer(telehelpCallId):
         )
         zipcode = db.readZipcodeFromDatabase(phone, "customer")
         payload = {
-            "play": ivr(vi_letar.mp3",
+            "play": ivr("vi_letar"),
             "skippable": "true",
             "next": api("postcodeInput/%s/%s" % (zipcode, telehelpCallId)),
         }
@@ -488,8 +490,12 @@ def call(helperIndex, customerCallId, customerPhone, telehelpCallId):
             "ivr": ivr("hjalte"),
             "timeout": "30",
             "1": api("connectUsers/%s/%s/%s" % (customerPhone, customerCallId, telehelpCallId)),
-            "2": api("call/%s/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone, telehelpCallId)),
-            "next": api("call/%s/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone, telehelpCallId)),
+            "2": api(
+                "call/%s/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone, telehelpCallId)
+            ),
+            "next": api(
+                "call/%s/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone, telehelpCallId)
+            ),
         }
 
         checkPayload(payload, MEDIA_URL, log=log)
@@ -499,7 +505,9 @@ def call(helperIndex, customerCallId, customerPhone, telehelpCallId):
             "from": ELK_NUMBER,
             "to": closestHelpers[helperIndex],
             "voice_start": json.dumps(payload),
-            "whenhangup": api("call/%s/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone, telehelpCallId)),
+            "whenhangup": api(
+                "call/%s/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone, telehelpCallId)
+            ),
         }
 
         response = requests.post(ELK_BASE + "/a1/calls", data=fields, auth=auth)

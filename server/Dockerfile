@@ -4,8 +4,7 @@ RUN apt-get update && apt-get install -y sqlcipher libsqlcipher-dev libpython3-d
 COPY requirements.txt /tmp
 RUN pip install -r /tmp/requirements.txt
 
-COPY . /server
-WORKDIR /server
-EXPOSE 5000
+COPY . /telehelp/server
+WORKDIR /telehelp/server
 
-CMD flask run
+EXPOSE 5000
