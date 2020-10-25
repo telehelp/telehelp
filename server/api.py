@@ -74,6 +74,8 @@ ELK_USERNAME = os.getenv("ELK_USERNAME")
 ELK_PASSWORD = os.getenv("ELK_PASSWORD")
 HOOK_URL = os.getenv("HOOK_URL")
 
+ELK_AUTH = (ELK_USERNAME, ELK_PASSWORD)
+
 
 app = Flask(__name__, static_folder="../client/build", static_url_path="/")
 
@@ -126,22 +128,20 @@ def index():
 def receiveCall():
     callId = request.form.get("callid")
     startTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
-    telehelpCallId = str(uuid.uuid1())
+    telehelpCallId = str(uuid.uuid4())
     db.createNewCallHistory(callId)
 
     from_sender = request.form.get("from")
-    print(from_sender)
 
     # For registered helpers
     if db.helperExists(from_sender):
         print("Registered helper")
-        db.writeHelperAnalytics(
-            telehelpCallId,
-            ["telehelp_callid", "elks_callid", "call_start_time"],
-            (telehelpCallId, callId, startTime),
-        )
+        # db.writeHelperAnalytics(
+        #     telehelpCallId,
+        #     ["telehelp_callid", "elks_callid", "call_start_time"],
+        #     (telehelpCallId, callId, startTime),
+        # )
         activeCustomer = db.readActiveCustomer(from_sender)
-        print(activeCustomer)
         if activeCustomer is None:
             payload = {
                 "ivr": ivr("hjalper_ingen"),
@@ -172,11 +172,11 @@ def receiveCall():
     # For registered customers
     elif db.customerExists(from_sender):
         print("Registered customer")
-        db.writeCustomerAnalytics(
-            telehelpCallId,
-            ["telehelp_callid", "elks_callid", "call_start_time", "new_customer"],
-            (telehelpCallId, callId, startTime, "False"),
-        )
+        # db.writeCustomerAnalytics(
+        #     telehelpCallId,
+        #     ["telehelp_callid", "elks_callid", "call_start_time", "new_customer"],
+        #     (telehelpCallId, callId, startTime, "False"),
+        # )
 
         # Get name of person to suggest call to from DB
         helperNumber = db.readActiveHelper(from_sender)
@@ -220,11 +220,11 @@ def receiveCall():
             return payload
 
     # New customer
-    db.writeCustomerAnalytics(
-        telehelpCallId,
-        ["telehelp_callid", "elks_callid", "call_start_time", "new_customer"],
-        (telehelpCallId, callId, startTime, "True"),
-    )
+    # db.writeCustomerAnalytics(
+    #     telehelpCallId,
+    #     ["telehelp_callid", "elks_callid", "call_start_time", "new_customer"],
+    #     (telehelpCallId, callId, startTime, "True"),
+    # )
 
     payload = {
         "ivr": ivr("info"),
@@ -243,7 +243,7 @@ def receiveCall():
 def customerHangup(telehelpCallId):
     print("hangup")
     endTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
-    db.writeCustomerAnalytics(telehelpCallId, ["call_end_time"], (endTime, telehelpCallId))
+    # db.writeCustomerAnalytics(telehelpCallId, ["call_end_time"], (endTime, telehelpCallId))
     return ""
 
 
@@ -251,7 +251,7 @@ def customerHangup(telehelpCallId):
 def helperHangup(telehelpCallId):
     print("hangup")
     endTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
-    db.writeHelperAnalytics(telehelpCallId, ["call_end_time"], (endTime, telehelpCallId))
+    # db.writeHelperAnalytics(telehelpCallId, ["call_end_time"], (endTime, telehelpCallId))
     return ""
 
 
@@ -260,11 +260,11 @@ def handleReturningHelper(telehelpCallId):
     print(request.form.get("result"))
     number = int(request.form.get("result"))
     if number == 1:
-        db.writeHelperAnalytics(
-            telehelpCallId,
-            ["contacted_prev_customer", "deregistered"],
-            ("True", "False", telehelpCallId),
-        )
+        # db.writeHelperAnalytics(
+        #     telehelpCallId,
+        #     ["contacted_prev_customer", "deregistered"],
+        #     ("True", "False", telehelpCallId),
+        # )
         payload = {
             "play": ivr("du_kopplas"),
             "next": api("callExistingCustomer/%s" % telehelpCallId),
@@ -297,11 +297,11 @@ def callExistingCustomer(telehelpCallId):
 def removeHelper(telehelpCallId):
     from_sender = request.form.get("from")
     endTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
-    db.writeHelperAnalytics(
-        telehelpCallId,
-        ["call_end_time", "contacted_prev_customer", "deregistered"],
-        (endTime, "False", "True", telehelpCallId),
-    )
+    # db.writeHelperAnalytics(
+    #     telehelpCallId,
+    #     ["call_end_time", "contacted_prev_customer", "deregistered"],
+    #     (endTime, "False", "True", telehelpCallId),
+    # )
     db.deleteFromDatabase(from_sender, "helper")
     return ""
 
@@ -322,11 +322,11 @@ def handleReturningCustomer(telehelpCallId):
         return payload
 
     if number == 2:
-        db.writeCustomerAnalytics(
-            telehelpCallId,
-            ["used_prev_helper", "deregistered"],
-            ("False", "False", telehelpCallId),
-        )
+        # db.writeCustomerAnalytics(
+        #     telehelpCallId,
+        #     ["used_prev_helper", "deregistered"],
+        #     ("False", "False", telehelpCallId),
+        # )
         zipcode = db.readZipcodeFromDatabase(phone, "customer")
         payload = {
             "play": ivr("vi_letar"),
@@ -337,11 +337,11 @@ def handleReturningCustomer(telehelpCallId):
         return payload
 
     if number == 3:
-        db.writeCustomerAnalytics(
-            telehelpCallId,
-            ["used_prev_helper", "deregistered"],
-            ("False", "True", telehelpCallId),
-        )
+        # db.writeCustomerAnalytics(
+        #     telehelpCallId,
+        #     ["used_prev_helper", "deregistered"],
+        #     ("False", "True", telehelpCallId),
+        # )
         payload = {
             "play": ivr("avreg_confirmed"),
             "next": api("removeCustomer"),
@@ -369,11 +369,11 @@ def handleLonelyCustomer(telehelpCallId):
         return payload
 
     if number == 2:
-        db.writeCustomerAnalytics(telehelpCallId, ["deregistered"], ("True", telehelpCallId))
-        payload = {
-            "play": ivr("avreg_confirmed"),
-            "next": api("removeCustomer"),
-        }
+        # db.writeCustomerAnalytics(telehelpCallId, ["deregistered"], ("True", telehelpCallId))
+        # payload = {
+        #     "play": ivr("avreg_confirmed"),
+        #     "next": api("removeCustomer"),
+        # }
         checkPayload(payload, MEDIA_URL, log=log)
         return payload
 
@@ -384,11 +384,11 @@ def handleLonelyCustomer(telehelpCallId):
 def callExistingHelper(telehelpCallId):
     customerPhone = request.form.get("from")
     helperPhone = db.readActiveHelper(customerPhone)
-    db.writeCustomerAnalytics(
-        telehelpCallId,
-        ["used_prev_helper", "deregistered"],
-        ("True", "False", telehelpCallId),
-    )
+    # db.writeCustomerAnalytics(
+    #     telehelpCallId,
+    #     ["used_prev_helper", "deregistered"],
+    #     ("True", "False", telehelpCallId),
+    # )
     payload = {
         "connect": helperPhone,
         "callerid": ELK_NUMBER,
@@ -424,7 +424,7 @@ def postcodeInput(zipcode, telehelpCallId):
     db.writeCallHistory(callId, "closest_helpers", json.dumps(closestHelpers))
 
     if closestHelpers is None:
-        db.writeCustomerAnalytics(telehelpCallId, ["n_helpers_contacted"], ("0", telehelpCallId))
+        # db.writeCustomerAnalytics(telehelpCallId, ["n_helpers_contacted"], ("0", telehelpCallId))
         payload = {"play": ivr("finns_ingen")}
 
         checkPayload(payload, MEDIA_URL, log=log)
@@ -450,11 +450,11 @@ def call(helperIndex, customerCallId, customerPhone, telehelpCallId):
     stopCalling = db.readCallHistory(customerCallId, "hangup")
     if stopCalling == "True":
         endTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
-        db.writeCustomerAnalytics(
-            telehelpCallId,
-            ["call_end_time", "n_helpers_contacted"],
-            (endTime, str(helperIndex), telehelpCallId),
-        )
+        # db.writeCustomerAnalytics(
+        #     telehelpCallId,
+        #     ["call_end_time", "n_helpers_contacted"],
+        #     (endTime, str(helperIndex), telehelpCallId),
+        # )
         return ""
     else:
         print("helperIndex:", helperIndex)
@@ -464,15 +464,13 @@ def call(helperIndex, customerCallId, customerPhone, telehelpCallId):
         closestHelpers = json.loads(db.readCallHistory(customerCallId, "closest_helpers"))
         print("closest helpers: ", closestHelpers)
 
-        auth = (ELK_USERNAME, ELK_PASSWORD)
-
         if helperIndex >= len(closestHelpers):
             db.writeCallHistory(customerCallId, "hangup", "True")
-            db.writeCustomerAnalytics(
-                telehelpCallId,
-                ["n_helpers_contacted"],
-                (str(helperIndex), telehelpCallId),
-            )
+            # db.writeCustomerAnalytics(
+            #     telehelpCallId,
+            #     ["n_helpers_contacted"],
+            #     (str(helperIndex), telehelpCallId),
+            # )
             return redirect(
                 url_for("callBackToCustomer", customerPhone=customerPhone, telehelpCallId=telehelpCallId)
             )
@@ -504,7 +502,7 @@ def call(helperIndex, customerCallId, customerPhone, telehelpCallId):
             ),
         }
 
-        response = requests.post(ELK_BASE + "/a1/calls", data=fields, auth=auth)
+        response = requests.post(ELK_BASE + "/a1/calls", data=fields, auth=ELK_AUTH)
         print(response.text)
         return ""
 
@@ -512,18 +510,17 @@ def call(helperIndex, customerCallId, customerPhone, telehelpCallId):
 @app.route("/api/callBackToCustomer/<string:customerPhone>/<string:telehelpCallId>", methods=["POST", "GET"])
 def callBackToCustomer(customerPhone, telehelpCallId):
     print("No one found")
-    auth = (ELK_USERNAME, ELK_PASSWORD)
     payload = {"play": ivr("ingen_hittad")}
 
     fields = {"from": ELK_NUMBER, "to": customerPhone, "voice_start": json.dumps(payload)}
 
-    requests.post(ELK_BASE + "/a1/calls", data=fields, auth=auth)
+    requests.post(ELK_BASE + "/a1/calls", data=fields, auth=ELK_AUTH)
     endTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
-    db.writeCustomerAnalytics(
-        telehelpCallId,
-        ["call_end_time", "match_found"],
-        (endTime, "False", telehelpCallId),
-    )
+    # db.writeCustomerAnalytics(
+    #     telehelpCallId,
+    #     ["call_end_time", "match_found"],
+    #     (endTime, "False", telehelpCallId),
+    # )
 
     return ""
 
@@ -622,9 +619,9 @@ Ring till Telehelp på 0766861551 för att nå personen igen vid behov. \
 Svara TILLGÄNGLIG om du inte kunde hjälpa till eller är klar med uppgiften, så gör \
 vi dig tillgänglig för nya uppdrag. Observera att varken du eller den \
 du hjälpt kommer kunna nå varandra igen om du gör detta. Tack för din insats!"
-    auth = (ELK_USERNAME, ELK_PASSWORD)
+
     fields = {"from": ELK_NUMBER, "to": volunteerNumber, "message": msg}
-    requests.post(ELK_BASE + "/a1/sms", auth=auth, data=fields)
+    requests.post(ELK_BASE + "/a1/sms", auth=ELK_AUTH, data=fields)
 
     print("Sent confirmation SMS to volunteer: " + volunteerNumber)
 
@@ -661,9 +658,9 @@ def register():
             return {"type": "failure", "message": "User already exists"}
 
         code = "".join(secrets.choice(string.digits) for _ in range(6))
-        auth = (ELK_USERNAME, ELK_PASSWORD)
+
         fields = {"from": "Telehelp", "to": phone_number, "message": code}
-        requests.post(ELK_BASE + "/a1/sms", auth=auth, data=fields)
+        requests.post(ELK_BASE + "/a1/sms", auth=ELK_AUTH, data=fields)
         session[phone_number] = {
             "zipCode": validated["zipCode"],
             "name": validated["helperName"],
@@ -772,7 +769,6 @@ def callSupport(helperIndex, supportCallId, supportPhone):
         supportTeamList = json.loads(db.readCallHistory(supportCallId, "closest_helpers"))
         print("closest helpers: ", supportTeamList)
 
-        auth = (ELK_USERNAME, ELK_PASSWORD)
 
         if helperIndex >= len(supportTeamList):
             db.writeCallHistory(supportCallId, "hangup", "True")
@@ -798,7 +794,7 @@ def callSupport(helperIndex, supportCallId, supportPhone):
             "whenhangup": api("callSupport/%s/%s/%s" % (str(helperIndex + 1), supportCallId, supportPhone)),
         }
 
-        response = requests.post(ELK_BASE + "/a1/calls", data=fields, auth=auth)
+        response = requests.post(ELK_BASE + "/a1/calls", data=fields, auth=ELK_AUTH)
 
         print(response.text)
         return ""
@@ -807,12 +803,11 @@ def callSupport(helperIndex, supportCallId, supportPhone):
 @app.route("/api/callBackToSupportCustomer/<string:supportPhone>", methods=["POST", "GET"])
 def callBackToSupportCustomer(supportPhone):
     print("No support team person found")
-    auth = (ELK_USERNAME, ELK_PASSWORD)
     payload = {"play": ivr("ingen_hittad_support")}
 
     fields = {"from": ELK_NUMBER, "to": supportPhone, "voice_start": json.dumps(payload)}
 
-    requests.post(ELK_BASE + "/a1/calls", data=fields, auth=auth)
+    requests.post(ELK_BASE + "/a1/calls", data=fields, auth=ELK_AUTH)
     return ""
 
 
