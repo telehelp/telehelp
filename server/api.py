@@ -36,24 +36,23 @@ from zipcode_utils import getDistanceApart
 from zipcode_utils import getDistrict
 from zipcode_utils import readZipCodeData
 
-app = Flask(__name__, static_folder="../client/build", static_url_path="/")
+env_vars = (
+    "BASE_URL",
+    "ELK_NUMBER",
+    "API_USERNAME",
+    "API_PASSWORD",
+    "DB_HOST",
+    "HOOK_URL",
+    "POSTGRES_USER",
+    "POSTGRES_PASSWORD",
+    "SECRET_KEY",
+    "REDIS_HOST",
+    "GOOGLE_APPLICATION_CREDENTIALS",
+)
 
-SESSION_TYPE = "redis"
-SECRET_KEY = os.getenv("SECRET_KEY")
-REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
-SESSION_REDIS = Redis(host=REDIS_HOST)
-app.config.from_object(__name__)
-Session(app)
-
-log = logging.getLogger(__name__)
-log.setLevel(logging.INFO)
-handler = logging.FileHandler("flask.log")
-handler.setLevel(logging.INFO)
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-handler.setFormatter(formatter)
-log.addHandler(handler)
-startTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
-log.info(f"New log entry {startTime}")
+missing = set(env_vars) - set(os.environ)
+if missing:
+    print("[W] WARNING: Some environment variables are not set: %s" % missing)
 
 BASE_URL = os.getenv("BASE_URL")
 ELK_NUMBER = os.getenv("ELK_NUMBER")
@@ -61,34 +60,30 @@ API_USERNAME = os.getenv("API_USERNAME")
 API_PASSWORD = os.getenv("API_PASSWORD")
 DB_HOST = os.getenv("DB_HOST")
 HOOK_URL = os.getenv("HOOK_URL")
-
 POSTGRES_USER = os.getenv("POSTGRES_USER")
 POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
 
+app = Flask(__name__, static_folder="../client/build", static_url_path="/")
 
-def checkEnv(envVar, envStr):
-    if envVar is None:
-        print(f"Warning! An environmental variable is not set {envStr}")
-        log.warning(f"Warning! An environmental variable is not set {envStr}")
+# Flask-Redis setup
+SESSION_TYPE = "redis"
+SECRET_KEY = os.getenv("SECRET_KEY")
+REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+SESSION_REDIS = Redis(host=REDIS_HOST)
+app.config.from_object(__name__)
+Session(app)
 
+log = setup_logger()
 
-# Checks if the environmental variables are set
-checkEnv(BASE_URL, "BASE_URL")
-checkEnv(ELK_NUMBER, "ELK_NUMBER")
-checkEnv(API_USERNAME, "API_USERNAME")
-checkEnv(API_PASSWORD, "API_PASSWORD")
-checkEnv(SECRET_KEY, "SECRET_KEY")
-checkEnv(HOOK_URL, "HOOK_URL")
-
+# Database connection
 engine = create_engine(
     f"postgresql+pg8000://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{DB_HOST}/telehelp", echo=True, encoding="utf8"
 )
 db = DatabaseConnection(engine)
 
-ZIPDATA = "SE.tsv"
+ZIPDATA = "resources/SE.tsv"
 MEDIA_URL = "https://files.telehelp.se/sv"
 ELK_BASE = "https://api.46elks.com"
-
 VERIFICATION_EXPIRY_TIME = 5 * 60  # 5 minutes
 
 LOCATION_DICT, DISTRICT_DICT, CITY_DICT = readZipCodeData(ZIPDATA)
@@ -100,6 +95,27 @@ def canonicalize_number(phone_number):
     if phone_number[0] == "0":
         phone_number = "+46" + phone_number[1:]
     return phone_number
+
+
+def setup_logger():
+    log = logging.getLogger(__name__)
+    log.setLevel(logging.INFO)
+    handler = logging.FileHandler("flask.log")
+    handler.setLevel(logging.INFO)
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    handler.setFormatter(formatter)
+    log.addHandler(handler)
+    startTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
+    log.info(f"New log entry {startTime}")
+    return log
+
+
+def ivr(action):
+    # TODO: Use an enum for static checking
+    return f"{MEDIA_URL}/ivr/{action}.mp3"
+
+def api(action):
+    return f"{BASE_URL}/api/{action}"
 
 
 @app.route("/")
@@ -132,23 +148,23 @@ def receiveCall():
         print(activeCustomer)
         if activeCustomer is None:
             payload = {
-                "ivr": f"{MEDIA_URL}/ivr/hjalper_ingen.mp3",
+                "ivr": ivr("hjalper_ingen"),
                 "skippable": "true",
                 "digits": 1,
                 "2": BASE_URL + "/support",
                 "1": {
-                    "play": MEDIA_URL + "/ivr/avreg_confirmed.mp3",
+                    "play": ivr("avreg_confirmed"),
                     "next": BASE_URL + "/api/removeHelper/%s" % telehelpCallId,
                 },
                 "next": BASE_URL + "/api/receiveCall",
             }
         else:
             payload = {
-                "ivr": MEDIA_URL + "/ivr/registrerad_volontar.mp3",
+                "ivr": ivr("registrerad_volontar"),
                 "digits": 1,
                 "1": BASE_URL + "/api/handleReturningHelper/%s" % telehelpCallId,
                 "2": {
-                    "play": MEDIA_URL + "/ivr/avreg_confirmed.mp3",
+                    "play": ivr("avreg_confirmed"),
                     "next": BASE_URL + "/api/removeHelper/%s" % telehelpCallId,
                 },
                 "3": BASE_URL + "/api/support",
@@ -172,7 +188,7 @@ def receiveCall():
 
         if name is None:
             payload = {
-                "ivr": MEDIA_URL + "/ivr/ensam_gamling.mp3",
+                "ivr": ivr("ensam_gamling"),
                 "digits": 1,
                 "1": BASE_URL + "/api/handleLonelyCustomer/%s" % telehelpCallId,
                 "2": BASE_URL + "/api/removeCustomer",
@@ -190,11 +206,11 @@ def receiveCall():
                 generateNameSoundByte(name)
 
             payload = {
-                "play": MEDIA_URL + "/ivr/behover_hjalp.mp3",
+                "play": ivr(behover_hjalp.mp3",
                 "next": {
                     "play": MEDIA_URL + "/name/" + nameEncoded + ".mp3",
                     "next": {
-                        "ivr": MEDIA_URL + "/ivr/pratade_sist.mp3",
+                        "ivr": ivr("pratade_sist"),
                         "digits": 1,
                         "1": BASE_URL + "/api/handleReturningCustomer/%s" % telehelpCallId,
                         "2": BASE_URL + "/api/handleReturningCustomer/%s" % telehelpCallId,
@@ -215,7 +231,7 @@ def receiveCall():
     )
 
     payload = {
-        "ivr": MEDIA_URL + "/ivr/info.mp3",
+        "ivr": ivr("info"),
         "skippable": "true",
         "digits": 1,
         "1": BASE_URL + "/api/handleNumberInput/%s" % telehelpCallId,
@@ -254,7 +270,7 @@ def handleReturningHelper(telehelpCallId):
             ("True", "False", telehelpCallId),
         )
         payload = {
-            "play": MEDIA_URL + "/ivr/du_kopplas.mp3",
+            "play": ivr("du_kopplas"),
             "next": BASE_URL + "/api/callExistingCustomer/%s" % telehelpCallId,
         }
         checkPayload(payload, MEDIA_URL, log=log)
@@ -262,7 +278,7 @@ def handleReturningHelper(telehelpCallId):
 
     elif number == 2:
         payload = {
-            "play": MEDIA_URL + "/ivr/avreg_confirmed.mp3",
+            "play": ivr("avreg_confirmed"),
             "next": BASE_URL + "/api/removeHelper/%s" % telehelpCallId,
         }
         checkPayload(payload, MEDIA_URL, log=log)
@@ -302,7 +318,7 @@ def handleReturningCustomer(telehelpCallId):
     if number == 1:
 
         payload = {
-            "play": MEDIA_URL + "/ivr/du_kopplas.mp3",
+            "play": ivr("du_kopplas"),
             "skippable": "true",
             "next": BASE_URL + "/api/callExistingHelper/%s" % telehelpCallId,
         }
@@ -317,7 +333,7 @@ def handleReturningCustomer(telehelpCallId):
         )
         zipcode = db.readZipcodeFromDatabase(phone, "customer")
         payload = {
-            "play": MEDIA_URL + "/ivr/vi_letar.mp3",
+            "play": ivr(vi_letar.mp3",
             "skippable": "true",
             "next": BASE_URL + "/api/postcodeInput/%s/%s" % (zipcode, telehelpCallId),
         }
@@ -331,7 +347,7 @@ def handleReturningCustomer(telehelpCallId):
             ("False", "True", telehelpCallId),
         )
         payload = {
-            "play": MEDIA_URL + "/ivr/avreg_confirmed.mp3",
+            "play": ivr("avreg_confirmed"),
             "next": BASE_URL + "/api/removeCustomer",
         }
         checkPayload(payload, MEDIA_URL, log=log)
@@ -349,7 +365,7 @@ def handleLonelyCustomer(telehelpCallId):
     if number == 1:
         zipcode = db.readZipcodeFromDatabase(phone, "customer")
         payload = {
-            "play": MEDIA_URL + "/ivr/vi_letar.mp3",
+            "play": ivr("vi_letar"),
             "skippable": "true",
             "next": BASE_URL + "/api/postcodeInput/%s/%s" % (zipcode, telehelpCallId),
         }
@@ -359,7 +375,7 @@ def handleLonelyCustomer(telehelpCallId):
     if number == 2:
         db.writeCustomerAnalytics(telehelpCallId, ["deregistered"], ("True", telehelpCallId))
         payload = {
-            "play": MEDIA_URL + "/ivr/avreg_confirmed.mp3",
+            "play": ivr("avreg_confirmed"),
             "next": BASE_URL + "/api/removeCustomer",
         }
         checkPayload(payload, MEDIA_URL, log=log)
@@ -413,14 +429,14 @@ def postcodeInput(zipcode, telehelpCallId):
 
     if closestHelpers is None:
         db.writeCustomerAnalytics(telehelpCallId, ["n_helpers_contacted"], ("0", telehelpCallId))
-        payload = {"play": MEDIA_URL + "/ivr/finns_ingen.mp3"}
+        payload = {"play": ivr("finns_ingen")}
 
         checkPayload(payload, MEDIA_URL, log=log)
         return json.dumps(payload)
     else:
         db.writeCallHistory(callId, "hangup", "False")
         payload = {
-            "play": MEDIA_URL + "/ivr/ringer_tillbaka.mp3",
+            "play": ivr("ringer_tillbaka"),
             "skippable": "true",
             "next": BASE_URL + "/api/call/0/%s/%s/%s" % (callId, phone, telehelpCallId),
         }
@@ -469,7 +485,7 @@ def call(helperIndex, customerCallId, customerPhone, telehelpCallId):
         print(ELK_NUMBER)
 
         payload = {
-            "ivr": MEDIA_URL + "/ivr/hjalte.mp3",
+            "ivr": ivr("hjalte"),
             "timeout": "30",
             "1": BASE_URL + "/api/connectUsers/%s/%s/%s" % (customerPhone, customerCallId, telehelpCallId),
             "2": BASE_URL
@@ -498,7 +514,7 @@ def call(helperIndex, customerCallId, customerPhone, telehelpCallId):
 def callBackToCustomer(customerPhone, telehelpCallId):
     print("No one found")
     auth = (API_USERNAME, API_PASSWORD)
-    payload = {"play": MEDIA_URL + "/ivr/ingen_hittad.mp3"}
+    payload = {"play": ivr("ingen_hittad")}
 
     fields = {"from": ELK_NUMBER, "to": customerPhone, "voice_start": json.dumps(payload)}
 
@@ -527,9 +543,9 @@ def handleNumberInput(telehelpCallId):
     print("number: ", number)
     print("Write your zipcode")
     payload = {
-        "play": MEDIA_URL + "/ivr/post_nr.mp3",
+        "play": ivr("post_nr"),
         "next": {
-            "ivr": MEDIA_URL + "/ivr/bep.mp3",
+            "ivr": ivr("bep"),
             "digits": 5,
             "next": BASE_URL + "/api/checkZipcode/%s" % telehelpCallId,
         },
@@ -551,11 +567,11 @@ def checkZipcode(telehelpCallId):
     print("cityEnc: ", cityEncoded)
 
     payload = {
-        "play": MEDIA_URL + "/ivr/du_befinner.mp3",
+        "play": ivr("du_befinner"),
         "next": {
             "play": MEDIA_URL + "/city/" + cityEncoded + ".mp3",
             "next": {
-                "ivr": MEDIA_URL + "/ivr/stammer_det.mp3",
+                "ivr": ivr("stammer_det"),
                 "1": BASE_URL + f"/api/postcodeInput/{zipcode}/{telehelpCallId}",
                 "2": BASE_URL + "/api/handleNumberInput/%s" % telehelpCallId,
                 "next": BASE_URL + "/api/handleNumberInput/%s" % telehelpCallId,
@@ -737,7 +753,7 @@ def support():
     db.writeCallHistory(callId, "closest_helpers", json.dumps(supportTeam))
     db.writeCallHistory(callId, "hangup", "False")
     payload = {
-        "play": MEDIA_URL + "/ivr/ringer_tillbaka_support.mp3",
+        "play": ivr("ringer_tillbaka_support"),
         "skippable": "true",
         "next": BASE_URL + "/api/callSupport/0/%s/%s" % (callId, phone),
     }
@@ -768,7 +784,7 @@ def callSupport(helperIndex, supportCallId, supportPhone):
 
         # TODO: Handle if call is not picked up
         payload = {
-            "ivr": MEDIA_URL + "/ivr/hjalte_support.mp3",
+            "ivr": ivr("hjalte_support"),
             "timeout": "30",
             "1": BASE_URL + "/api/connectUsersSupport/%s/%s" % (supportPhone, supportCallId),
             "2": BASE_URL + "/api/callSupport/%s/%s/%s" % (str(helperIndex + 1), supportCallId, supportPhone),
@@ -795,7 +811,7 @@ def callSupport(helperIndex, supportCallId, supportPhone):
 def callBackToSupportCustomer(supportPhone):
     print("No support team person found")
     auth = (API_USERNAME, API_PASSWORD)
-    payload = {"play": MEDIA_URL + "/ivr/ingen_hittad_support.mp3"}
+    payload = {"play": ivr("ingen_hittad_support")}
 
     fields = {"from": ELK_NUMBER, "to": supportPhone, "voice_start": json.dumps(payload)}
 
