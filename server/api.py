@@ -173,7 +173,7 @@ def receiveCall():
                 "next": api("receiveCall"),
             }
         checkPayload(payload, MEDIA_URL, log=log)
-        return json.dumps(payload)
+        return payload
 
     # For registered customers
     elif db.userExists(from_sender, "customer"):
@@ -198,7 +198,7 @@ def receiveCall():
                 "next": api("receiveCall"),
             }
             checkPayload(payload, MEDIA_URL, log=log)
-            return json.dumps(payload)
+            return payload
 
         else:
             nameEncoded = urllib.parse.quote(name)  # åäö etc not handled well as URL -> crash
@@ -223,7 +223,7 @@ def receiveCall():
                 },
             }
             checkPayload(payload, MEDIA_URL, log=log)
-            return json.dumps(payload)
+            return payload
 
     # New customer
     db.writeCustomerAnalytics(
@@ -242,7 +242,7 @@ def receiveCall():
         "next": api("receiveCall"),
     }
     checkPayload(payload, MEDIA_URL, log=log)
-    return json.dumps(payload)
+    return payload
 
 
 @app.route("/api/customerHangup/<string:telehelpCallId>", methods=["POST", "GET"])
@@ -276,7 +276,7 @@ def handleReturningHelper(telehelpCallId):
             "next": api("callExistingCustomer/%s" % telehelpCallId),
         }
         checkPayload(payload, MEDIA_URL, log=log)
-        return json.dumps(payload)
+        return payload
 
     elif number == 2:
         payload = {
@@ -284,7 +284,7 @@ def handleReturningHelper(telehelpCallId):
             "next": api("removeHelper/%s" % telehelpCallId),
         }
         checkPayload(payload, MEDIA_URL, log=log)
-        return json.dumps(payload)
+        return payload
 
 
 @app.route("/api/callExistingCustomer/<string:telehelpCallId>", methods=["POST"])
@@ -296,7 +296,7 @@ def callExistingCustomer(telehelpCallId):
         "callerid": ELK_NUMBER,
         "whenhangup": api("helperHangup/%s" % telehelpCallId),
     }
-    return json.dumps(payload)
+    return payload
 
 
 @app.route("/api/removeHelper/<string:telehelpCallId>", methods=["POST"])
@@ -325,7 +325,7 @@ def handleReturningCustomer(telehelpCallId):
             "next": api("callExistingHelper/%s" % telehelpCallId),
         }
         checkPayload(payload, MEDIA_URL, log=log)
-        return json.dumps(payload)
+        return payload
 
     if number == 2:
         db.writeCustomerAnalytics(
@@ -340,7 +340,7 @@ def handleReturningCustomer(telehelpCallId):
             "next": api("postcodeInput/%s/%s" % (zipcode, telehelpCallId)),
         }
         checkPayload(payload, MEDIA_URL, log=log)
-        return json.dumps(payload)
+        return payload
 
     if number == 3:
         db.writeCustomerAnalytics(
@@ -353,7 +353,7 @@ def handleReturningCustomer(telehelpCallId):
             "next": api("removeCustomer"),
         }
         checkPayload(payload, MEDIA_URL, log=log)
-        return json.dumps(payload)
+        return payload
 
     return ""
 
@@ -372,7 +372,7 @@ def handleLonelyCustomer(telehelpCallId):
             "next": api("postcodeInput/%s/%s" % (zipcode, telehelpCallId)),
         }
         checkPayload(payload, MEDIA_URL, log=log)
-        return json.dumps(payload)
+        return payload
 
     if number == 2:
         db.writeCustomerAnalytics(telehelpCallId, ["deregistered"], ("True", telehelpCallId))
@@ -381,7 +381,7 @@ def handleLonelyCustomer(telehelpCallId):
             "next": api("removeCustomer"),
         }
         checkPayload(payload, MEDIA_URL, log=log)
-        return json.dumps(payload)
+        return payload
 
     return ""
 
@@ -400,7 +400,7 @@ def callExistingHelper(telehelpCallId):
         "callerid": ELK_NUMBER,
         "whenhangup": api("customerHangup/%s" % telehelpCallId),
     }
-    return json.dumps(payload)
+    return payload
 
 
 @app.route("/api/postcodeInput/<string:zipcode>/<string:telehelpCallId>", methods=["POST"])
@@ -434,7 +434,7 @@ def postcodeInput(zipcode, telehelpCallId):
         payload = {"play": ivr("finns_ingen")}
 
         checkPayload(payload, MEDIA_URL, log=log)
-        return json.dumps(payload)
+        return payload
     else:
         db.writeCallHistory(callId, "hangup", "False")
         payload = {
@@ -443,7 +443,7 @@ def postcodeInput(zipcode, telehelpCallId):
             "next": api("call/0/%s/%s/%s" % (callId, phone, telehelpCallId)),
         }
         checkPayload(payload, MEDIA_URL, log=log)
-        return json.dumps(payload)
+        return payload
 
 
 @app.route(
@@ -556,7 +556,7 @@ def handleNumberInput(telehelpCallId):
         },
     }
     checkPayload(payload, MEDIA_URL, log=log)
-    return json.dumps(payload)
+    return payload
     return ""
 
 
@@ -584,7 +584,7 @@ def checkZipcode(telehelpCallId):
         },
     }
     checkPayload(payload, MEDIA_URL, log=log)
-    return json.dumps(payload)
+    return payload
 
 
 @app.route(
@@ -618,7 +618,7 @@ def connectUsers(customerPhone, customerCallId, telehelpCallId):
     smsThread = threading.Thread(target=sendAskIfHelpingSms, args=(helperPhone,))
     smsThread.start()
 
-    return json.dumps(payload)
+    return payload
 
 
 def sendAskIfHelpingSms(volunteerNumber):
@@ -762,7 +762,7 @@ def support():
         "skippable": "true",
         "next": api("callSupport/0/%s/%s" % (callId, phone)),
     }
-    return json.dumps(payload)
+    return payload
 
 
 @app.route("/api/callSupport/<int:helperIndex>/<string:supportCallId>/<string:supportPhone>", methods=["POST"])
@@ -831,7 +831,7 @@ def connectUsersSupport(customerPhone, customerCallId):
     print("Connecting users")
     print("customer:", customerPhone)
     payload = {"connect": customerPhone, "callerid": ELK_NUMBER, "timeout": "15"}
-    return json.dumps(payload)
+    return payload
 
 
 # -----------------------------------Test Functions-------------------------------------------------
@@ -848,7 +848,7 @@ def testendpoint():
 
 @app.route("/helloworld", methods=["GET"])
 def testhelloworld():
-    return "Hello World!"
+    return "Hello World!!!!"
 
 
 # --------------------------------------------------------------------------------------------------
