@@ -39,8 +39,8 @@ from zipcode_utils import readZipCodeData
 env_vars = (
     "BASE_URL",
     "ELK_NUMBER",
-    "API_USERNAME",
-    "API_PASSWORD",
+    "ELK_USERNAME",
+    "ELK_PASSWORD",
     "DB_HOST",
     "HOOK_URL",
     "POSTGRES_USER",
@@ -56,8 +56,8 @@ if missing:
 
 BASE_URL = os.getenv("BASE_URL")
 ELK_NUMBER = os.getenv("ELK_NUMBER")
-API_USERNAME = os.getenv("API_USERNAME")
-API_PASSWORD = os.getenv("API_PASSWORD")
+ELK_USERNAME = os.getenv("ELK_USERNAME")
+ELK_PASSWORD = os.getenv("ELK_PASSWORD")
 DB_HOST = os.getenv("DB_HOST")
 HOOK_URL = os.getenv("HOOK_URL")
 POSTGRES_USER = os.getenv("POSTGRES_USER")
@@ -151,24 +151,24 @@ def receiveCall():
                 "ivr": ivr("hjalper_ingen"),
                 "skippable": "true",
                 "digits": 1,
-                "2": BASE_URL + "/support",
+                "2": api("support"),
                 "1": {
                     "play": ivr("avreg_confirmed"),
-                    "next": BASE_URL + "/api/removeHelper/%s" % telehelpCallId,
+                    "next": api("removeHelper/%s" % telehelpCallId),
                 },
-                "next": BASE_URL + "/api/receiveCall",
+                "next": api("receiveCall"),
             }
         else:
             payload = {
                 "ivr": ivr("registrerad_volontar"),
                 "digits": 1,
-                "1": BASE_URL + "/api/handleReturningHelper/%s" % telehelpCallId,
+                "1": api("handleReturningHelper/%s" % telehelpCallId),
                 "2": {
                     "play": ivr("avreg_confirmed"),
-                    "next": BASE_URL + "/api/removeHelper/%s" % telehelpCallId,
+                    "next": api("removeHelper/%s" % telehelpCallId),
                 },
-                "3": BASE_URL + "/api/support",
-                "next": BASE_URL + "/api/receiveCall",
+                "3": api("support"),
+                "next": api("receiveCall"),
             }
         checkPayload(payload, MEDIA_URL, log=log)
         return json.dumps(payload)
@@ -190,10 +190,10 @@ def receiveCall():
             payload = {
                 "ivr": ivr("ensam_gamling"),
                 "digits": 1,
-                "1": BASE_URL + "/api/handleLonelyCustomer/%s" % telehelpCallId,
-                "2": BASE_URL + "/api/removeCustomer",
-                "3": BASE_URL + "/api/support",
-                "next": BASE_URL + "/api/receiveCall",
+                "1": api("handleLonelyCustomer/%s" % telehelpCallId),
+                "2": api("removeCustomer"),
+                "3": api("support"),
+                "next": api("receiveCall"),
             }
             checkPayload(payload, MEDIA_URL, log=log)
             return json.dumps(payload)
@@ -212,11 +212,11 @@ def receiveCall():
                     "next": {
                         "ivr": ivr("pratade_sist"),
                         "digits": 1,
-                        "1": BASE_URL + "/api/handleReturningCustomer/%s" % telehelpCallId,
-                        "2": BASE_URL + "/api/handleReturningCustomer/%s" % telehelpCallId,
-                        "3": BASE_URL + "/api/handleReturningCustomer/%s" % telehelpCallId,
-                        "4": BASE_URL + "/api/support",
-                        "next": BASE_URL + "/api/receiveCall",
+                        "1": api("handleReturningCustomer/%s" % telehelpCallId),
+                        "2": api("handleReturningCustomer/%s" % telehelpCallId),
+                        "3": api("handleReturningCustomer/%s" % telehelpCallId),
+                        "4": api("support"),
+                        "next": api("receiveCall"),
                     },
                 },
             }
@@ -234,10 +234,10 @@ def receiveCall():
         "ivr": ivr("info"),
         "skippable": "true",
         "digits": 1,
-        "1": BASE_URL + "/api/handleNumberInput/%s" % telehelpCallId,
-        "2": BASE_URL + "/api/receiveCall",
-        "3": BASE_URL + "/api/support",
-        "next": BASE_URL + "/api/receiveCall",
+        "1": api("handleNumberInput/%s" % telehelpCallId),
+        "2": api("receiveCall"),
+        "3": api("support"),
+        "next": api("receiveCall"),
     }
     checkPayload(payload, MEDIA_URL, log=log)
     return json.dumps(payload)
@@ -271,7 +271,7 @@ def handleReturningHelper(telehelpCallId):
         )
         payload = {
             "play": ivr("du_kopplas"),
-            "next": BASE_URL + "/api/callExistingCustomer/%s" % telehelpCallId,
+            "next": api("callExistingCustomer/%s" % telehelpCallId),
         }
         checkPayload(payload, MEDIA_URL, log=log)
         return json.dumps(payload)
@@ -279,7 +279,7 @@ def handleReturningHelper(telehelpCallId):
     elif number == 2:
         payload = {
             "play": ivr("avreg_confirmed"),
-            "next": BASE_URL + "/api/removeHelper/%s" % telehelpCallId,
+            "next": api("removeHelper/%s" % telehelpCallId),
         }
         checkPayload(payload, MEDIA_URL, log=log)
         return json.dumps(payload)
@@ -292,7 +292,7 @@ def callExistingCustomer(telehelpCallId):
     payload = {
         "connect": customerPhone,
         "callerid": ELK_NUMBER,
-        "whenhangup": BASE_URL + "/api/helperHangup/%s" % telehelpCallId,
+        "whenhangup": api("helperHangup/%s" % telehelpCallId),
     }
     return json.dumps(payload)
 
@@ -320,7 +320,7 @@ def handleReturningCustomer(telehelpCallId):
         payload = {
             "play": ivr("du_kopplas"),
             "skippable": "true",
-            "next": BASE_URL + "/api/callExistingHelper/%s" % telehelpCallId,
+            "next": api("callExistingHelper/%s" % telehelpCallId),
         }
         checkPayload(payload, MEDIA_URL, log=log)
         return json.dumps(payload)
@@ -335,7 +335,7 @@ def handleReturningCustomer(telehelpCallId):
         payload = {
             "play": ivr(vi_letar.mp3",
             "skippable": "true",
-            "next": BASE_URL + "/api/postcodeInput/%s/%s" % (zipcode, telehelpCallId),
+            "next": api("postcodeInput/%s/%s" % (zipcode, telehelpCallId)),
         }
         checkPayload(payload, MEDIA_URL, log=log)
         return json.dumps(payload)
@@ -348,7 +348,7 @@ def handleReturningCustomer(telehelpCallId):
         )
         payload = {
             "play": ivr("avreg_confirmed"),
-            "next": BASE_URL + "/api/removeCustomer",
+            "next": api("removeCustomer"),
         }
         checkPayload(payload, MEDIA_URL, log=log)
         return json.dumps(payload)
@@ -367,7 +367,7 @@ def handleLonelyCustomer(telehelpCallId):
         payload = {
             "play": ivr("vi_letar"),
             "skippable": "true",
-            "next": BASE_URL + "/api/postcodeInput/%s/%s" % (zipcode, telehelpCallId),
+            "next": api("postcodeInput/%s/%s" % (zipcode, telehelpCallId)),
         }
         checkPayload(payload, MEDIA_URL, log=log)
         return json.dumps(payload)
@@ -376,7 +376,7 @@ def handleLonelyCustomer(telehelpCallId):
         db.writeCustomerAnalytics(telehelpCallId, ["deregistered"], ("True", telehelpCallId))
         payload = {
             "play": ivr("avreg_confirmed"),
-            "next": BASE_URL + "/api/removeCustomer",
+            "next": api("removeCustomer"),
         }
         checkPayload(payload, MEDIA_URL, log=log)
         return json.dumps(payload)
@@ -396,7 +396,7 @@ def callExistingHelper(telehelpCallId):
     payload = {
         "connect": helperPhone,
         "callerid": ELK_NUMBER,
-        "whenhangup": BASE_URL + "/api/customerHangup/%s" % telehelpCallId,
+        "whenhangup": api("customerHangup/%s" % telehelpCallId),
     }
     return json.dumps(payload)
 
@@ -438,7 +438,7 @@ def postcodeInput(zipcode, telehelpCallId):
         payload = {
             "play": ivr("ringer_tillbaka"),
             "skippable": "true",
-            "next": BASE_URL + "/api/call/0/%s/%s/%s" % (callId, phone, telehelpCallId),
+            "next": api("call/0/%s/%s/%s" % (callId, phone, telehelpCallId)),
         }
         checkPayload(payload, MEDIA_URL, log=log)
         return json.dumps(payload)
@@ -468,7 +468,7 @@ def call(helperIndex, customerCallId, customerPhone, telehelpCallId):
         closestHelpers = json.loads(db.readCallHistory(customerCallId, "closest_helpers"))
         print("closest helpers: ", closestHelpers)
 
-        auth = (API_USERNAME, API_PASSWORD)
+        auth = (ELK_USERNAME, ELK_PASSWORD)
 
         if helperIndex >= len(closestHelpers):
             db.writeCallHistory(customerCallId, "hangup", "True")
@@ -487,11 +487,9 @@ def call(helperIndex, customerCallId, customerPhone, telehelpCallId):
         payload = {
             "ivr": ivr("hjalte"),
             "timeout": "30",
-            "1": BASE_URL + "/api/connectUsers/%s/%s/%s" % (customerPhone, customerCallId, telehelpCallId),
-            "2": BASE_URL
-            + "/api/call/%s/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone, telehelpCallId),
-            "next": BASE_URL
-            + "/api/call/%s/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone, telehelpCallId),
+            "1": api("connectUsers/%s/%s/%s" % (customerPhone, customerCallId, telehelpCallId)),
+            "2": api("call/%s/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone, telehelpCallId)),
+            "next": api("call/%s/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone, telehelpCallId)),
         }
 
         checkPayload(payload, MEDIA_URL, log=log)
@@ -501,8 +499,7 @@ def call(helperIndex, customerCallId, customerPhone, telehelpCallId):
             "from": ELK_NUMBER,
             "to": closestHelpers[helperIndex],
             "voice_start": json.dumps(payload),
-            "whenhangup": BASE_URL
-            + "/api/call/%s/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone, telehelpCallId),
+            "whenhangup": api("call/%s/%s/%s/%s" % (str(helperIndex + 1), customerCallId, customerPhone, telehelpCallId)),
         }
 
         response = requests.post(ELK_BASE + "/a1/calls", data=fields, auth=auth)
@@ -513,7 +510,7 @@ def call(helperIndex, customerCallId, customerPhone, telehelpCallId):
 @app.route("/api/callBackToCustomer/<string:customerPhone>/<string:telehelpCallId>", methods=["POST", "GET"])
 def callBackToCustomer(customerPhone, telehelpCallId):
     print("No one found")
-    auth = (API_USERNAME, API_PASSWORD)
+    auth = (ELK_USERNAME, ELK_PASSWORD)
     payload = {"play": ivr("ingen_hittad")}
 
     fields = {"from": ELK_NUMBER, "to": customerPhone, "voice_start": json.dumps(payload)}
@@ -547,7 +544,7 @@ def handleNumberInput(telehelpCallId):
         "next": {
             "ivr": ivr("bep"),
             "digits": 5,
-            "next": BASE_URL + "/api/checkZipcode/%s" % telehelpCallId,
+            "next": api("checkZipcode/%s" % telehelpCallId),
         },
     }
     checkPayload(payload, MEDIA_URL, log=log)
@@ -572,9 +569,9 @@ def checkZipcode(telehelpCallId):
             "play": MEDIA_URL + "/city/" + cityEncoded + ".mp3",
             "next": {
                 "ivr": ivr("stammer_det"),
-                "1": BASE_URL + f"/api/postcodeInput/{zipcode}/{telehelpCallId}",
-                "2": BASE_URL + "/api/handleNumberInput/%s" % telehelpCallId,
-                "next": BASE_URL + "/api/handleNumberInput/%s" % telehelpCallId,
+                "1": api(f"/api/postcodeInput/{zipcode}/{telehelpCallId}"),
+                "2": api("handleNumberInput/%s" % telehelpCallId),
+                "next": api("handleNumberInput/%s" % telehelpCallId),
             },
         },
     }
@@ -623,7 +620,7 @@ Ring till Telehelp på 0766861551 för att nå personen igen vid behov. \
 Svara TILLGÄNGLIG om du inte kunde hjälpa till eller är klar med uppgiften, så gör \
 vi dig tillgänglig för nya uppdrag. Observera att varken du eller den \
 du hjälpt kommer kunna nå varandra igen om du gör detta. Tack för din insats!"
-    auth = (API_USERNAME, API_PASSWORD)
+    auth = (ELK_USERNAME, ELK_PASSWORD)
     fields = {"from": ELK_NUMBER, "to": volunteerNumber, "message": msg}
     requests.post(ELK_BASE + "/a1/sms", auth=auth, data=fields)
 
@@ -662,7 +659,7 @@ def register():
             return {"type": "failure", "message": "User already exists"}
 
         code = "".join(secrets.choice(string.digits) for _ in range(6))
-        auth = (API_USERNAME, API_PASSWORD)
+        auth = (ELK_USERNAME, ELK_PASSWORD)
         fields = {"from": "Telehelp", "to": phone_number, "message": code}
         requests.post(ELK_BASE + "/a1/sms", auth=auth, data=fields)
         session[phone_number] = {
@@ -755,7 +752,7 @@ def support():
     payload = {
         "play": ivr("ringer_tillbaka_support"),
         "skippable": "true",
-        "next": BASE_URL + "/api/callSupport/0/%s/%s" % (callId, phone),
+        "next": api("callSupport/0/%s/%s" % (callId, phone)),
     }
     return json.dumps(payload)
 
@@ -773,7 +770,7 @@ def callSupport(helperIndex, supportCallId, supportPhone):
         supportTeamList = json.loads(db.readCallHistory(supportCallId, "closest_helpers"))
         print("closest helpers: ", supportTeamList)
 
-        auth = (API_USERNAME, API_PASSWORD)
+        auth = (ELK_USERNAME, ELK_PASSWORD)
 
         if helperIndex >= len(supportTeamList):
             db.writeCallHistory(supportCallId, "hangup", "True")
@@ -786,10 +783,9 @@ def callSupport(helperIndex, supportCallId, supportPhone):
         payload = {
             "ivr": ivr("hjalte_support"),
             "timeout": "30",
-            "1": BASE_URL + "/api/connectUsersSupport/%s/%s" % (supportPhone, supportCallId),
-            "2": BASE_URL + "/api/callSupport/%s/%s/%s" % (str(helperIndex + 1), supportCallId, supportPhone),
-            "next": BASE_URL
-            + "/api/callSupport/%s/%s/%s" % (str(helperIndex + 1), supportCallId, supportPhone),
+            "1": api("connectUsersSupport/%s/%s" % (supportPhone, supportCallId)),
+            "2": api("callSupport/%s/%s/%s" % (str(helperIndex + 1), supportCallId, supportPhone)),
+            "next": api("callSupport/%s/%s/%s" % (str(helperIndex + 1), supportCallId, supportPhone)),
         }
 
         print("Calling: ", supportTeamList[helperIndex])
@@ -797,8 +793,7 @@ def callSupport(helperIndex, supportCallId, supportPhone):
             "from": ELK_NUMBER,
             "to": supportTeamList[helperIndex],
             "voice_start": json.dumps(payload),
-            "whenhangup": BASE_URL
-            + "/api/callSupport/%s/%s/%s" % (str(helperIndex + 1), supportCallId, supportPhone),
+            "whenhangup": api("callSupport/%s/%s/%s" % (str(helperIndex + 1), supportCallId, supportPhone)),
         }
 
         response = requests.post(ELK_BASE + "/a1/calls", data=fields, auth=auth)
@@ -810,7 +805,7 @@ def callSupport(helperIndex, supportCallId, supportPhone):
 @app.route("/api/callBackToSupportCustomer/<string:supportPhone>", methods=["POST", "GET"])
 def callBackToSupportCustomer(supportPhone):
     print("No support team person found")
-    auth = (API_USERNAME, API_PASSWORD)
+    auth = (ELK_USERNAME, ELK_PASSWORD)
     payload = {"play": ivr("ingen_hittad_support")}
 
     fields = {"from": ELK_NUMBER, "to": supportPhone, "voice_start": json.dumps(payload)}
