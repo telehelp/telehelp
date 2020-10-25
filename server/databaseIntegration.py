@@ -4,10 +4,12 @@ import random
 import pandas as pd
 
 from dataclasses import dataclass
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy.sql import func
+
+from contextlib import contextmanager
 
 from zipcode_utils import getDistanceApart
 from zipcode_utils import getDistrict
@@ -15,7 +17,7 @@ from zipcode_utils import readZipCodeData
 
 Base = declarative_base()
 
-# Consider useing flask-mirgrate in the future
+# Consider useing flask-migrate in the future
 class User(Base):
     __abstract__ = True
     id = Column("id", Integer, primary_key=True)
@@ -51,13 +53,42 @@ class CallVariable(Base):
     id = Column("id", Integer, primary_key=True)
 
 
+DB_HOST = os.getenv("DB_HOST")
+POSTGRES_USER = os.getenv("POSTGRES_USER")
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+
+# Database connection
+engine = create_engine(
+    f"postgresql+pg8000://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{DB_HOST}/telehelp", echo=True, encoding="utf8"
+)
+Session = scoped_session(sessionmaker(bind=engine))
+
+Base.metadata.create_all(bind=engine)
+
+
+@contextmanager
+def db_session():
+    session = Session()
+    try:
+        yield session
+        session.commit()
+    except:
+        session.rollback()
+        raise
+    finally:
+        session.close()
+
+
 class DatabaseConnection:
     """Database interface"""
 
-    def __init__(self, db):
-        self.db = db
-        Base.metadata.create_all(bind=self.db)
-        self.Session = sessionmaker(bind=self.db)
+    def helperExists(self, phone):
+        with db_session() as session:
+            return session.query(Helper.id).filter_by(phone=phone).scalar() is not None
+
+    def customerExists(self, phone):
+        with db_session() as session:
+            return session.query(Customer.id).filter_by(phone=phone).scalar() is not None
 
     # def fetchData(self, query, params=None):
     #     with self.db.connect() as conn:

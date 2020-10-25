@@ -23,7 +23,6 @@ from flask import session
 from flask import url_for
 from flask_session import Session
 from redis import Redis
-from sqlalchemy import create_engine
 
 from checkMedia import checkPayload
 from databaseIntegration import DatabaseConnection
@@ -35,6 +34,7 @@ from zipcode_utils import getCity
 from zipcode_utils import getDistanceApart
 from zipcode_utils import getDistrict
 from zipcode_utils import readZipCodeData
+from databaseIntegration import DatabaseConnection
 
 
 def setup_logger():
@@ -72,10 +72,8 @@ BASE_URL = os.getenv("BASE_URL")
 ELK_NUMBER = os.getenv("ELK_NUMBER")
 ELK_USERNAME = os.getenv("ELK_USERNAME")
 ELK_PASSWORD = os.getenv("ELK_PASSWORD")
-DB_HOST = os.getenv("DB_HOST")
 HOOK_URL = os.getenv("HOOK_URL")
-POSTGRES_USER = os.getenv("POSTGRES_USER")
-POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+
 
 app = Flask(__name__, static_folder="../client/build", static_url_path="/")
 
@@ -89,11 +87,7 @@ Session(app)
 
 log = setup_logger()
 
-# Database connection
-engine = create_engine(
-    f"postgresql+pg8000://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{DB_HOST}/telehelp", echo=True, encoding="utf8"
-)
-db = DatabaseConnection(engine)
+db = DatabaseConnection()
 
 ZIPDATA = "resources/SE.tsv"
 MEDIA_URL = "https://files.telehelp.se/sv"
@@ -139,7 +133,7 @@ def receiveCall():
     print(from_sender)
 
     # For registered helpers
-    if db.userExists(from_sender, "helper"):
+    if db.helperExists(from_sender):
         print("Registered helper")
         db.writeHelperAnalytics(
             telehelpCallId,
@@ -176,7 +170,7 @@ def receiveCall():
         return payload
 
     # For registered customers
-    elif db.userExists(from_sender, "customer"):
+    elif db.customerExists(from_sender):
         print("Registered customer")
         db.writeCustomerAnalytics(
             telehelpCallId,
@@ -663,7 +657,7 @@ def register():
 
         if city == "n/a":
             return {"type": "failure", "message": "Invalid zip"}
-        if db.userExists(phone_number, "helper"):
+        if db.helperExists(phone_number):
             return {"type": "failure", "message": "User already exists"}
 
         code = "".join(secrets.choice(string.digits) for _ in range(6))
