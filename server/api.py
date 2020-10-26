@@ -134,11 +134,7 @@ def receiveCall():
     # For registered helpers
     if db.helper_exists(from_sender):
         print("Registered helper")
-        # db.writeHelperAnalytics(
-        #     telehelpCallId,
-        #     ["telehelp_callid", "elks_callid", "call_start_time"],
-        #     (telehelpCallId, callId, startTime),
-        # )
+        db.write_helper_analytics(callid=telehelpCallId, elksid=callId, call_start=startTime)
         activeCustomer = db.get_helper_customer(from_sender)
         if activeCustomer is None:
             payload = {
@@ -170,11 +166,9 @@ def receiveCall():
     # For registered customers
     elif db.customer_exists(from_sender):
         print("Registered customer")
-        # db.writeCustomerAnalytics(
-        #     telehelpCallId,
-        #     ["telehelp_callid", "elks_callid", "call_start_time", "new_customer"],
-        #     (telehelpCallId, callId, startTime, "False"),
-        # )
+        db.write_helper_analytics(
+            callid=telehelpCallId, elkid=callId, call_start=startTime, new_customer=False
+        )
 
         # Get name of person to suggest call to from DB
         helperNumber = db.get_customer_helper(from_sender)
@@ -218,11 +212,7 @@ def receiveCall():
             return payload
 
     # New customer
-    # db.writeCustomerAnalytics(
-    #     telehelpCallId,
-    #     ["telehelp_callid", "elks_callid", "call_start_time", "new_customer"],
-    #     (telehelpCallId, callId, startTime, "True"),
-    # )
+    db.write_helper_analytics(callid=telehelpCallId, elkid=callId, call_start=startTime, new_customer=True)
 
     payload = {
         "ivr": ivr("info"),
@@ -241,7 +231,7 @@ def receiveCall():
 def customerHangup(telehelpCallId):
     print("hangup")
     endTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
-    # db.writeCustomerAnalytics(telehelpCallId, ["call_end_time"], (endTime, telehelpCallId))
+    db.write_customer_analytics(callid=telehelpCallId, call_end=endTime)
     return ""
 
 
@@ -249,7 +239,7 @@ def customerHangup(telehelpCallId):
 def helperHangup(telehelpCallId):
     print("hangup")
     endTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
-    # db.writeHelperAnalytics(telehelpCallId, ["call_end_time"], (endTime, telehelpCallId))
+    db.write_helper_analytics(callid=telehelpCallId, call_end=endTime)
     return ""
 
 
@@ -258,11 +248,7 @@ def handleReturningHelper(telehelpCallId):
     print(request.form.get("result"))
     number = int(request.form.get("result"))
     if number == 1:
-        # db.writeHelperAnalytics(
-        #     telehelpCallId,
-        #     ["contacted_prev_customer", "deregistered"],
-        #     ("True", "False", telehelpCallId),
-        # )
+        db.write_helper_analytics(callid=telehelpCallId, contacted_prev_customer=True, unregistered=False)
         payload = {
             "play": ivr("du_kopplas"),
             "next": api("callExistingCustomer/%s" % telehelpCallId),
@@ -295,11 +281,9 @@ def callExistingCustomer(telehelpCallId):
 def removeHelper(telehelpCallId):
     from_sender = request.form.get("from")
     endTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
-    # db.writeHelperAnalytics(
-    #     telehelpCallId,
-    #     ["call_end_time", "contacted_prev_customer", "deregistered"],
-    #     (endTime, "False", "True", telehelpCallId),
-    # )
+    db.write_helper_analytics(
+        callid=telehelpCallId, call_end=endTime, contacted_prev_customer=False, unregistered=True
+    )
     db.delete_helper(from_sender)
     return ""
 
@@ -320,11 +304,7 @@ def handleReturningCustomer(telehelpCallId):
         return payload
 
     if number == 2:
-        # db.writeCustomerAnalytics(
-        #     telehelpCallId,
-        #     ["used_prev_helper", "deregistered"],
-        #     ("False", "False", telehelpCallId),
-        # )
+        db.write_customer_analytics(callid=telehelpCallId, used_prev_helper=False, unregistered=False)
         zipcode = db.get_customer_zipcode(phone)
         payload = {
             "play": ivr("vi_letar"),
@@ -335,11 +315,7 @@ def handleReturningCustomer(telehelpCallId):
         return payload
 
     if number == 3:
-        # db.writeCustomerAnalytics(
-        #     telehelpCallId,
-        #     ["used_prev_helper", "deregistered"],
-        #     ("False", "True", telehelpCallId),
-        # )
+        db.write_customer_analytics(callid=telehelpCallId, used_prev_helper=False, unregistered=True)
         payload = {
             "play": ivr("avreg_confirmed"),
             "next": api("removeCustomer"),
@@ -367,11 +343,11 @@ def handleLonelyCustomer(telehelpCallId):
         return payload
 
     if number == 2:
-        # db.writeCustomerAnalytics(telehelpCallId, ["deregistered"], ("True", telehelpCallId))
-        # payload = {
-        #     "play": ivr("avreg_confirmed"),
-        #     "next": api("removeCustomer"),
-        # }
+        db.write_customer_analytics(callid=telehelpCallId, unregistered=True)
+        payload = {
+            "play": ivr("avreg_confirmed"),
+            "next": api("removeCustomer"),
+        }
         checkPayload(payload, MEDIA_URL, log=log)
         return payload
 
@@ -382,11 +358,7 @@ def handleLonelyCustomer(telehelpCallId):
 def callExistingHelper(telehelpCallId):
     customerPhone = request.form.get("from")
     helperPhone = db.get_connected_helper(customerPhone)
-    # db.writeCustomerAnalytics(
-    #     telehelpCallId,
-    #     ["used_prev_helper", "deregistered"],
-    #     ("True", "False", telehelpCallId),
-    # )
+    db.write_customer_analytics(callid=telehelpCallId, used_prev_helper=True, unregistered=False)
     payload = {
         "connect": helperPhone,
         "callerid": ELK_NUMBER,
@@ -406,7 +378,7 @@ def postcodeInput(zipcode, telehelpCallId):
     db.add_customer(phone, zipcode, district)
     print("zipcode: ", zipcode)
 
-    closestHelpers = db.fetchHelper(district, zipcode, LOCATION_DICT)
+    closestHelpers = db.fetch_closest_helpers(district, zipcode, LOCATION_DICT)
 
     # Reads if the customer has a current helper and if so it will delete the current helper from closestHelpers
     # since the customer have choosen a new helper.
@@ -422,7 +394,7 @@ def postcodeInput(zipcode, telehelpCallId):
     db.set_call_history_helpers(callId, json.dumps(closestHelpers))
 
     if closestHelpers is None:
-        # db.writeCustomerAnalytics(telehelpCallId, ["n_helpers_contacted"], ("0", telehelpCallId))
+        db.write_customer_analytics(callid=telehelpCallId, n_helpers_contacted=0)
         payload = {"play": ivr("finns_ingen")}
 
         checkPayload(payload, MEDIA_URL, log=log)
@@ -448,11 +420,7 @@ def call(helperIndex, customerCallId, customerPhone, telehelpCallId):
     stopCalling = db.get_call_history_hangup(customerCallId)
     if stopCalling == "True":
         endTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
-        # db.writeCustomerAnalytics(
-        #     telehelpCallId,
-        #     ["call_end_time", "n_helpers_contacted"],
-        #     (endTime, str(helperIndex), telehelpCallId),
-        # )
+        db.write_customer_analytics(callid=telehelpCallId, call_end=endTime, n_helpers_contacted=helperIndex)
         return ""
     else:
         print("helperIndex:", helperIndex)
@@ -464,11 +432,7 @@ def call(helperIndex, customerCallId, customerPhone, telehelpCallId):
 
         if helperIndex >= len(closestHelpers):
             db.set_call_history_hangup(customerCallId, True)
-            # db.writeCustomerAnalytics(
-            #     telehelpCallId,
-            #     ["n_helpers_contacted"],
-            #     (str(helperIndex), telehelpCallId),
-            # )
+            db.write_customer_analytics(callid=telehelpCallId, n_helpers_contacted=helperIndex)
             return redirect(
                 url_for("callBackToCustomer", customerPhone=customerPhone, telehelpCallId=telehelpCallId)
             )
@@ -514,11 +478,7 @@ def callBackToCustomer(customerPhone, telehelpCallId):
 
     requests.post(ELK_BASE + "/a1/calls", data=fields, auth=ELK_AUTH)
     endTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
-    # db.writeCustomerAnalytics(
-    #     telehelpCallId,
-    #     ["call_end_time", "match_found"],
-    #     (endTime, "False", telehelpCallId),
-    # )
+    db.write_customer_analytics(callid=telehelpCallId, call_end=endTime, match_found=False)
 
     return ""
 
@@ -586,8 +546,7 @@ def connectUsers(customerPhone, customerCallId, telehelpCallId):
 
     print("Saving customer -> helper connection to database")
     # TODO: check current active customer/helper and move to previous
-    # db.writeCustomerAnalytics(telehelpCallId, ["match_found"], ("True", telehelpCallId))
-    # writeCustomerAnalytics(DATABASE, DATABASE_KEY, telehelpCallId, match_found="True")
+    db.write_customer_analytics(callid=telehelpCallId, match_found=True)
     db.connect_users(helperPhone, customerPhone)
     db.set_call_history_hangup(customerCallId, True)
     print("Connecting users")
