@@ -127,7 +127,7 @@ def receiveCall():
     callId = request.form.get("callid")
     startTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
     telehelpCallId = str(uuid.uuid4())
-    db.createNewCallHistory(callId)
+    db.create_call_history(callId)
 
     from_sender = request.form.get("from")
 
@@ -381,7 +381,7 @@ def handleLonelyCustomer(telehelpCallId):
 @app.route("/api/callExistingHelper/<string:telehelpCallId>", methods=["POST"])
 def callExistingHelper(telehelpCallId):
     customerPhone = request.form.get("from")
-    helperPhone = db.readActiveHelper(customerPhone)
+    helperPhone = db.get_connected_helper(customerPhone)
     # db.writeCustomerAnalytics(
     #     telehelpCallId,
     #     ["used_prev_helper", "deregistered"],
@@ -419,7 +419,7 @@ def postcodeInput(zipcode, telehelpCallId):
             closestHelpers.remove(helperPhone)
         db.reset_helper_contact(helperPhone)
 
-    db.writeCallHistory(callId, "closest_helpers", json.dumps(closestHelpers))
+    db.set_call_history_helpers(callId, json.dumps(closestHelpers))
 
     if closestHelpers is None:
         # db.writeCustomerAnalytics(telehelpCallId, ["n_helpers_contacted"], ("0", telehelpCallId))
@@ -428,7 +428,7 @@ def postcodeInput(zipcode, telehelpCallId):
         checkPayload(payload, MEDIA_URL, log=log)
         return payload
     else:
-        db.writeCallHistory(callId, "hangup", "False")
+        db.set_call_history_hangup(callId, False)
         payload = {
             "play": ivr("ringer_tillbaka"),
             "skippable": "true",
@@ -445,7 +445,7 @@ def postcodeInput(zipcode, telehelpCallId):
 def call(helperIndex, customerCallId, customerPhone, telehelpCallId):
     # NOTE: When making changes here, also update /callSupport :)
 
-    stopCalling = db.readCallHistory(customerCallId, "hangup")
+    stopCalling = db.get_call_history_hangup(customerCallId)
     if stopCalling == "True":
         endTime = time.strftime("%Y-%m-%d:%H-%M-%S", time.gmtime())
         # db.writeCustomerAnalytics(
@@ -459,11 +459,11 @@ def call(helperIndex, customerCallId, customerPhone, telehelpCallId):
 
         print("Customer callId: ", customerCallId)
 
-        closestHelpers = json.loads(db.readCallHistory(customerCallId, "closest_helpers"))
+        closestHelpers = json.loads(db.get_call_history_helpers(customerCallId))
         print("closest helpers: ", closestHelpers)
 
         if helperIndex >= len(closestHelpers):
-            db.writeCallHistory(customerCallId, "hangup", "True")
+            db.set_call_history_hangup(customerCallId, True)
             # db.writeCustomerAnalytics(
             #     telehelpCallId,
             #     ["n_helpers_contacted"],
@@ -589,14 +589,14 @@ def connectUsers(customerPhone, customerCallId, telehelpCallId):
     # db.writeCustomerAnalytics(telehelpCallId, ["match_found"], ("True", telehelpCallId))
     # writeCustomerAnalytics(DATABASE, DATABASE_KEY, telehelpCallId, match_found="True")
     db.connect_users(helperPhone, customerPhone)
-    db.writeCallHistory(customerCallId, "hangup", "True")
+    db.set_call_history_hangup(customerCallId, True)
     print("Connecting users")
     print("customer:", customerPhone)
 
     if HOOK_URL is not None:
-        res = db.readNewConnectionInfo(helperPhone)[0]
+        name, district = db.get_new_connection_details(helperPhone)
         requests.post(
-            HOOK_URL, {"content": f"{res[0]} från {res[1]} har fått kontakt med någon som behöver hjälp!"}
+            HOOK_URL, {"content": f"{name} från {district} har fått kontakt med någon som behöver hjälp!"}
         )
 
     payload = {"connect": customerPhone, "callerid": ELK_NUMBER, "timeout": "15"}
@@ -631,7 +631,7 @@ def receiveSms():
 
     if response == "TILLGÄNGLIG":
         # Clear database pairing to make volunteer available again. Remove volunteer from customer side too.
-        db.clearCustomerHelperPairing(volunteerNumber)
+        db.reset_pairing(volunteerNumber)
 
     # Your webhook code must respond with a HTTP status in the range 200-204.
     return ""
@@ -739,11 +739,11 @@ def support():
     callId = request.form.get("callid")
     phone = request.form.get("from")
 
-    # J, T, DEr
+    # J, T
     supportTeam = ["+46737600282", "+46707812741"]
     random.shuffle(supportTeam)  # Randomize order to spread load
-    db.writeCallHistory(callId, "closest_helpers", json.dumps(supportTeam))
-    db.writeCallHistory(callId, "hangup", "False")
+    db.set_call_history_helpers(callId, json.dumps(supportTeam))
+    db.set_call_history_hangup(callId, False)
     payload = {
         "play": ivr("ringer_tillbaka_support"),
         "skippable": "true",
@@ -754,7 +754,7 @@ def support():
 
 @app.route("/api/callSupport/<int:helperIndex>/<string:supportCallId>/<string:supportPhone>", methods=["POST"])
 def callSupport(helperIndex, supportCallId, supportPhone):
-    stopCalling = db.readCallHistory(supportCallId, "hangup")
+    stopCalling = db.get_call_history_hangup(supportCallId)
     if stopCalling == "True":
         return ""
     else:
@@ -762,11 +762,11 @@ def callSupport(helperIndex, supportCallId, supportPhone):
 
         print("Support customer callId: ", supportCallId)
 
-        supportTeamList = json.loads(db.readCallHistory(supportCallId, "closest_helpers"))
+        supportTeamList = json.loads(db.get_call_history_helpers(supportCallId))
         print("closest helpers: ", supportTeamList)
 
         if helperIndex >= len(supportTeamList):
-            db.writeCallHistory(supportCallId, "hangup", "True")
+            db.set_call_history_hangup(supportCallId, True)
             return redirect(url_for("callBackToSupportCustomer", supportPhone=supportPhone))
 
         print(supportTeamList[helperIndex])
@@ -811,7 +811,7 @@ def connectUsersSupport(customerPhone, customerCallId):
     helperPhone = request.form.get("to")
     print("support from: ", helperPhone)
 
-    db.writeCallHistory(customerCallId, "hangup", "True")
+    db.set_call_history_hangup(customerCallId, True)
     print("Connecting users")
     print("customer:", customerPhone)
     payload = {"connect": customerPhone, "callerid": ELK_NUMBER, "timeout": "15"}
