@@ -80,14 +80,7 @@ def readZipcodeFromDatabase(db, key, phone, userType):
 def saveHelperToDatabase(db, key, name, phone, zipcode, district, timestr):
     print("Writing phone and postcode to database")
     print(
-        "\nname: ",
-        name,
-        "\nzipcode:",
-        zipcode,
-        "\nphone: ",
-        phone,
-        "\ndistrict:",
-        district,
+        "\nname: ", name, "\nzipcode:", zipcode, "\nphone: ", phone, "\ndistrict:", district,
     )
 
     query = """ INSERT INTO user_helpers (phone, name, zipcode, district, signup_time)
