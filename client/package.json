@@ -15,7 +15,7 @@
     "mdbootstrap": "^4.15.0",
     "mdbreact": "^4.25.5",
     "mutation-observer": "^1.0.3",
-    "node-sass": "^4.13.1",
+    "node-sass": "^7.0.0",
     "popper.js": "^1.16.1",
     "react": "^16.13.1",
     "react-bootstrap": "^1.0.0",
